@@ -9,21 +9,23 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserService = void 0;
+exports.PrismaService = void 0;
 const common_1 = require("@nestjs/common");
-const prisma_service_1 = require("../config/prisma/prisma.service");
-let UserService = class UserService {
-    prisma;
-    constructor(prisma) {
-        this.prisma = prisma;
+const client_1 = require("@prisma/client");
+const config_1 = require("@nestjs/config");
+let PrismaService = class PrismaService extends client_1.PrismaClient {
+    constructor(configService) {
+        super({
+            datasourceUrl: configService.get('DATABASE_URL'),
+        });
     }
-    findAll() {
-        return this.prisma.testUser.findMany();
+    async onModuleInit() {
+        await this.$connect();
     }
 };
-exports.UserService = UserService;
-exports.UserService = UserService = __decorate([
+exports.PrismaService = PrismaService;
+exports.PrismaService = PrismaService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
-], UserService);
-//# sourceMappingURL=user.service.js.map
+    __metadata("design:paramtypes", [config_1.ConfigService])
+], PrismaService);
+//# sourceMappingURL=prisma.service.js.map

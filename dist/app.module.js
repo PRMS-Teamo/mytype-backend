@@ -10,10 +10,8 @@ exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
-const prisma_module_1 = require("./config/prisma/prisma.module");
-const mongoose_module_1 = require("./config/mongoose/mongoose.module");
+const mongoose_module_1 = require("./database/mongoose/mongoose.module");
 const config_1 = require("@nestjs/config");
-const user_module_1 = require("./users/user.module");
 const configModuleOptions = {
     isGlobal: true,
     envFilePath: '.env',
@@ -23,12 +21,7 @@ let AppModule = class AppModule {
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [
-            config_1.ConfigModule.forRoot(configModuleOptions),
-            prisma_module_1.PrismaConfigModule,
-            mongoose_module_1.MongooseConfigModule,
-            user_module_1.UserModule,
-        ],
+        imports: [config_1.ConfigModule.forRoot(configModuleOptions), mongoose_module_1.MongooseConfigModule],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
     })
