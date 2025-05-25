@@ -10,20 +10,54 @@ exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
-const mongoose_module_1 = require("./database/mongoose/mongoose.module");
-const config_1 = require("@nestjs/config");
-const configModuleOptions = {
-    isGlobal: true,
-    envFilePath: '.env',
-};
+const core_1 = require("@nestjs/core");
+const users_module_1 = require("./apis/users/users.module");
+const auth_module_1 = require("./apis/auth/auth.module");
+const admin_module_1 = require("./apis/admin/admin.module");
+const chats_module_1 = require("./websockets/chats/chats.module");
+const teams_module_1 = require("./apis/teams/teams.module");
+const applies_module_1 = require("./apis/applies/applies.module");
+const postgres_module_1 = require("./databases/postgres/postgres.module");
+const mongo_module_1 = require("./databases/mongo/mongo.module");
+const logger_module_1 = require("./loggers/logger.module");
+const throttler_1 = require("@nestjs/throttler");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [config_1.ConfigModule.forRoot(configModuleOptions), mongoose_module_1.MongooseConfigModule],
+        imports: [
+            throttler_1.ThrottlerModule.forRoot([
+                {
+                    name: 'short',
+                    ttl: 1000,
+                    limit: 3,
+                },
+                {
+                    name: 'long',
+                    ttl: 60000,
+                    limit: 100,
+                },
+            ]),
+            logger_module_1.LoggerModule,
+            postgres_module_1.PostgresModule,
+            mongo_module_1.MongoModule,
+            auth_module_1.AuthModule,
+            users_module_1.UsersModule,
+            teams_module_1.TeamsModule,
+            applies_module_1.AppliesModule,
+            admin_module_1.AdminModule,
+            chats_module_1.ChatsModule,
+            applies_module_1.AppliesModule,
+        ],
         controllers: [app_controller_1.AppController],
-        providers: [app_service_1.AppService],
+        providers: [
+            app_service_1.AppService,
+            {
+                provide: core_1.APP_GUARD,
+                useClass: throttler_1.ThrottlerGuard,
+            },
+        ],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

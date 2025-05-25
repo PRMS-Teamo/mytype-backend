@@ -1,17 +1,50 @@
-import { Module } from '@nestjs/common'
-import { AppController } from './app.controller'
-import { AppService } from './app.service'
-import { MongooseConfigModule } from './database/mongoose/mongoose.module'
-import { ConfigModule, ConfigModuleOptions } from '@nestjs/config'
-
-const configModuleOptions: ConfigModuleOptions = {
-  isGlobal: true,
-  envFilePath: '.env',
-}
+import { Module } from '@nestjs/common';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { APP_GUARD } from '@nestjs/core';
+import { UsersModule } from './apis/users/users.module';
+import { AuthModule } from './apis/auth/auth.module';
+import { AdminModule } from './apis/admin/admin.module';
+import { ChatsModule } from './websockets/chats/chats.module';
+import { TeamsModule } from './apis/teams/teams.module';
+import { AppliesModule } from './apis/applies/applies.module';
+import { PostgresModule } from './databases/postgres/postgres.module';
+import { MongoModule } from './databases/mongo/mongo.module';
+import { LoggerModule } from './loggers/logger.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
-  imports: [ConfigModule.forRoot(configModuleOptions), MongooseConfigModule],
+  imports: [
+    ThrottlerModule.forRoot([
+      {
+        name: 'short',
+        ttl: 1000,
+        limit: 3,
+      },
+      {
+        name: 'long',
+        ttl: 60000,
+        limit: 100,
+      },
+    ]),
+    LoggerModule,
+    PostgresModule,
+    MongoModule,
+    AuthModule,
+    UsersModule,
+    TeamsModule,
+    AppliesModule,
+    AdminModule,
+    ChatsModule,
+    AppliesModule,
+  ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}
