@@ -21,12 +21,16 @@ const postgres_module_1 = require("./databases/postgres/postgres.module");
 const mongo_module_1 = require("./databases/mongo/mongo.module");
 const logger_module_1 = require("./loggers/logger.module");
 const throttler_1 = require("@nestjs/throttler");
+const config_1 = require("@nestjs/config");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
+            config_1.ConfigModule.forRoot({
+                isGlobal: true,
+            }),
             throttler_1.ThrottlerModule.forRoot([
                 {
                     name: 'short',
