@@ -1,4 +1,4 @@
-import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
+import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface'
 
 export const corsConfig = (): CorsOptions => ({
   origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
@@ -14,4 +14,4 @@ export const corsConfig = (): CorsOptions => ({
   allowedHeaders: ['Content-Type', 'Authorization'],
   exposedHeaders: ['Content-Range', 'X-Content-Range'],
   maxAge: 600,
-});
+})

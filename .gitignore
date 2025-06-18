@@ -4,3 +4,4 @@ secret/*
 secret/
 .vscode/
 dist/
+logs/
