@@ -1,5 +1,5 @@
 ---
-name: 'PR Template : Testing'
+name: PULL_REQUEST_TEMPLATE
 about: For PR
 title: PR Request
 labels: ''
