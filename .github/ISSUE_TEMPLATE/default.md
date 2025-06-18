@@ -1,5 +1,5 @@
 ---
-name: PULL_REQUEST_TEMPLATE
+name: default
 about: For PR
 title: PR Request
 labels: ''
