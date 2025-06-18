@@ -6,37 +6,36 @@ import {
   Patch,
   Param,
   Delete,
-} from '@nestjs/common'
-import { AuthService } from './auth.service'
-import { CreateAuthDto } from './dto/create-auth.dto'
-import { UpdateAuthDto } from './dto/update-auth.dto'
+  UseGuards,
+  HttpCode,
+  Req,
+  Res,
+} from "@nestjs/common";
+import { AuthService } from "./auth.service";
+import { CreateAuthDto } from "./dto/create-auth.dto";
+import { UpdateAuthDto } from "./dto/update-auth.dto";
+import { AuthGuard } from "@nestjs/passport";
+import { Request, Response } from "express";
+import {AccessTokenGuard, BearerTokenGuard, RefreshTokenGuard} from "@/apis/auth/guard/bearer-token.guard";
 
-@Controller('auth')
+@Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+  @Get("kakao")
+  @UseGuards(AuthGuard("kakao"))
+  async kakaoLogin() {}
 
-  @Post()
-  create(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.create(createAuthDto)
+  @Get("kakao/callback")
+  @UseGuards(AuthGuard("kakao"))
+  async kakaoCallback(@Req() req: Request, @Res() res: Response) {
+    console.log("callback", req.user);
+    const result = await this.authService.kakaoLogin(req.user);
+    return res.json(result);
   }
 
-  @Get()
-  findAll() {
-    return this.authService.findAll()
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.authService.findOne(+id)
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
-    return this.authService.update(+id, updateAuthDto)
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.authService.remove(+id)
+  @Get("refresh_test")
+  @UseGuards(RefreshTokenGuard)
+  test() {
+    return "refresh";
   }
 }
