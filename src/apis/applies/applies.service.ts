@@ -9,7 +9,7 @@ export class AppliesService {
   }
 
   findAll() {
-    return `This action returns all applies`;
+    return "This action returns all applies";
   }
 
   findOne(id: number) {

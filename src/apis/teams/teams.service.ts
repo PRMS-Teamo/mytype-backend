@@ -9,7 +9,7 @@ export class TeamsService {
   }
 
   findAll() {
-    return `This action returns all teams`;
+    return "This action returns all teams";
   }
 
   findOne(id: number) {

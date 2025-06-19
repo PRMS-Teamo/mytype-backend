@@ -24,12 +24,12 @@
     "**/node_modules": true,
     "**/dist": true
   },
-  "prettier.singleQuote": false,
-  "prettier.semi": true,
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "prettier.configPath": ".vscode/settings.json",
+  "prettier.endOfLine": "lf"
 }
