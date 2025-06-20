@@ -25,6 +25,10 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Teamo Architecture Diagram
+
+![architecture](./docs/teamo-architecture.svg)
+
 ## Project setup
 
 ```bash
