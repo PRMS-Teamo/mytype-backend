@@ -5,7 +5,7 @@ import { promises as fsPromises } from "fs";
 
 @Injectable()
 export class LoggerService extends ConsoleLogger {
-  async logToFile(entry) {
+  async logToFile(entry: string) {
     const formattedEntry = `${Intl.DateTimeFormat("en-US", {
       dateStyle: "short",
       timeStyle: "short",
@@ -25,14 +25,14 @@ export class LoggerService extends ConsoleLogger {
     }
   }
 
-  log(message: any, context?: string) {
-    const entry = `${context}\t${message}`;
+  log(message: unknown, context?: string) {
+    const entry = `${context}\t${String(message)}`;
     this.logToFile(entry);
     super.log(message, context);
   }
 
-  error(message: any, stackOrContext?: string) {
-    const entry = `${stackOrContext}\t${message}`;
+  error(message: unknown, stackOrContext?: string) {
+    const entry = `${stackOrContext}\t${String(message)}`;
     this.logToFile(entry);
     super.error(message, stackOrContext);
   }

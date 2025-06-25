@@ -2,3 +2,5 @@ node_modules
 .vscode
 .git
 .env
+docs
+databases

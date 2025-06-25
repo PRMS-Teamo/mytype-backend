@@ -1,39 +1,31 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UseGuards,
-  HttpCode,
-  Req,
-  Res,
-} from "@nestjs/common";
+import { Controller, Get, UseGuards, Req, Res } from "@nestjs/common";
 import { AuthService } from "./auth.service";
-import { CreateAuthDto } from "./dto/create-auth.dto";
-import { UpdateAuthDto } from "./dto/update-auth.dto";
 import { AuthGuard } from "@nestjs/passport";
 import { Request, Response } from "express";
-import {
-  AccessTokenGuard,
-  BearerTokenGuard,
-  RefreshTokenGuard,
-} from "@/apis/auth/guard/bearer-token.guard";
+import { RefreshTokenGuard } from "@/apis/auth/guard/bearer-token.guard";
+
+interface User {
+  id: string;
+  username?: string;
+  displayName?: string;
+}
 
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
   @Get("kakao")
   @UseGuards(AuthGuard("kakao"))
   async kakaoLogin() {}
 
   @Get("kakao/callback")
   @UseGuards(AuthGuard("kakao"))
-  async kakaoCallback(@Req() req: Request, @Res() res: Response) {
+  kakaoCallback(@Req() req: Request, @Res() res: Response) {
     console.log("callback", req.user);
-    const result = await this.authService.kakaoLogin(req.user);
+    if (!req.user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+    const result = this.authService.kakaoLogin(req.user as User);
     return res.json(result);
   }
 

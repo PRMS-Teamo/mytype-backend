@@ -3,6 +3,21 @@ import { PassportStrategy } from "@nestjs/passport";
 import { Strategy } from "passport-kakao";
 import { ConfigService } from "@nestjs/config";
 
+interface KakaoProfile {
+  id: string;
+  username?: string;
+  displayName?: string;
+  _json?: {
+    id: number;
+    connected_at: string;
+    properties: {
+      nickname?: string;
+      profile_image?: string;
+      thumbnail_image?: string;
+    };
+  };
+}
+
 @Injectable()
 export class KakaoStrategy extends PassportStrategy(Strategy, "kakao") {
   constructor(private configService: ConfigService) {
@@ -12,11 +27,11 @@ export class KakaoStrategy extends PassportStrategy(Strategy, "kakao") {
     });
   }
 
-  async validate(
+  validate(
     accessToken: string,
     refreshToken: string,
-    profile: any,
-    done: any,
+    profile: KakaoProfile,
+    done: (error: any, user?: any) => void,
   ) {
     console.log("kakao login 정보", JSON.stringify(profile, null, 2));
     done(null, profile);

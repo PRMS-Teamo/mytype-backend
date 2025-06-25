@@ -1,0 +1,47 @@
+services:
+  pg_teamo:
+    image: postgres:latest
+    ports:
+      - 54332:5432
+    environment:
+      POSTGRES_USER: ${DB_USER:-teamo}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-teamo}
+      POSTGRES_DB: ${DB_NAME:-teamo}
+    volumes:
+      - ./databases/postgres/init-database.sql:/docker-entrypoint-initdb.d/init-database.sql
+  mongo_teamo:
+    image: mongo:8.0.9
+    ports:
+      - 27027:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USER:-teamo}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD:-teamo}
+    volumes:
+      - ./databases/mongo/init.js:/docker-entrypoint-initdb.d/init.js
+  redis:
+    image: redis:latest
+    ports:
+      - 6389:6379
+    volumes:
+      - ./databases/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+  nestjs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 30040:3000
+    volumes:
+      - ./src:/app/src
+      - ./prisma:/app/prisma
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./tsconfig.build.json:/app/tsconfig.build.json
+      - ./tsconfig.app.json:/app/tsconfig.app.json
+      - ./nest-cli.json:/app/nest-cli.json
+      - .env:/app/.env
+    depends_on:
+      - postgres
+      - mongo
+      - redis
