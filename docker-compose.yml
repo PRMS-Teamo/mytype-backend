@@ -18,14 +18,14 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD:-teamo}
     volumes:
       - ./databases/mongo/init.js:/docker-entrypoint-initdb.d/init.js
-  redis:
+  redis_teamo:
     image: redis:latest
     ports:
       - 6389:6379
     volumes:
       - ./databases/redis/redis.conf:/usr/local/etc/redis/redis.conf
     command: redis-server /usr/local/etc/redis/redis.conf
-  nestjs:
+  backend_teamo:
     build:
       context: .
       dockerfile: Dockerfile
@@ -42,6 +42,6 @@ services:
       - ./nest-cli.json:/app/nest-cli.json
       - .env:/app/.env
     depends_on:
-      - postgres
-      - mongo
-      - redis
+      - pg_teamo
+      - mongo_teamo
+      - redis_teamo

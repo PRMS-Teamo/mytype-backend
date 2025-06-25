@@ -101,4 +101,4 @@ echo "✅ .env 파일 업데이트 완료"
 
 echo "🎉 데이터베이스 초기화 설정 완료!"
 echo "다음 명령어로 Docker 컨테이너를 시작하세요:"
-echo "docker-compose up -d" 
+echo "docker-compose up --build" 
