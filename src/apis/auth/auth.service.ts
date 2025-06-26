@@ -32,7 +32,7 @@ export class AuthService {
       type: isAccessToken ? "access" : "refresh",
     };
     const token: string = this.jwtService.sign(payload, {
-      secret: this.configService.get("JWT_KEY"),
+      secret: this.configService.get("JWT_SECRET"),
       expiresIn: isAccessToken ? 300 : 3600,
     });
     return token;
@@ -51,7 +51,7 @@ export class AuthService {
     console.log("input token value", token);
     try {
       const result: any = this.jwtService.verify(token, {
-        secret: this.configService.get("JWT_KEY"),
+        secret: this.configService.get("JWT_SECRET"),
       });
       return result;
     } catch (error) {
