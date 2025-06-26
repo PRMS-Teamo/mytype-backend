@@ -9,6 +9,12 @@ services:
       POSTGRES_DB: ${DB_NAME:-teamo}
     volumes:
       - ./databases/postgres/init-database.sql:/docker-entrypoint-initdb.d/init-database.sql
+    healthcheck:
+      test:
+        ["CMD-SHELL", "pg_isready -U ${DB_USER:-teamo} -d ${DB_NAME:-teamo}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   mongo_teamo:
     image: mongo:8.0.9
     ports:
@@ -18,6 +24,24 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD:-teamo}
     volumes:
       - ./databases/mongo/init.js:/docker-entrypoint-initdb.d/init.js
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mongosh",
+          "--username",
+          "${DB_USER:-teamo}",
+          "--password",
+          "${DB_PASSWORD:-teamo}",
+          "--authenticationDatabase",
+          "admin",
+          "--eval",
+          "db.adminCommand('ping')",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
   redis_teamo:
     image: redis:latest
     ports:
@@ -25,6 +49,11 @@ services:
     volumes:
       - ./databases/redis/redis.conf:/usr/local/etc/redis/redis.conf
     command: redis-server /usr/local/etc/redis/redis.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   backend_teamo:
     build:
       context: .
@@ -42,6 +71,10 @@ services:
       - ./nest-cli.json:/app/nest-cli.json
       - .env:/app/.env
     depends_on:
-      - pg_teamo
-      - mongo_teamo
-      - redis_teamo
+      pg_teamo:
+        condition: service_healthy
+      mongo_teamo:
+        condition: service_healthy
+      redis_teamo:
+        condition: service_healthy
+    restart: unless-stopped
