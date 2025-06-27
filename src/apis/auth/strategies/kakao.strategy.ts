@@ -21,9 +21,7 @@ interface KakaoProfile {
 
 @Injectable()
 export class KakaoStrategy extends PassportStrategy(Strategy, "kakao") {
-  constructor(
-    private configService: ConfigService,
-  ) {
+  constructor(private configService: ConfigService) {
     super({
       clientID: configService.get("KAKAO_API_KEY") as string,
       callbackURL: `${configService.get("URL")}/auth/kakao/callback`,
@@ -43,17 +41,16 @@ export class KakaoStrategy extends PassportStrategy(Strategy, "kakao") {
     // 4. auth_methods 에 등록되어있는 id를 가져온다.
     // 5. user_auth에 정보를 등록한다.
 
-    const authMethod = "kakao"
+    const authMethod = "kakao";
     const authMethodData = await prisma.auth_methods.findFirst({
       where: {
-        platform: authMethod
-      }
-    })
+        platform: authMethod,
+      },
+    });
     if (!authMethodData) {
-      throw Error(`해당 authMethod에 해당하는 데이터가 존재하지 않습니다.`);
+      throw Error("해당 authMethod에 해당하는 데이터가 존재하지 않습니다.");
     }
     const authMethodId = authMethodData["id"];
-
 
     const isExist = await prisma.user_auths.findFirst({
       where: {
@@ -67,31 +64,29 @@ export class KakaoStrategy extends PassportStrategy(Strategy, "kakao") {
         kakaoId,
         username: profile.username,
         displayName: profile.displayName,
-        status: "NEW"
-      }
-      const addUser = await prisma.users.create(
-        {
-          data: {
-            name: profile.username as string,
-            nickname: profile.displayName as string,
-          },
-        }
-      );
+        status: "NEW",
+      };
+      const addUser = await prisma.users.create({
+        data: {
+          name: profile.username as string,
+          nickname: profile.displayName as string,
+        },
+      });
       const userUUID = addUser.id;
       const addUserAuth = await prisma.user_auths.create({
         data: {
           user_id: userUUID,
           auth_id: authMethodId,
           external_id: kakaoId,
-        }
-      })
+        },
+      });
     } else {
       user = {
         kakaoId,
         username: profile.username,
         displayName: profile.displayName,
-        status: "DONE"
-      }
+        status: "DONE",
+      };
     }
 
     done(null, user);
