@@ -15,7 +15,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  kakaoLogin(user: User) {
+  generateTokens(user: User) {
     const accessToken = this.generateToken(user, true);
     const refreshToken = this.generateToken(user, false);
     const token = {

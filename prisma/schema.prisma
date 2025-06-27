@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("POSTGRES_URL")
+  provider = "postgresql"
+  url      = env("DIRECT_URL")
 }
 
 model apply_history {
@@ -18,15 +18,6 @@ model apply_history {
   updated_at   DateTime?     @db.Timestamp(6)
   teams        teams         @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_teams_TO_apply_history_1")
   users        users         @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_users_TO_apply_history_1")
-}
-
-model auth_methods {
-  id          String       @id(map: "PK_AUTH_METHODS") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  auth_method auth_method? @default(OAuth)
-  platform    String       @db.VarChar(50)
-  created_at  DateTime?    @default(now()) @db.Timestamp(6)
-  updated_at  DateTime?    @db.Timestamp(6)
-  user_auths  user_auths[]
 }
 
 model positions {
@@ -104,17 +95,6 @@ model teams {
   team_stack_positions team_stack_positions[]
 }
 
-model user_auths {
-  user_id      String       @db.Uuid
-  auth_id      String       @db.Uuid
-  created_at   DateTime?    @default(now()) @db.Timestamp(6)
-  updated_at   DateTime?    @db.Timestamp(6)
-  auth_methods auth_methods @relation(fields: [auth_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_auth_methods_TO_user_auths_1")
-  users        users        @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_users_TO_user_auths_1")
-
-  @@id([user_id, auth_id], map: "PK_USER_AUTHS")
-}
-
 model user_positions {
   user_id     String    @db.Uuid
   position_id String    @db.Uuid
@@ -156,6 +136,27 @@ model users {
   user_auths     user_auths[]
   user_positions user_positions[]
   user_stacks    user_stacks[]
+}
+
+model user_auths {
+  user_id      String       @db.Uuid
+  auth_id      String       @db.Uuid
+  external_id  String       @db.VarChar(100)
+  created_at   DateTime?    @default(now()) @db.Timestamp(6)
+  updated_at   DateTime?    @db.Timestamp(6)
+  auth_methods auth_methods @relation(fields: [auth_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_auth_methods_TO_user_auths_1")
+  users        users        @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_users_TO_user_auths_1")
+
+  @@unique([user_id, auth_id], map: "PK_USER_AUTHS")
+}
+
+model auth_methods {
+  id          String       @id(map: "PK_AUTH_METHODS") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  auth_method auth_method? @default(OAuth)
+  platform    String       @db.VarChar(50)
+  created_at  DateTime?    @default(now()) @db.Timestamp(6)
+  updated_at  DateTime?    @db.Timestamp(6)
+  user_auths  user_auths[]
 }
 
 enum apply_from {

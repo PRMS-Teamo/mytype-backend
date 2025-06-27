@@ -3,6 +3,9 @@ import { AuthService } from "./auth.service";
 import { AuthGuard } from "@nestjs/passport";
 import { Request, Response } from "express";
 import { RefreshTokenGuard } from "@/apis/auth/guard/bearer-token.guard";
+import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import { KakaoCallbackResponseDto } from "./dto/kakao-callback-response.dto";
+
 
 interface User {
   id: string;
@@ -16,17 +19,25 @@ export class AuthController {
 
   @Get("kakao")
   @UseGuards(AuthGuard("kakao"))
-  async kakaoLogin() {}
+  async redirectToKakao() {}
 
   @Get("kakao/callback")
   @UseGuards(AuthGuard("kakao"))
+  @ApiOkResponse({
+    description: "카카오 로그인 성공 응답",
+    type: KakaoCallbackResponseDto,
+  })
   kakaoCallback(@Req() req: Request, @Res() res: Response) {
-    console.log("callback", req.user);
     if (!req.user) {
       return res.status(401).json({ message: "User not found" });
     }
-    const result = this.authService.kakaoLogin(req.user as User);
-    return res.json(result);
+    console.log('reqreqreqreq', req)
+    const tokens = this.authService.generateTokens(req.user as User);
+    const response = {
+      ...req.user,
+      tokens
+    }
+    return res.json(response);
   }
 
   @Get("refresh_test")
