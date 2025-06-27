@@ -3,7 +3,7 @@ import { AuthService } from "./auth.service";
 import { AuthGuard } from "@nestjs/passport";
 import { Request, Response } from "express";
 import { RefreshTokenGuard } from "@/apis/auth/guard/bearer-token.guard";
-import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import { ApiOkResponse } from "@nestjs/swagger";
 import { KakaoCallbackResponseDto } from "./dto/kakao-callback-response.dto";
 
 interface User {
