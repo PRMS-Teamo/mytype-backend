@@ -12,3 +12,8 @@ export interface KakaoProfileResponse {
     };
   };
 }
+
+export type User = Pick<
+  KakaoProfileResponse,
+  "id" | "username" | "displayName"
+>;

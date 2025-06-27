@@ -5,12 +5,7 @@ import { Request, Response } from "express";
 import { RefreshTokenGuard } from "@/apis/auth/guard/bearer-token.guard";
 import { ApiOkResponse } from "@nestjs/swagger";
 import { KakaoCallbackResponseDto } from "./dto/kakao-callback-response.dto";
-
-interface User {
-  id: string;
-  username?: string;
-  displayName?: string;
-}
+import { User } from "@/apis/auth/types/auth.interface";
 
 @Controller("auth")
 export class AuthController {
