@@ -76,8 +76,8 @@ echo "✅ MongoDB 초기화 스크립트 생성 완료"
 
 # .env 파일 업데이트 (기존 파일 백업)
 if [ -f .env ]; then
-    cp .env .env.backup
-    echo "📋 .env 파일 백업 생성: .env.backup"
+   cp .env .env.backup
+   echo "📋 .env 파일 백업 생성: .env.backup"
 fi
 
 # .env 파일 생성/업데이트
