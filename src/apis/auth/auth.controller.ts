@@ -3,15 +3,9 @@ import { AuthService } from "./auth.service";
 import { AuthGuard } from "@nestjs/passport";
 import { Request, Response } from "express";
 import { RefreshTokenGuard } from "@/apis/auth/guard/bearer-token.guard";
-import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import { ApiOkResponse } from "@nestjs/swagger";
 import { KakaoCallbackResponseDto } from "./dto/kakao-callback-response.dto";
-
-
-interface User {
-  id: string;
-  username?: string;
-  displayName?: string;
-}
+import { User } from "@/apis/auth/types/auth.interface";
 
 @Controller("auth")
 export class AuthController {
@@ -31,12 +25,11 @@ export class AuthController {
     if (!req.user) {
       return res.status(401).json({ message: "User not found" });
     }
-    console.log('reqreqreqreq', req)
     const tokens = this.authService.generateTokens(req.user as User);
     const response = {
       ...req.user,
-      tokens
-    }
+      tokens,
+    };
     return res.json(response);
   }
 
