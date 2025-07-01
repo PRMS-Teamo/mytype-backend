@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 
-export class FindMeDto {
+export class GetMyInfoDto {
   @ApiProperty({ example: "123455-123421-12341-..." })
   id: string;
 
@@ -39,4 +39,18 @@ export class FindMeDto {
 
   @ApiProperty({ example: null })
   Field: null | string;
+}
+
+export class PutMyInfoDto {
+  @ApiProperty({ example: "scorchedrice", required: false })
+  github_url: string;
+
+  @ApiProperty({ example: "월마리아", required: false })
+  address: string;
+
+  @ApiProperty({ example: 3, required: false })
+  img: number;
+
+  @ApiProperty({ example: "니크네이므", required: false })
+  nickname: string;
 }

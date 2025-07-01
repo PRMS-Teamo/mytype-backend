@@ -1,7 +1,9 @@
 import {
+  Body,
   Controller,
   Get,
   NotFoundException,
+  Put,
   Req,
   Res,
   UseGuards,
@@ -11,17 +13,17 @@ import { AccessTokenGuard } from "@/apis/auth/guard/bearer-token.guard";
 import { Request, Response } from "express";
 import { User } from "@/apis/auth/types/auth.interface";
 import { ApiOkResponse } from "@nestjs/swagger";
-import { FindMeDto } from "@/apis/users/dto/find-me.dto";
+import { GetMyInfoDto, PutMyInfoDto } from "@/apis/users/dto/my-info.dto";
 
 @Controller("users")
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get("me")
+  @Get()
   @UseGuards(AccessTokenGuard)
   @ApiOkResponse({
     description: "내 정보 찾기 응답 성공",
-    type: FindMeDto,
+    type: GetMyInfoDto,
   })
   async getUser(@Req() req: Request, @Res() res: Response) {
     const user = req.user as User;
@@ -31,5 +33,11 @@ export class UsersController {
       throw new NotFoundException("Not Found");
     }
     return res.status(200).json(findUser.users);
+  }
+
+  @Put()
+  @UseGuards(AccessTokenGuard)
+  updateMyInfo(@Body() putMyInfo: PutMyInfoDto) {
+    return "test";
   }
 }
