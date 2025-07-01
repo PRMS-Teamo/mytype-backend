@@ -13,7 +13,11 @@ export interface KakaoProfileResponse {
   };
 }
 
-export type User = Pick<
-  KakaoProfileResponse,
-  "id" | "username" | "displayName"
->;
+export interface User {
+  kakaoId: string;
+  username: string;
+  displayName: string;
+  status: "DONE" | "NEW";
+}
+
+export type TokenPayload = Pick<User, "kakaoId" | "username" | "displayName">;

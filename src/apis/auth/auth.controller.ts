@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Req, Res } from "@nestjs/common";
+import { Controller, Get, UseGuards, Req, Res, Post } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { AuthGuard } from "@nestjs/passport";
 import { Request, Response } from "express";
@@ -28,9 +28,15 @@ export class AuthController {
     if (!req.user) {
       return res.status(401).json({ message: "User not found" });
     }
-    const tokens = this.authService.generateTokens(req.user as User);
+    const user = req.user as User;
+    const tokenPayload = {
+      kakaoId: user.kakaoId,
+      username: user.username,
+      displayName: user.displayName,
+    };
+    const tokens = this.authService.generateTokens(tokenPayload);
     const response = {
-      ...req.user,
+      ...user,
       tokens,
     };
     const FEURL = "http://localhost:5173";
@@ -49,6 +55,19 @@ export class AuthController {
           }
       </script>
     `);
+  }
+  //
+  @Post("refresh")
+  @UseGuards(RefreshTokenGuard)
+  refresh(@Req() req) {
+    const user = req.user as User;
+    const tokenPayload = {
+      kakaoId: user.kakaoId,
+      username: user.username,
+      displayName: user.displayName,
+    };
+    const tokens = this.authService.generateTokens(tokenPayload);
+    return tokens;
   }
 
   @Get("test/refresh")
