@@ -7,8 +7,10 @@ services:
       POSTGRES_USER: ${DB_USER:-teamo}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-teamo}
       POSTGRES_DB: ${DB_NAME:-teamo}
+      RESET_DB: ${RESET_DB:-false}
     volumes:
       - ./databases/postgres/init-database.sql:/docker-entrypoint-initdb.d/init-database.sql
+      - ${DB_VOLUME_PATH:-pg_teamo_data}:/var/lib/postgresql/data
     healthcheck:
       test:
         ["CMD-SHELL", "pg_isready -U ${DB_USER:-teamo} -d ${DB_NAME:-teamo}"]
@@ -60,6 +62,9 @@ services:
       dockerfile: Dockerfile
     ports:
       - 30040:3000
+    environment:
+      PRISMA_FORCE_RESET: ${PRISMA_FORCE_RESET:-false}
+      DATABASE_URL: postgresql://${DB_USER:-teamo}:${DB_PASSWORD:-teamo}@pg_teamo:5432/${DB_NAME:-teamo}
     volumes:
       - ./src:/app/src
       - ./prisma:/app/prisma
@@ -78,3 +83,7 @@ services:
       redis_teamo:
         condition: service_healthy
     restart: unless-stopped
+
+volumes:
+  pg_teamo_data:
+    driver: local

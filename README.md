@@ -61,20 +61,86 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
-## Test Environment
+## Development Environment
+
+### Quick Start
 
 ```bash
-# initiate .env
-$ bash scripts/setup-env.sh
+# Start development environment
+$ npm run docker:dev
 
-# docker compose start
-
-$ docker compose up --build
-
-# watch backend terminal log
-
-$ docker logs backend_teamo
+# Or manually
+$ ./scripts/dev-start.sh
 ```
+
+### Database Management
+
+This project includes smart database schema management that automatically handles Prisma schema changes:
+
+#### Available Scripts
+
+```bash
+# Docker commands
+$ npm run docker:dev     # Start development environment
+$ npm run docker:reset   # Reset database and restart
+$ npm run docker:down    # Stop all containers
+$ npm run docker:logs    # View backend logs
+
+# Database commands (local development)
+$ npm run db:generate    # Generate Prisma client
+$ npm run db:push        # Push schema changes to database
+$ npm run db:migrate     # Create and apply migrations
+$ npm run db:reset       # Reset database completely
+$ npm run db:studio      # Open Prisma Studio
+```
+
+#### Handling Schema Changes
+
+When you modify `prisma/schema.prisma`, the system automatically:
+
+1. **Normal Start**: Attempts to apply migrations or sync schema
+2. **Schema Conflicts**: Automatically handles conflicts by:
+   - Trying migration deployment first
+   - Falling back to schema push with data loss acceptance
+   - Force reset as last resort
+
+#### Manual Database Reset
+
+When you need a clean database (e.g., after major schema changes):
+
+```bash
+# Interactive reset with volume cleanup option
+$ npm run docker:reset
+
+# Or use the script directly
+$ ./scripts/dev-reset.sh
+```
+
+#### Environment Variables
+
+Create a `.env` file (automatically created on first run):
+
+```env
+# Database Configuration
+DB_USER=teamo
+DB_PASSWORD=teamo
+DB_NAME=teamo
+
+# Prisma Configuration
+DATABASE_URL=postgresql://teamo:teamo@localhost:54332/teamo
+
+# Development Settings
+PRISMA_FORCE_RESET=false  # Set to 'true' to force database reset on startup
+RESET_DB=false
+```
+
+#### Services
+
+- **Backend API**: http://localhost:30040
+- **PostgreSQL**: localhost:54332
+- **MongoDB**: localhost:27027
+- **Redis**: localhost:6389
+- **Prisma Studio**: `npm run db:studio`
 
 ## Deployment
 

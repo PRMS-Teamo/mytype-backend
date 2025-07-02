@@ -17,7 +17,16 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:reset": "prisma migrate reset",
+    "db:studio": "prisma studio",
+    "docker:dev": "./scripts/dev-start.sh",
+    "docker:reset": "./scripts/dev-reset.sh",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f backend_teamo"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
