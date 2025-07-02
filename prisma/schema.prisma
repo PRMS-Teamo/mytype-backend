@@ -26,7 +26,7 @@ model positions {
   created_at           DateTime?              @default(now()) @db.Timestamp(6)
   updated_at           DateTime?              @db.Timestamp(6)
   team_stack_positions team_stack_positions[]
-  user_positions       user_positions[]
+  users                users[]
 }
 
 model stack_categories {
@@ -95,18 +95,6 @@ model teams {
   team_stack_positions team_stack_positions[]
 }
 
-model user_positions {
-  user_id     String    @db.Uuid
-  position_id String    @db.Uuid
-  priority    Int?
-  created_at  DateTime? @default(now()) @db.Timestamp(6)
-  updated_at  DateTime? @db.Timestamp(6)
-  positions   positions @relation(fields: [position_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_positions_TO_user_positions_1")
-  users       users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_users_TO_user_positions_1")
-
-  @@id([user_id, position_id], map: "PK_USER_POSITIONS")
-}
-
 model user_stacks {
   user_id    String    @db.Uuid
   stack_id   String    @db.Uuid
@@ -119,23 +107,25 @@ model user_stacks {
 }
 
 model users {
-  id             String           @id(map: "PK_USERS") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  role           roles?           @default(USER)
-  name           String           @db.VarChar(50)
-  nickname       String?          @db.VarChar(30)
-  password       String?          @db.VarChar(200)
-  github_url     String?          @db.VarChar(200)
-  img            String?          @db.VarChar(200)
-  address        String?          @db.VarChar(100)
-  join_status    Boolean?
-  create_at      DateTime?        @default(now()) @db.Timestamp(6)
-  updated_at     DateTime?        @db.Timestamp(6)
-  Field          String?          @db.VarChar(255)
-  apply_history  apply_history[]
-  team_users     team_users[]
-  user_auths     user_auths[]
-  user_positions user_positions[]
-  user_stacks    user_stacks[]
+  id                String          @id(map: "PK_USERS") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  position_id       String?         @db.Uuid
+  role              roles?          @default(USER)
+  name              String          @db.VarChar(50)
+  nickname          String?         @db.VarChar(30)
+  salt              String?         @db.VarChar(200)
+  github_url        String?         @db.VarChar(200)
+  img               String?         @db.VarChar(200)
+  address           String?         @db.VarChar(100)
+  join_status       Boolean?
+  create_at         DateTime?       @default(now()) @db.Timestamp(6)
+  updated_at        DateTime?       @db.Timestamp(6)
+  Field             String?         @db.VarChar(255)
+  apply_history     apply_history[]
+  team_users        team_users[]
+  user_auths        user_auths[]
+  positions         positions?      @relation(fields: [position_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_positions_TO_users_1")
+  user_stacks       user_stacks[]
+  preferred_meeting meetings
 }
 
 model user_auths {
@@ -196,4 +186,10 @@ enum roles {
   USER
   ADMIN
   MASTER
+}
+
+enum meetings {
+  ONLINE
+  OFFLINE
+  BOTH
 }
