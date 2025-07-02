@@ -8,5 +8,6 @@ import { PrismaService } from "@/databases/prisma/prisma.service";
 @Module({
   providers: [AuthService, KakaoStrategy, JwtService, PrismaService],
   controllers: [AuthController],
+  exports: [AuthService],
 })
 export class AuthModule {}

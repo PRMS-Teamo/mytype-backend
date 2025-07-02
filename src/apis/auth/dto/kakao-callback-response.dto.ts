@@ -20,4 +20,7 @@ export class KakaoCallbackResponseDto {
 
   @ApiProperty({ type: TokenDto })
   tokens: TokenDto;
+
+  @ApiProperty({ example: "DONE" })
+  status: "DONE" | "NEW";
 }

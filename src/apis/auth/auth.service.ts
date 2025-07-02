@@ -1,12 +1,7 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
-
-interface User {
-  id: string;
-  username?: string;
-  displayName?: string;
-}
+import { TokenPayload } from "@/apis/auth/types/auth.interface";
 
 @Injectable()
 export class AuthService {
@@ -15,7 +10,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  generateTokens(user: User) {
+  generateTokens(user: TokenPayload) {
     const accessToken = this.generateToken(user, true);
     const refreshToken = this.generateToken(user, false);
     const token = {
@@ -25,15 +20,16 @@ export class AuthService {
     return token;
   }
 
-  generateToken(user: User, isAccessToken: boolean): string {
+  generateToken(user: TokenPayload, isAccessToken: boolean): string {
     const payload = {
-      sub: user.id,
-      nickname: user.username || user.displayName,
+      kakaoId: user.kakaoId,
+      username: user.username,
+      displayName: user.displayName,
       type: isAccessToken ? "access" : "refresh",
     };
     const token: string = this.jwtService.sign(payload, {
       secret: this.configService.get("JWT_SECRET"),
-      expiresIn: isAccessToken ? 300 : 3600,
+      expiresIn: isAccessToken ? 3600 : 3600,
     });
     return token;
   }
@@ -48,7 +44,6 @@ export class AuthService {
   }
 
   verifyToken(token: string): any {
-    console.log("input token value", token);
     try {
       const result: any = this.jwtService.verify(token, {
         secret: this.configService.get("JWT_SECRET"),
