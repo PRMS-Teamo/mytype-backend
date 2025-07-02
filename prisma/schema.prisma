@@ -125,7 +125,7 @@ model users {
   user_auths        user_auths[]
   positions         positions?      @relation(fields: [position_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_positions_TO_users_1")
   user_stacks       user_stacks[]
-  preferred_meeting meetings
+  preferred_meeting meetings?
 }
 
 model user_auths {
