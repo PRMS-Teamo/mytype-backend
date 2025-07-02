@@ -15,9 +15,9 @@ import { UpdateAdminDto } from "./dto/update-admin.dto";
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
-  @Post()
-  create(@Body() createAdminDto: CreateAdminDto) {
-    return this.adminService.create(createAdminDto);
+  @Post("addPlatform")
+  addKakao(@Body() data: object) {
+    return this.adminService.addPlatform(data);
   }
 
   @Get()

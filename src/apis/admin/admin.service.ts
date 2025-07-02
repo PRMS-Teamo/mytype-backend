@@ -1,11 +1,38 @@
-import { Injectable } from "@nestjs/common";
-import { CreateAdminDto } from "./dto/create-admin.dto";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { UpdateAdminDto } from "./dto/update-admin.dto";
+import { PrismaService } from "@/databases/prisma/prisma.service";
 
 @Injectable()
 export class AdminService {
-  create(createAdminDto: CreateAdminDto) {
-    return "This action adds a new admin";
+  constructor(private prisma: PrismaService) {}
+  async addPlatform(data) {
+    if (!data.platform) {
+      return new BadRequestException("잘못된 요청");
+    }
+    const checkPlatform = await this.prisma.auth_methods.findFirst({
+      where: {
+        platform: data.platform,
+      },
+    });
+    if (checkPlatform) {
+      return new BadRequestException("이미 존재하는 플랫폼");
+    }
+    let addObject;
+    if (!data.auth_method) {
+      addObject = {
+        platform: data.platform,
+      };
+    } else {
+      addObject = {
+        platform: data.platform,
+        auth_method: data.auth_method,
+      };
+    }
+    const addPlatform = await this.prisma.auth_methods.create({
+      data: addObject,
+    });
+
+    return addPlatform;
   }
 
   findAll() {

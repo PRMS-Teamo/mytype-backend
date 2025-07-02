@@ -29,7 +29,7 @@ export class AuthService {
     };
     const token: string = this.jwtService.sign(payload, {
       secret: this.configService.get("JWT_SECRET"),
-      expiresIn: isAccessToken ? 300 : 3600,
+      expiresIn: isAccessToken ? 3600 : 3600,
     });
     return token;
   }
