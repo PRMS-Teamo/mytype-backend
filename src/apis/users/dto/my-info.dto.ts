@@ -1,8 +1,14 @@
 import { ApiProperty } from "@nestjs/swagger";
 
 export class GetMyInfoDto {
-  @ApiProperty({ example: "123455-123421-12341-..." })
+  @ApiProperty({ example: "38bf2516-7ee3-40f4-b390-7075e55baf8e" })
   id: string;
+
+  @ApiProperty({
+    example: null,
+    description: "포지션 관련 로직 추가하면 진행 예정",
+  })
+  position_id: string | null;
 
   @ApiProperty({ example: "USER" })
   role: "USER" | "ADMIN";
@@ -10,11 +16,11 @@ export class GetMyInfoDto {
   @ApiProperty({ example: "한지웅" })
   name: string;
 
-  @ApiProperty({ example: "김희영" })
+  @ApiProperty({ example: "니크네이므" })
   nickname: string;
 
-  @ApiProperty({ example: null, description: "수정 예정" })
-  password: string | null;
+  @ApiProperty({ example: null, description: "암호화시 활용 예정(확장 가능성)" })
+  salt: string | null;
 
   @ApiProperty({ example: "scorchedrice" })
   github_url: string | null;
@@ -39,18 +45,24 @@ export class GetMyInfoDto {
 
   @ApiProperty({ example: null })
   Field: null | string;
+
+  @ApiProperty({ example: "ONLINE" })
+  preferred_meeting: "ONLINE" | "OFFLINE" | "BOTH";
 }
 
 export class PutMyInfoDto {
-  @ApiProperty({ example: "scorchedrice", required: false })
+  @ApiProperty({ example: "scorchedrice" })
   github_url: string;
 
-  @ApiProperty({ example: "월마리아", required: false })
+  @ApiProperty({ example: "월마리아" })
   address: string;
 
-  @ApiProperty({ example: 3, required: false })
+  @ApiProperty({ example: 3 })
   img: number;
 
-  @ApiProperty({ example: "니크네이므", required: false })
+  @ApiProperty({ example: "니크네이므" })
   nickname: string;
+
+  @ApiProperty({ example: "ONLINE" })
+  preferred_meeting: "ONLINE" | "BOTH" | "OFFLINE";
 }
