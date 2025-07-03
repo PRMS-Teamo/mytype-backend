@@ -37,7 +37,11 @@ export class UsersController {
 
   @Put()
   @UseGuards(AccessTokenGuard)
-  async pdateMyInfo(@Req() req: Request, @Body() putMyInfo: PutMyInfoDto, @Res() res: Response) {
+  async updateMyInfo(
+    @Req() req: Request,
+    @Body() putMyInfo: PutMyInfoDto,
+    @Res() res: Response,
+  ) {
     const user = req.user as User;
     const externalId = user.kakaoId;
     const updatedUser = await this.usersService.updateUserInfoByExternalId(
