@@ -20,4 +20,9 @@ export class AdminController {
   addStack(@Body() data: Record<string, stackDetails>) {
     return this.adminService.addStack(data);
   }
+
+  @Post("addPositions")
+  addPositions(@Body() data: string[]) {
+    return this.adminService.addPositions(data);
+  }
 }

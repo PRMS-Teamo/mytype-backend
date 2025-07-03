@@ -150,4 +150,33 @@ export class AdminService {
       notChanged,
     };
   }
+
+  async addPositions(data: string[]) {
+    const addedPositions: string[] = [];
+    for (const position of data) {
+      const isExist = await this.prisma.positions.findFirst({
+        where: {
+          name: position,
+        },
+      });
+      if (!isExist) {
+        await this.prisma.positions.create({
+          data: {
+            name: position,
+          },
+        });
+        addedPositions.push(position);
+      }
+    }
+    if (addedPositions.length > 0) {
+      return {
+        message: "다음 포지션들이 정상적으로 추가되었습니다.",
+        addedPositions: addedPositions,
+      };
+    } else {
+      return {
+        message: "중복된 포지션들로만 구성되어 추가되지 않았습니다.",
+      };
+    }
+  }
 }
