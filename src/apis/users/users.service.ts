@@ -51,6 +51,15 @@ export class UsersService {
       }
       stack_ids.push(stackInfo["id"]);
     }
+    const positionInfo = await this.prisma.positions.findFirst({
+      where: {
+        name: userInfo["position"],
+      },
+    });
+    if (!positionInfo) {
+      throw new NotFoundException("해당 포지션을 찾을 수 없습니다.");
+    }
+
     // 스택 아이디까지 저장해뒀으니, 해당 유저의 정보를 찾고 지운 후 스택값을 다시 넣는 방식 선택
     await this.prisma.$transaction(async (tx) => {
       // step 1. 삭제 시도
@@ -76,6 +85,7 @@ export class UsersService {
           id: targetUser.users.id,
         },
         data: {
+          position_id: positionInfo["id"],
           github_url: userInfo.github_url,
           address: userInfo.address,
           img: userInfo.img,
