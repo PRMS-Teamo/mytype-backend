@@ -37,7 +37,7 @@ export class AdminService {
       data: addObject,
     });
 
-    return addPlatform;
+    return `${addPlatform.platform} 추가 완료`;
   }
 
   async addStackCategory(data: string[]) {
