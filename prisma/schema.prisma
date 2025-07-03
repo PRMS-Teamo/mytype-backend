@@ -83,7 +83,7 @@ model teams {
   id                   String                 @id(map: "PK_TEAMS") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   title                String?                @db.VarChar(100)
   content              String?                @db.VarChar(500)
-  user_id              String?                @db.VarChar(16)
+  user_id              String?                @db.Uuid
   Field                Boolean?
   recruit_status       recruit_status?        @default(OPEN)
   proceed_type         proceed_type?          @default(ONLINE)
