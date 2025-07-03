@@ -1,26 +1,18 @@
-import { Injectable } from "@nestjs/common";
-import { CreateTeamDto } from "./dto/create-team.dto";
-import { UpdateTeamDto } from "./dto/update-team.dto";
+import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import { PrismaService } from "@/databases/prisma/prisma.service";
 
 @Injectable()
 export class TeamsService {
-  create(createTeamDto: CreateTeamDto) {
-    return "This action adds a new team";
-  }
+  constructor(private prisma: PrismaService) {}
 
-  findAll() {
-    return "This action returns all teams";
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} team`;
-  }
-
-  update(id: number, updateTeamDto: UpdateTeamDto) {
-    return `This action updates a #${id} team`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} team`;
+  async createTeam(data) {
+    console.log(data);
+    const createTeamInfo = await this.prisma.teams.create({
+      data,
+    });
+    if (!createTeamInfo) {
+      throw new InternalServerErrorException("팀 생성 중 오류가 발생했습니다.");
+    }
+    return { message: "정상적으로 팀 생성을 완료했습니다." };
   }
 }
