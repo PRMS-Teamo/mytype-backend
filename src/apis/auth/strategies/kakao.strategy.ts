@@ -59,6 +59,7 @@ export class KakaoStrategy extends PassportStrategy(Strategy, "kakao") {
           name: profile.username as string,
           nickname: profile.displayName as string,
           // preferred_meeting: "BOTH",
+          join_status: false,
         },
       });
       const userUUID = addUser.id;
