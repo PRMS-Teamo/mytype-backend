@@ -5,12 +5,13 @@ import { AccessTokenGuard } from "@/apis/auth/guard/bearer-token.guard";
 import { Request, Response } from "express";
 import { User } from "@/apis/auth/types/auth.interface";
 import { AuthService } from "@/apis/auth/auth.service";
+import { UsersService } from "@/apis/users/users.service";
 
 @Controller("teams")
 export class TeamsController {
   constructor(
     private readonly teamsService: TeamsService,
-    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
   ) {}
 
   @Post()
@@ -22,11 +23,13 @@ export class TeamsController {
   ) {
     const user = req.user as User;
     const externalId = user.kakaoId;
-    const userId = await this.authService.getUserUUIDByExternalId(externalId);
-    const response = this.teamsService.createTeam({
+    const userInfo = await this.usersService.findUserByExternalId(externalId);
+    const userId = userInfo.user_id;
+    const response = await this.teamsService.createTeam({
       ...createTeamDto,
       user_id: userId,
     });
+    console.log("response", response);
     return res.status(201).send(response);
   }
 }
