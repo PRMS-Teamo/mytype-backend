@@ -1,22 +1,29 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsOptional, IsNumber } from "class-validator";
+import { IsString, IsEnum } from "class-validator";
 
+export enum ProceedType {
+  ONLINE = "ONLINE",
+  OFFLINE = "OFFLINE",
+  BOTH = "BOTH",
+}
 export class CreateTeamDto {
-  @ApiProperty({ description: "팀 이름" })
+  @ApiProperty({ example: "마이타입" })
   @IsString()
-  name: string;
+  title: string;
 
-  @ApiProperty({ description: "팀 설명", required: false })
-  @IsOptional()
+  @ApiProperty({
+    example: "자바스크립트로 세상을 지배하겠다는 목표를 가지신분들 오세요.",
+  })
   @IsString()
-  description?: string;
+  content: string;
 
-  @ApiProperty({ description: "팀 리더 ID" })
   @IsString()
-  leaderId: string;
+  user_id: string;
 
-  @ApiProperty({ description: "최대 팀원 수", required: false })
-  @IsOptional()
-  @IsNumber()
-  maxMembers?: number;
+  @ApiProperty({ example: "BOTH", enum: ProceedType })
+  @IsEnum(ProceedType)
+  proceed_type: ProceedType;
+
+  @ApiProperty({ example: "이미지 형태 아직 미정" })
+  img: any;
 }

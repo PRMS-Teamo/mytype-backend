@@ -1,15 +1,6 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from "@nestjs/common";
+import { Controller, Post, Body } from "@nestjs/common";
 import { AdminService } from "./admin.service";
-import { CreateAdminDto } from "./dto/create-admin.dto";
-import { UpdateAdminDto } from "./dto/update-admin.dto";
+import { stackDetails } from "@/apis/admin/dto/add-stack.dto";
 
 @Controller("admin")
 export class AdminController {
@@ -20,23 +11,18 @@ export class AdminController {
     return this.adminService.addPlatform(data);
   }
 
-  @Get()
-  findAll() {
-    return this.adminService.findAll();
+  @Post("addStackCategory")
+  addStackCategory(@Body() data: string[]) {
+    return this.adminService.addStackCategory(data);
   }
 
-  @Get(":id")
-  findOne(@Param("id") id: string) {
-    return this.adminService.findOne(+id);
+  @Post("addStack")
+  addStack(@Body() data: Record<string, stackDetails>) {
+    return this.adminService.addStack(data);
   }
 
-  @Patch(":id")
-  update(@Param("id") id: string, @Body() updateAdminDto: UpdateAdminDto) {
-    return this.adminService.update(+id, updateAdminDto);
-  }
-
-  @Delete(":id")
-  remove(@Param("id") id: string) {
-    return this.adminService.remove(+id);
+  @Post("addPositions")
+  addPositions(@Body() data: string[]) {
+    return this.adminService.addPositions(data);
   }
 }

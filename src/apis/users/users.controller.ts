@@ -29,15 +29,19 @@ export class UsersController {
     const user = req.user as User;
     const externalId = user.kakaoId; //TODO : 나중에 kakaoId가 아닌 그냥 Id로 로직 변경하는게 좋음
     const findUser = await this.usersService.findUserByExternalId(externalId);
-    if (!findUser || !findUser.users) {
+    if (!findUser || !findUser["users"]) {
       throw new NotFoundException("Not Found");
     }
-    return res.status(200).json(findUser.users);
+    return res.status(200).json(findUser["users"]);
   }
 
   @Put()
   @UseGuards(AccessTokenGuard)
-  async pdateMyInfo(@Req() req: Request, @Body() putMyInfo: PutMyInfoDto, @Res() res: Response) {
+  async updateMyInfo(
+    @Req() req: Request,
+    @Body() putMyInfo: PutMyInfoDto,
+    @Res() res: Response,
+  ) {
     const user = req.user as User;
     const externalId = user.kakaoId;
     const updatedUser = await this.usersService.updateUserInfoByExternalId(

@@ -34,7 +34,6 @@ model stack_categories {
   name       String?   @db.VarChar(30)
   created_at DateTime? @default(now()) @db.Timestamp(6)
   updated_at DateTime? @db.Timestamp(6)
-  img_url    String?   @db.VarChar(100)
   stacks     stacks[]
 }
 
@@ -45,7 +44,6 @@ model stacks {
   img_url              String
   created_at           DateTime?              @default(now()) @db.Timestamp(6)
   updated_at           DateTime?              @db.Timestamp(6)
-  status               Boolean
   stack_categories     stack_categories       @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_stack_categories_TO_stacks_1")
   team_stack_positions team_stack_positions[]
   user_stacks          user_stacks[]
@@ -56,6 +54,7 @@ model team_stack_positions {
   team_id        String          @db.Uuid
   stack_id       String          @db.Uuid
   position_id    String          @db.Uuid
+  status         Boolean
   recruit_status recruit_status? @default(OPEN)
   count          Int?            @default(1)
   created_at     DateTime?       @default(now()) @db.Timestamp(6)
@@ -84,7 +83,7 @@ model teams {
   id                   String                 @id(map: "PK_TEAMS") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   title                String?                @db.VarChar(100)
   content              String?                @db.VarChar(500)
-  user_id              String?                @db.VarChar(16)
+  user_id              String?                @db.Uuid
   Field                Boolean?
   recruit_status       recruit_status?        @default(OPEN)
   proceed_type         proceed_type?          @default(ONLINE)
