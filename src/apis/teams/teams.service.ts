@@ -32,6 +32,7 @@ export class TeamsService {
       const positionIds: Record<string, string> = idInfo.position;
       const stackIds: Record<string, Record<string, string>> = idInfo.stacks;
 
+      // step 3. id 관련 정보 입력 (team_stack_positions)
       for (const [position, position_id] of Object.entries(positionIds)) {
         console.log(position, position_id);
         const targetStacks = stackIds[position];
@@ -48,8 +49,6 @@ export class TeamsService {
           console.log(stack, stack_id);
         }
       }
-
-      // step 3. id 관련 정보 입력
 
       // step 4. 생성 유저 정보 업데이트
       await this.usersService.updateJoinStatusByUuid(userUUID, true);

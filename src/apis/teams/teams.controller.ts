@@ -4,7 +4,6 @@ import { CreateTeamDto } from "./dto/create-team.dto";
 import { AccessTokenGuard } from "@/apis/auth/guard/bearer-token.guard";
 import { Request, Response } from "express";
 import { User } from "@/apis/auth/types/auth.interface";
-import { AuthService } from "@/apis/auth/auth.service";
 import { UsersService } from "@/apis/users/users.service";
 
 @Controller("teams")

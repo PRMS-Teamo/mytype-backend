@@ -42,7 +42,6 @@ export class UsersController {
     @Body() putMyInfo: PutMyInfoDto,
     @Res() res: Response,
   ) {
-    console.log(req.user);
     const user = req.user as User;
     const externalId = user.kakaoId;
     const updatedUser = await this.usersService.updateUserInfoByExternalId(
