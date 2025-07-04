@@ -1,48 +1,20 @@
 import {
   BadRequestException,
   Injectable,
-  InternalServerErrorException,
 } from "@nestjs/common";
 import { PrismaService } from "@/databases/prisma/prisma.service";
+import { UsersService } from "@/apis/users/users.service";
 
 @Injectable()
 export class TeamsService {
-  constructor(private prisma: PrismaService) {}
-
-  async getJoinStatus(uuid: string) {
-    const isJoined = await this.prisma.users.findFirst({
-      where: {
-        id: uuid,
-      },
-    });
-    if (!isJoined) {
-      throw new InternalServerErrorException(
-        "로그인 유저 정보를 찾는 과정에서 에러가 발생했습니다.",
-      );
-    }
-    return isJoined.join_status;
-  }
-
-  async updateJoinStatus(uuid: string, status: boolean) {
-    const updateJoin = await this.prisma.users.update({
-      where: {
-        id: uuid,
-      },
-      data: {
-        join_status: status,
-      },
-    });
-    if (!updateJoin) {
-      throw new InternalServerErrorException(
-        "참여 정보를 업데이트 하는 과정에서 오류 발생",
-      );
-    }
-    return true;
-  }
+  constructor(
+    private prisma: PrismaService,
+    private usersService: UsersService,
+  ) {}
 
   async createTeam(data) {
     const userUUID = data.user_id;
-    const checkUUID = await this.getJoinStatus(userUUID);
+    const checkUUID = await this.usersService.getJoinStatusByUuid(userUUID);
     if (checkUUID) {
       throw new BadRequestException("이미 팀에 소속되어있는 인원입니다.");
     }
@@ -54,7 +26,7 @@ export class TeamsService {
       });
 
       // step 2. 생성 유저 정보 업데이트
-      await this.updateJoinStatus(userUUID, true);
+      await this.usersService.updateJoinStatusByUuid(userUUID, true);
 
       return { message: "팀 정상 생성" };
     });

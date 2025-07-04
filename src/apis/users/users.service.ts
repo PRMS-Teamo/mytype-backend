@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from "@nestjs/common";
 import { PrismaService } from "@/databases/prisma/prisma.service";
 
 @Injectable()
@@ -96,5 +100,36 @@ export class UsersService {
       });
     });
     return { message: "유저 정보 및 스택이 성공적으로 업데이트 되었습니다." };
+  }
+
+  async getJoinStatusByUuid(uuid: string) {
+    const isJoined = await this.prisma.users.findFirst({
+      where: {
+        id: uuid,
+      },
+    });
+    if (!isJoined) {
+      throw new InternalServerErrorException(
+        "로그인 유저 정보를 찾는 과정에서 에러가 발생했습니다.",
+      );
+    }
+    return isJoined.join_status;
+  }
+
+  async updateJoinStatusByUuid(uuid: string, status: boolean) {
+    const updateJoin = await this.prisma.users.update({
+      where: {
+        id: uuid,
+      },
+      data: {
+        join_status: status,
+      },
+    });
+    if (!updateJoin) {
+      throw new InternalServerErrorException(
+        "참여 정보를 업데이트 하는 과정에서 오류 발생",
+      );
+    }
+    return true;
   }
 }
