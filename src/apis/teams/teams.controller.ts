@@ -29,7 +29,6 @@ export class TeamsController {
       ...createTeamDto,
       user_id: userId,
     });
-    console.log("response", response);
     return res.status(201).send(response);
   }
 }
