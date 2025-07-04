@@ -13,6 +13,8 @@ import { MongoModule } from "./databases/mongo/mongo.module";
 import { LoggerModule } from "./loggers/logger.module";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { ConfigModule } from "@nestjs/config";
+import { StacksRepository } from "@/repositories/stacks.repository";
+import { RepositoriesModule } from "@/repositories/repositories.module";
 
 @Module({
   imports: [
@@ -41,6 +43,7 @@ import { ConfigModule } from "@nestjs/config";
     AdminModule,
     ChatsModule,
     AppliesModule,
+    RepositoriesModule,
   ],
   controllers: [AppController],
   providers: [
