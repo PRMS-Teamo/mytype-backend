@@ -1,0 +1,10 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../../src/prisma/mongo-client"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource mongoClient {
+  provider = "mongodb"
+  url      = env("MONGODB_URI")
+}
