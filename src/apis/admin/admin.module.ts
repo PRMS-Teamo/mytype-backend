@@ -1,10 +1,10 @@
 import { Module } from "@nestjs/common";
 import { AdminService } from "./admin.service";
 import { AdminController } from "./admin.controller";
-import { PrismaService } from "@/databases/prisma/prisma.service";
+import { PrismaClient as PgClient } from "@/prisma/postgres-client";
 
 @Module({
   controllers: [AdminController],
-  providers: [AdminService, PrismaService],
+  providers: [AdminService, PgClient],
 })
 export class AdminModule {}
