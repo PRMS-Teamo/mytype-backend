@@ -3,11 +3,11 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from "@nestjs/common";
-import { PrismaService } from "@/databases/prisma/prisma.service";
+import { PrismaClient as PgClient } from "@/prisma/postgres-client";
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PgClient) {}
 
   async findUserByExternalId(externalId: string) {
     //return interface 정의 필요

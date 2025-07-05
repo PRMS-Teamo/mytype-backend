@@ -5,3 +5,4 @@ secret/
 dist/
 logs/
 .env.backup
+teamo.pem
