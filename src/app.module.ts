@@ -8,8 +8,8 @@ import { AdminModule } from "./apis/admin/admin.module";
 import { ChatsModule } from "./websockets/chats/chats.module";
 import { TeamsModule } from "./apis/teams/teams.module";
 import { AppliesModule } from "./apis/applies/applies.module";
-import { PostgresModule } from "./databases/postgres/postgres.module";
-import { MongoModule } from "./databases/mongo/mongo.module";
+import { PrismaClient as PgClient } from "@/prisma/postgres-client";
+import { PrismaClient as MongoClient } from "@/prisma/mongo-client";
 import { LoggerModule } from "./loggers/logger.module";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { ConfigModule } from "@nestjs/config";
@@ -33,8 +33,8 @@ import { RepositoriesModule } from "@/repositories/repositories.module";
       },
     ]),
     LoggerModule,
-    PostgresModule,
-    MongoModule,
+    PgClient,
+    MongoClient,
     AuthModule,
     UsersModule,
     TeamsModule,

@@ -2,5 +2,11 @@ node_modules
 .vscode
 .git
 .env
-docs
+docs/
+sercret
+test
+.gitignore
+.prettierrc
+eslint.config.mjs
+nest-cli.json
 databases
