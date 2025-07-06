@@ -3,13 +3,13 @@ import { PassportStrategy } from "@nestjs/passport";
 import { Strategy } from "passport-kakao";
 import { ConfigService } from "@nestjs/config";
 import { KakaoProfileResponse } from "@/apis/auth/types/auth.interface";
-import { PrismaService } from "@/databases/prisma/prisma.service";
+import { PrismaClient as PgClient } from "@/prisma/postgres-client";
 
 @Injectable()
 export class KakaoStrategy extends PassportStrategy(Strategy, "kakao") {
   constructor(
     private configService: ConfigService,
-    private prisma: PrismaService,
+    private prisma: PgClient,
   ) {
     super({
       clientID: configService.get("KAKAO_API_KEY") as string,

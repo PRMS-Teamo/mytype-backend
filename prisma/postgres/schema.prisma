@@ -1,0 +1,195 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../../src/prisma/postgres-client"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_URL")
+}
+model apply_history {
+  id           String        @id(map: "PK_APPLY_HISTORY") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  team_id      String        @db.Uuid
+  user_id      String        @db.Uuid
+  ment         String?       @db.VarChar(500)
+  apply_status apply_status? @default(SUBMITTED)
+  apply_from   apply_from
+  created_at   DateTime?     @default(now()) @db.Timestamp(6)
+  updated_at   DateTime?     @db.Timestamp(6)
+  teams        teams         @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_teams_TO_apply_history_1")
+  users        users         @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_users_TO_apply_history_1")
+}
+
+model positions {
+  id                   String                 @id(map: "PK_POSITIONS") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                 String?                @db.VarChar(50)
+  created_at           DateTime?              @default(now()) @db.Timestamp(6)
+  updated_at           DateTime?              @db.Timestamp(6)
+  team_stack_positions team_stack_positions[]
+  users                users[]
+}
+
+model stack_categories {
+  id         String    @id(map: "PK_STACK_CATEGORIES") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String?   @db.VarChar(30)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_at DateTime? @db.Timestamp(6)
+  stacks     stacks[]
+}
+
+model stacks {
+  id                   String                 @id(map: "PK_STACKS") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  category_id          String                 @db.Uuid
+  name                 String?                @db.VarChar(50)
+  img_url              String
+  created_at           DateTime?              @default(now()) @db.Timestamp(6)
+  updated_at           DateTime?              @db.Timestamp(6)
+  stack_categories     stack_categories       @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_stack_categories_TO_stacks_1")
+  team_stack_positions team_stack_positions[]
+  user_stacks          user_stacks[]
+}
+
+model team_stack_positions {
+  id             String          @id(map: "PK_TEAM_STACK_POSITIONS") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  team_id        String          @db.Uuid
+  stack_id       String          @db.Uuid
+  position_id    String          @db.Uuid
+  status         Boolean
+  recruit_status recruit_status? @default(OPEN)
+  count          Int?            @default(1)
+  created_at     DateTime?       @default(now()) @db.Timestamp(6)
+  updated_at     DateTime?       @db.Timestamp(6)
+  positions      positions       @relation(fields: [position_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_positions_TO_team_stack_positions_1")
+  stacks         stacks          @relation(fields: [stack_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_stacks_TO_team_stack_positions_1")
+  teams          teams           @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_teams_TO_team_stack_positions_1")
+  team_users     team_users[]
+}
+
+model team_users {
+  user_id              String               @db.Uuid
+  team_position_id     String               @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  isOwner              Boolean?
+  message              String?              @db.VarChar(3000)
+  member_status        member_status?       @default(ON_BOARD)
+  created_at           DateTime?            @default(now()) @db.Timestamp(6)
+  updated_at           DateTime?            @db.Timestamp(6)
+  team_stack_positions team_stack_positions @relation(fields: [team_position_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_team_stack_positions_TO_team_users_1")
+  users                users                @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_users_TO_team_users_1")
+
+  @@id([user_id, team_position_id], map: "PK_TEAM_USERS")
+}
+
+model teams {
+  id                   String                 @id(map: "PK_TEAMS") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title                String?                @db.VarChar(100)
+  content              String?                @db.VarChar(500)
+  user_id              String?                @db.Uuid
+  Field                Boolean?
+  recruit_status       recruit_status?        @default(OPEN)
+  proceed_type         proceed_type?          @default(ONLINE)
+  img                  String?
+  created_at           DateTime?              @default(now()) @db.Timestamp(6)
+  updated_at           DateTime?              @db.Timestamp(6)
+  apply_history        apply_history[]
+  team_stack_positions team_stack_positions[]
+}
+
+model user_stacks {
+  user_id    String    @db.Uuid
+  stack_id   String    @db.Uuid
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_at DateTime? @db.Timestamp(6)
+  stacks     stacks    @relation(fields: [stack_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_stacks_TO_user_stacks_1")
+  users      users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_users_TO_user_stacks_1")
+
+  @@id([user_id, stack_id], map: "PK_USER_STACKS")
+}
+
+model users {
+  id                String          @id(map: "PK_USERS") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  position_id       String?         @db.Uuid
+  role              roles?          @default(USER)
+  name              String          @db.VarChar(50)
+  nickname          String?         @db.VarChar(30)
+  salt              String?         @db.VarChar(200)
+  github_url        String?         @db.VarChar(200)
+  img               String?         @db.VarChar(200)
+  address           String?         @db.VarChar(100)
+  join_status       Boolean?
+  create_at         DateTime?       @default(now()) @db.Timestamp(6)
+  updated_at        DateTime?       @db.Timestamp(6)
+  Field             String?         @db.VarChar(255)
+  apply_history     apply_history[]
+  team_users        team_users[]
+  user_auths        user_auths[]
+  positions         positions?      @relation(fields: [position_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_positions_TO_users_1")
+  user_stacks       user_stacks[]
+  preferred_meeting meetings?
+}
+
+model user_auths {
+  user_id      String       @db.Uuid
+  auth_id      String       @db.Uuid
+  external_id  String       @db.VarChar(100)
+  created_at   DateTime?    @default(now()) @db.Timestamp(6)
+  updated_at   DateTime?    @db.Timestamp(6)
+  auth_methods auth_methods @relation(fields: [auth_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_auth_methods_TO_user_auths_1")
+  users        users        @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_users_TO_user_auths_1")
+
+  @@unique([user_id, auth_id], map: "PK_USER_AUTHS")
+}
+
+model auth_methods {
+  id          String       @id(map: "PK_AUTH_METHODS") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  auth_method auth_method? @default(OAuth)
+  platform    String       @db.VarChar(50)
+  created_at  DateTime?    @default(now()) @db.Timestamp(6)
+  updated_at  DateTime?    @db.Timestamp(6)
+  user_auths  user_auths[]
+}
+
+enum apply_from {
+  INDIVIDUAL
+  OWNER
+}
+
+enum apply_status {
+  FAILED
+  SUBMITTED
+  SUCCESS
+  REJECTED
+}
+
+enum auth_method {
+  OAuth
+  Social
+}
+
+enum member_status {
+  ON_BOARD
+  OFF_BOARD
+}
+
+enum proceed_type {
+  ONLINE
+  OFFLINE
+  BOTH
+}
+
+enum recruit_status {
+  OPEN
+  CLOSE
+}
+
+enum roles {
+  USER
+  ADMIN
+  MASTER
+}
+
+enum meetings {
+  ONLINE
+  OFFLINE
+  BOTH
+}

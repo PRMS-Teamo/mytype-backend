@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
-import { PrismaService } from "@/databases/prisma/prisma.service";
+import { PrismaClient as PgClient } from "@/prisma/postgres-client";
 import { UsersService } from "@/apis/users/users.service";
 import { StacksRepository } from "@/repositories/stacks.repository";
 import { PositionRepository } from "@/repositories/position.repository";
@@ -7,7 +7,7 @@ import { PositionRepository } from "@/repositories/position.repository";
 @Injectable()
 export class TeamsService {
   constructor(
-    private prisma: PrismaService,
+    private prisma: PgClient,
     private usersService: UsersService,
     private readonly stackRepository: StacksRepository,
     private readonly positionRepository: PositionRepository,
