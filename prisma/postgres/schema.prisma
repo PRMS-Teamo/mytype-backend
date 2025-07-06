@@ -157,6 +157,7 @@ enum apply_from {
 enum apply_status {
   FAILED
   SUBMITTED
+  CANCEL
   SUCCESS
   REJECTED
 }
