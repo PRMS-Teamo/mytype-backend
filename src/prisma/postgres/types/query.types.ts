@@ -1,4 +1,4 @@
-import { Prisma as Postgres } from "@/database/prisma/postgres-client";
+import { Prisma as Postgres } from "@/prisma/postgres/postgres-client";
 import { PaginationRequest } from "@/common/params/pagination.types";
 import { Sort } from "@/common/params/sort.types";
 

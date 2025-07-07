@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { PrismaClient as PgClient } from "@/database/prisma/postgres-client";
+import { PostgresService } from "@/prisma/postgres/postgres.service";
 import {
   BaseQueryOptions,
   IdQueryOptions,
@@ -11,12 +11,12 @@ import {
   DEFAULT_PAGINATION,
   Sort,
   PaginationRequest,
-} from "@/database/postgres/types";
+} from "@/prisma/postgres/types";
 
 @Injectable()
 export class BasePostgresRepository<T> {
   constructor(
-    protected readonly prisma: PgClient,
+    protected readonly prisma: PostgresService,
     protected readonly modelName: string,
   ) {}
 

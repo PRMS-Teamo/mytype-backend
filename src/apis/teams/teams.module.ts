@@ -2,7 +2,7 @@ import { Module } from "@nestjs/common";
 import { TeamsService } from "./teams.service";
 import { TeamsController } from "./teams.controller";
 import { AuthModule } from "@/apis/auth/auth.module";
-import { PrismaClient as PgClient } from "@/database/prisma/postgres-client";
+import { PostgresService } from "@/prisma/postgres/postgres.service";
 import { UsersModule } from "@/apis/users/users.module";
 import { UsersService } from "@/apis/users/users.service";
 import { StacksRepository } from "@/repositories/stacks.repository";
@@ -13,7 +13,7 @@ import { PositionRepository } from "@/repositories/position.repository";
   controllers: [TeamsController],
   providers: [
     TeamsService,
-    PgClient,
+    PostgresService,
     UsersService,
     StacksRepository,
     PositionRepository,

@@ -3,13 +3,13 @@ import { PassportStrategy } from "@nestjs/passport";
 import { Strategy } from "passport-kakao";
 import { ConfigService } from "@nestjs/config";
 import { KakaoProfileResponse } from "@/apis/auth/types/auth.interface";
-import { PrismaClient as PgClient } from "@/database/prisma/postgres-client";
+import { PostgresService } from "@/prisma/postgres/postgres.service";
 
 @Injectable()
 export class KakaoStrategy extends PassportStrategy(Strategy, "kakao") {
   constructor(
     private configService: ConfigService,
-    private prisma: PgClient,
+    private prisma: PostgresService,
   ) {
     super({
       clientID: configService.get("KAKAO_API_KEY") as string,
@@ -48,12 +48,6 @@ export class KakaoStrategy extends PassportStrategy(Strategy, "kakao") {
 
     let user;
     if (!isExist) {
-      user = {
-        kakaoId,
-        username: profile.username,
-        displayName: profile.displayName,
-        status: "NEW",
-      };
       const addUser = await this.prisma.users.create({
         data: {
           name: profile.username as string,
@@ -63,6 +57,7 @@ export class KakaoStrategy extends PassportStrategy(Strategy, "kakao") {
         },
       });
       const userUUID = addUser.id;
+
       await this.prisma.user_auths.create({
         data: {
           user_id: userUUID,
@@ -70,8 +65,27 @@ export class KakaoStrategy extends PassportStrategy(Strategy, "kakao") {
           external_id: kakaoId,
         },
       });
-    } else {
+
       user = {
+        userId: userUUID,
+        kakaoId,
+        username: profile.username,
+        displayName: profile.displayName,
+        status: "NEW",
+      };
+    } else {
+      // 기존 사용자의 경우 user_id를 가져와야 함
+      const existingUserAuth = await this.prisma.user_auths.findFirst({
+        where: {
+          external_id: kakaoId,
+        },
+        include: {
+          users: true,
+        },
+      });
+
+      user = {
+        userId: existingUserAuth?.user_id,
         kakaoId,
         username: profile.username,
         displayName: profile.displayName,

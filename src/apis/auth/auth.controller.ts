@@ -33,6 +33,7 @@ export class AuthController {
       kakaoId: user.kakaoId,
       username: user.username,
       displayName: user.displayName,
+      userId: user.userId,
     };
     const tokens = this.authService.generateTokens(tokenPayload);
     const response = {
@@ -65,6 +66,7 @@ export class AuthController {
       kakaoId: user.kakaoId,
       username: user.username,
       displayName: user.displayName,
+      userId: user.userId,
     };
     const tokens = this.authService.generateTokens(tokenPayload);
     return tokens;

@@ -1,10 +1,10 @@
 import { Module } from "@nestjs/common";
 import { StacksRepository } from "@/repositories/stacks.repository";
-import { PrismaClient as PgClient } from "@/database/prisma/postgres-client";
+import { PostgresService } from "@/prisma/postgres/postgres.service";
 import { PositionRepository } from "@/repositories/position.repository";
 
 @Module({
-  providers: [StacksRepository, PositionRepository, PgClient],
+  providers: [StacksRepository, PositionRepository, PostgresService],
   exports: [StacksRepository, PositionRepository],
 })
 export class RepositoriesModule {}
