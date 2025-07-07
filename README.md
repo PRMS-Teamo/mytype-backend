@@ -32,6 +32,10 @@
 ## Project setup
 
 ```bash
+
+npx prisma generate --schema=./prisma/postgres/schema.prisma
+npx prisma generate --schema=./prisma/mongo/schema.prisma
+
 docker compose up --build
 
 ```
