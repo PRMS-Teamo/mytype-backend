@@ -27,6 +27,24 @@ export class UsersService {
     return user;
   }
 
+  async findUserByUserId(user_id: string) {
+    console.log(user_id);
+    const user = await this.prisma.user_auths.findFirst({
+      where: {
+        user_id,
+      },
+      include: {
+        users: true,
+      },
+    });
+    if (!user) {
+      throw new NotFoundException(
+        "해당 아이디에 해당하는 유저가 존재하지 않습니다.",
+      );
+    }
+    return user;
+  }
+
   async findStacks(stackName: string) {
     const isExist = await this.prisma.stacks.findFirst({
       where: {
