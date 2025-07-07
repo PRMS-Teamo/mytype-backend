@@ -13,7 +13,7 @@ export class AppliesController {
     @Body() upsertApplyRequestDto: UpsertApplyRequestDto,
     @Request() req: any,
   ) {
-    upsertApplyRequestDto.user_id = req.user.userId;
+    upsertApplyRequestDto.user_id = req.user_id;
     return this.appliesService.upsert(upsertApplyRequestDto);
   }
 }
