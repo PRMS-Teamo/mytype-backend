@@ -8,12 +8,13 @@ import { AdminModule } from "./apis/admin/admin.module";
 import { ChatsModule } from "./websockets/chats/chats.module";
 import { TeamsModule } from "./apis/teams/teams.module";
 import { AppliesModule } from "./apis/applies/applies.module";
-import { PrismaClient as PgClient } from "@/prisma/postgres-client";
-import { PrismaClient as MongoClient } from "@/prisma/mongo-client";
+import { PostgresModule } from "@/prisma/postgres/postgres.module";
+import { MongoModule } from "@/prisma/mongo/mongo.module";
 import { LoggerModule } from "./loggers/logger.module";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { ConfigModule } from "@nestjs/config";
 import { RepositoriesModule } from "@/repositories/repositories.module";
+import { AnalysisModule } from "./apis/analysis/analysis.module";
 
 @Module({
   imports: [
@@ -33,8 +34,8 @@ import { RepositoriesModule } from "@/repositories/repositories.module";
       },
     ]),
     LoggerModule,
-    PgClient,
-    MongoClient,
+    PostgresModule,
+    MongoModule,
     AuthModule,
     UsersModule,
     TeamsModule,
@@ -43,6 +44,7 @@ import { RepositoriesModule } from "@/repositories/repositories.module";
     ChatsModule,
     AppliesModule,
     RepositoriesModule,
+    AnalysisModule,
   ],
   controllers: [AppController],
   providers: [

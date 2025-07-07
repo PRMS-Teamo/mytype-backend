@@ -32,7 +32,7 @@
     "node_modules",
     "dist",
     "prisma",
-    "databases/mongo/init.js",
+    "databases.init/mongo/init.js",
     "docs",
     "logs"
   ]

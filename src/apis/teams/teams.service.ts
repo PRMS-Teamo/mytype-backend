@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
-import { PrismaClient as PgClient } from "@/prisma/postgres-client";
+import { PrismaClient as PgClient } from "@/prisma/postgres/postgres-client";
 import { UsersService } from "@/apis/users/users.service";
 import { StacksRepository } from "@/repositories/stacks.repository";
 import { PositionRepository } from "@/repositories/position.repository";
@@ -33,6 +33,13 @@ export class TeamsService {
       const stackIds: Record<string, Record<string, string>> = idInfo.stacks;
 
       // step 3. id 관련 정보 입력 (team_stack_positions)
+      // position_stacks [] 타입으로 필드에서 데이터 선택 가능
+      // -> positionStacks 배열 데이터
+      // await tx.team_stack_positions.createMany({
+      //   data: positionStacks
+      // });
+      // prisma -> postgresql 쿼리로 변경 될때 형식만 확인하면 될 것 같습니다.
+      // [{},...], insert into model values {},{},{},{}
       for (const [position, position_id] of Object.entries(positionIds)) {
         console.log(position, position_id);
         const targetStacks = stackIds[position];
