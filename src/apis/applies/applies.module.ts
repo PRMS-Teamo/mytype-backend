@@ -1,12 +1,12 @@
 import { Module } from "@nestjs/common";
 import { AppliesService } from "./applies.service";
 import { AppliesController } from "./applies.controller";
-import { PrismaClient as PgClient } from "@/prisma/postgres/postgres-client";
-import { PrismaClient as MongoClient } from "@/prisma/mongo/mongo-client";
+import { PostgresService } from "@/prisma/postgres/postgres.service";
+import { AuthModule } from "@/apis/auth/auth.module";
 
 @Module({
-  imports: [PgClient, MongoClient],
+  imports: [AuthModule],
   controllers: [AppliesController],
-  providers: [AppliesService],
+  providers: [AppliesService, PostgresService],
 })
 export class AppliesModule {}
