@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from "@nestjs/common";
-import { PrismaClient as PgClient } from "@/prisma/postgres-client";
+import { PrismaClient as PgClient } from "@/database/prisma/postgres-client";
 import { stackDetails } from "@/apis/admin/dto/add-stack.dto";
 
 @Injectable()

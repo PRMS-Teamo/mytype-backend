@@ -1,4 +1,4 @@
-import { PrismaClient as PgClient } from "@/prisma/postgres-client";
+import { PrismaClient as PgClient } from "@/database/prisma/postgres-client";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PositionRepository } from "@/repositories/position.repository";
 

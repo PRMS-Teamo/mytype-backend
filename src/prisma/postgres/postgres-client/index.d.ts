@@ -84,6 +84,7 @@ export type apply_from = (typeof apply_from)[keyof typeof apply_from]
 export const apply_status: {
   FAILED: 'FAILED',
   SUBMITTED: 'SUBMITTED',
+  CANCEL: 'CANCEL',
   SUCCESS: 'SUCCESS',
   REJECTED: 'REJECTED'
 };
@@ -2166,10 +2167,9 @@ export namespace Prisma {
   }
 
   export type Apply_historyMinAggregateOutputType = {
-    id: string | null
     team_id: string | null
     user_id: string | null
-    ment: string | null
+    message: string | null
     apply_status: $Enums.apply_status | null
     apply_from: $Enums.apply_from | null
     created_at: Date | null
@@ -2177,10 +2177,9 @@ export namespace Prisma {
   }
 
   export type Apply_historyMaxAggregateOutputType = {
-    id: string | null
     team_id: string | null
     user_id: string | null
-    ment: string | null
+    message: string | null
     apply_status: $Enums.apply_status | null
     apply_from: $Enums.apply_from | null
     created_at: Date | null
@@ -2188,10 +2187,9 @@ export namespace Prisma {
   }
 
   export type Apply_historyCountAggregateOutputType = {
-    id: number
     team_id: number
     user_id: number
-    ment: number
+    message: number
     apply_status: number
     apply_from: number
     created_at: number
@@ -2201,10 +2199,9 @@ export namespace Prisma {
 
 
   export type Apply_historyMinAggregateInputType = {
-    id?: true
     team_id?: true
     user_id?: true
-    ment?: true
+    message?: true
     apply_status?: true
     apply_from?: true
     created_at?: true
@@ -2212,10 +2209,9 @@ export namespace Prisma {
   }
 
   export type Apply_historyMaxAggregateInputType = {
-    id?: true
     team_id?: true
     user_id?: true
-    ment?: true
+    message?: true
     apply_status?: true
     apply_from?: true
     created_at?: true
@@ -2223,10 +2219,9 @@ export namespace Prisma {
   }
 
   export type Apply_historyCountAggregateInputType = {
-    id?: true
     team_id?: true
     user_id?: true
-    ment?: true
+    message?: true
     apply_status?: true
     apply_from?: true
     created_at?: true
@@ -2307,10 +2302,9 @@ export namespace Prisma {
   }
 
   export type Apply_historyGroupByOutputType = {
-    id: string
     team_id: string
     user_id: string
-    ment: string | null
+    message: string | null
     apply_status: $Enums.apply_status | null
     apply_from: $Enums.apply_from
     created_at: Date | null
@@ -2335,10 +2329,9 @@ export namespace Prisma {
 
 
   export type apply_historySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
     team_id?: boolean
     user_id?: boolean
-    ment?: boolean
+    message?: boolean
     apply_status?: boolean
     apply_from?: boolean
     created_at?: boolean
@@ -2348,10 +2341,9 @@ export namespace Prisma {
   }, ExtArgs["result"]["apply_history"]>
 
   export type apply_historySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
     team_id?: boolean
     user_id?: boolean
-    ment?: boolean
+    message?: boolean
     apply_status?: boolean
     apply_from?: boolean
     created_at?: boolean
@@ -2361,10 +2353,9 @@ export namespace Prisma {
   }, ExtArgs["result"]["apply_history"]>
 
   export type apply_historySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
     team_id?: boolean
     user_id?: boolean
-    ment?: boolean
+    message?: boolean
     apply_status?: boolean
     apply_from?: boolean
     created_at?: boolean
@@ -2374,17 +2365,16 @@ export namespace Prisma {
   }, ExtArgs["result"]["apply_history"]>
 
   export type apply_historySelectScalar = {
-    id?: boolean
     team_id?: boolean
     user_id?: boolean
-    ment?: boolean
+    message?: boolean
     apply_status?: boolean
     apply_from?: boolean
     created_at?: boolean
     updated_at?: boolean
   }
 
-  export type apply_historyOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "team_id" | "user_id" | "ment" | "apply_status" | "apply_from" | "created_at" | "updated_at", ExtArgs["result"]["apply_history"]>
+  export type apply_historyOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"team_id" | "user_id" | "message" | "apply_status" | "apply_from" | "created_at" | "updated_at", ExtArgs["result"]["apply_history"]>
   export type apply_historyInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     teams?: boolean | teamsDefaultArgs<ExtArgs>
     users?: boolean | usersDefaultArgs<ExtArgs>
@@ -2405,10 +2395,9 @@ export namespace Prisma {
       users: Prisma.$usersPayload<ExtArgs>
     }
     scalars: $Extensions.GetPayloadResult<{
-      id: string
       team_id: string
       user_id: string
-      ment: string | null
+      message: string | null
       apply_status: $Enums.apply_status | null
       apply_from: $Enums.apply_from
       created_at: Date | null
@@ -2496,8 +2485,8 @@ export namespace Prisma {
      * // Get first 10 Apply_histories
      * const apply_histories = await prisma.apply_history.findMany({ take: 10 })
      * 
-     * // Only select the `id`
-     * const apply_historyWithIdOnly = await prisma.apply_history.findMany({ select: { id: true } })
+     * // Only select the `team_id`
+     * const apply_historyWithTeam_idOnly = await prisma.apply_history.findMany({ select: { team_id: true } })
      * 
      */
     findMany<T extends apply_historyFindManyArgs>(args?: SelectSubset<T, apply_historyFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$apply_historyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
@@ -2541,9 +2530,9 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Create many Apply_histories and only return the `id`
-     * const apply_historyWithIdOnly = await prisma.apply_history.createManyAndReturn({
-     *   select: { id: true },
+     * // Create many Apply_histories and only return the `team_id`
+     * const apply_historyWithTeam_idOnly = await prisma.apply_history.createManyAndReturn({
+     *   select: { team_id: true },
      *   data: [
      *     // ... provide data here
      *   ]
@@ -2632,9 +2621,9 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Update zero or more Apply_histories and only return the `id`
-     * const apply_historyWithIdOnly = await prisma.apply_history.updateManyAndReturn({
-     *   select: { id: true },
+     * // Update zero or more Apply_histories and only return the `team_id`
+     * const apply_historyWithTeam_idOnly = await prisma.apply_history.updateManyAndReturn({
+     *   select: { team_id: true },
      *   where: {
      *     // ... provide filter here
      *   },
@@ -2838,10 +2827,9 @@ export namespace Prisma {
    * Fields of the apply_history model
    */
   interface apply_historyFieldRefs {
-    readonly id: FieldRef<"apply_history", 'String'>
     readonly team_id: FieldRef<"apply_history", 'String'>
     readonly user_id: FieldRef<"apply_history", 'String'>
-    readonly ment: FieldRef<"apply_history", 'String'>
+    readonly message: FieldRef<"apply_history", 'String'>
     readonly apply_status: FieldRef<"apply_history", 'apply_status'>
     readonly apply_from: FieldRef<"apply_history", 'apply_from'>
     readonly created_at: FieldRef<"apply_history", 'DateTime'>
@@ -14488,10 +14476,9 @@ export namespace Prisma {
 
 
   export const Apply_historyScalarFieldEnum: {
-    id: 'id',
     team_id: 'team_id',
     user_id: 'user_id',
-    ment: 'ment',
+    message: 'message',
     apply_status: 'apply_status',
     apply_from: 'apply_from',
     created_at: 'created_at',
@@ -14840,10 +14827,9 @@ export namespace Prisma {
     AND?: apply_historyWhereInput | apply_historyWhereInput[]
     OR?: apply_historyWhereInput[]
     NOT?: apply_historyWhereInput | apply_historyWhereInput[]
-    id?: UuidFilter<"apply_history"> | string
     team_id?: UuidFilter<"apply_history"> | string
     user_id?: UuidFilter<"apply_history"> | string
-    ment?: StringNullableFilter<"apply_history"> | string | null
+    message?: StringNullableFilter<"apply_history"> | string | null
     apply_status?: Enumapply_statusNullableFilter<"apply_history"> | $Enums.apply_status | null
     apply_from?: Enumapply_fromFilter<"apply_history"> | $Enums.apply_from
     created_at?: DateTimeNullableFilter<"apply_history"> | Date | string | null
@@ -14853,10 +14839,9 @@ export namespace Prisma {
   }
 
   export type apply_historyOrderByWithRelationInput = {
-    id?: SortOrder
     team_id?: SortOrder
     user_id?: SortOrder
-    ment?: SortOrderInput | SortOrder
+    message?: SortOrderInput | SortOrder
     apply_status?: SortOrderInput | SortOrder
     apply_from?: SortOrder
     created_at?: SortOrderInput | SortOrder
@@ -14866,26 +14851,25 @@ export namespace Prisma {
   }
 
   export type apply_historyWhereUniqueInput = Prisma.AtLeast<{
-    id?: string
+    user_id_team_id?: apply_historyUser_idTeam_idCompoundUniqueInput
     AND?: apply_historyWhereInput | apply_historyWhereInput[]
     OR?: apply_historyWhereInput[]
     NOT?: apply_historyWhereInput | apply_historyWhereInput[]
     team_id?: UuidFilter<"apply_history"> | string
     user_id?: UuidFilter<"apply_history"> | string
-    ment?: StringNullableFilter<"apply_history"> | string | null
+    message?: StringNullableFilter<"apply_history"> | string | null
     apply_status?: Enumapply_statusNullableFilter<"apply_history"> | $Enums.apply_status | null
     apply_from?: Enumapply_fromFilter<"apply_history"> | $Enums.apply_from
     created_at?: DateTimeNullableFilter<"apply_history"> | Date | string | null
     updated_at?: DateTimeNullableFilter<"apply_history"> | Date | string | null
     teams?: XOR<TeamsScalarRelationFilter, teamsWhereInput>
     users?: XOR<UsersScalarRelationFilter, usersWhereInput>
-  }, "id">
+  }, "user_id_team_id">
 
   export type apply_historyOrderByWithAggregationInput = {
-    id?: SortOrder
     team_id?: SortOrder
     user_id?: SortOrder
-    ment?: SortOrderInput | SortOrder
+    message?: SortOrderInput | SortOrder
     apply_status?: SortOrderInput | SortOrder
     apply_from?: SortOrder
     created_at?: SortOrderInput | SortOrder
@@ -14899,10 +14883,9 @@ export namespace Prisma {
     AND?: apply_historyScalarWhereWithAggregatesInput | apply_historyScalarWhereWithAggregatesInput[]
     OR?: apply_historyScalarWhereWithAggregatesInput[]
     NOT?: apply_historyScalarWhereWithAggregatesInput | apply_historyScalarWhereWithAggregatesInput[]
-    id?: UuidWithAggregatesFilter<"apply_history"> | string
     team_id?: UuidWithAggregatesFilter<"apply_history"> | string
     user_id?: UuidWithAggregatesFilter<"apply_history"> | string
-    ment?: StringNullableWithAggregatesFilter<"apply_history"> | string | null
+    message?: StringNullableWithAggregatesFilter<"apply_history"> | string | null
     apply_status?: Enumapply_statusNullableWithAggregatesFilter<"apply_history"> | $Enums.apply_status | null
     apply_from?: Enumapply_fromWithAggregatesFilter<"apply_history"> | $Enums.apply_from
     created_at?: DateTimeNullableWithAggregatesFilter<"apply_history"> | Date | string | null
@@ -15597,8 +15580,7 @@ export namespace Prisma {
   }
 
   export type apply_historyCreateInput = {
-    id?: string
-    ment?: string | null
+    message?: string | null
     apply_status?: $Enums.apply_status | null
     apply_from: $Enums.apply_from
     created_at?: Date | string | null
@@ -15608,10 +15590,9 @@ export namespace Prisma {
   }
 
   export type apply_historyUncheckedCreateInput = {
-    id?: string
     team_id: string
     user_id: string
-    ment?: string | null
+    message?: string | null
     apply_status?: $Enums.apply_status | null
     apply_from: $Enums.apply_from
     created_at?: Date | string | null
@@ -15619,8 +15600,7 @@ export namespace Prisma {
   }
 
   export type apply_historyUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    ment?: NullableStringFieldUpdateOperationsInput | string | null
+    message?: NullableStringFieldUpdateOperationsInput | string | null
     apply_status?: NullableEnumapply_statusFieldUpdateOperationsInput | $Enums.apply_status | null
     apply_from?: Enumapply_fromFieldUpdateOperationsInput | $Enums.apply_from
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -15630,10 +15610,9 @@ export namespace Prisma {
   }
 
   export type apply_historyUncheckedUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
     team_id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
-    ment?: NullableStringFieldUpdateOperationsInput | string | null
+    message?: NullableStringFieldUpdateOperationsInput | string | null
     apply_status?: NullableEnumapply_statusFieldUpdateOperationsInput | $Enums.apply_status | null
     apply_from?: Enumapply_fromFieldUpdateOperationsInput | $Enums.apply_from
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -15641,10 +15620,9 @@ export namespace Prisma {
   }
 
   export type apply_historyCreateManyInput = {
-    id?: string
     team_id: string
     user_id: string
-    ment?: string | null
+    message?: string | null
     apply_status?: $Enums.apply_status | null
     apply_from: $Enums.apply_from
     created_at?: Date | string | null
@@ -15652,8 +15630,7 @@ export namespace Prisma {
   }
 
   export type apply_historyUpdateManyMutationInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    ment?: NullableStringFieldUpdateOperationsInput | string | null
+    message?: NullableStringFieldUpdateOperationsInput | string | null
     apply_status?: NullableEnumapply_statusFieldUpdateOperationsInput | $Enums.apply_status | null
     apply_from?: Enumapply_fromFieldUpdateOperationsInput | $Enums.apply_from
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -15661,10 +15638,9 @@ export namespace Prisma {
   }
 
   export type apply_historyUncheckedUpdateManyInput = {
-    id?: StringFieldUpdateOperationsInput | string
     team_id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
-    ment?: NullableStringFieldUpdateOperationsInput | string | null
+    message?: NullableStringFieldUpdateOperationsInput | string | null
     apply_status?: NullableEnumapply_statusFieldUpdateOperationsInput | $Enums.apply_status | null
     apply_from?: Enumapply_fromFieldUpdateOperationsInput | $Enums.apply_from
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -16465,11 +16441,15 @@ export namespace Prisma {
     nulls?: NullsOrder
   }
 
+  export type apply_historyUser_idTeam_idCompoundUniqueInput = {
+    user_id: string
+    team_id: string
+  }
+
   export type apply_historyCountOrderByAggregateInput = {
-    id?: SortOrder
     team_id?: SortOrder
     user_id?: SortOrder
-    ment?: SortOrder
+    message?: SortOrder
     apply_status?: SortOrder
     apply_from?: SortOrder
     created_at?: SortOrder
@@ -16477,10 +16457,9 @@ export namespace Prisma {
   }
 
   export type apply_historyMaxOrderByAggregateInput = {
-    id?: SortOrder
     team_id?: SortOrder
     user_id?: SortOrder
-    ment?: SortOrder
+    message?: SortOrder
     apply_status?: SortOrder
     apply_from?: SortOrder
     created_at?: SortOrder
@@ -16488,10 +16467,9 @@ export namespace Prisma {
   }
 
   export type apply_historyMinOrderByAggregateInput = {
-    id?: SortOrder
     team_id?: SortOrder
     user_id?: SortOrder
-    ment?: SortOrder
+    message?: SortOrder
     apply_status?: SortOrder
     apply_from?: SortOrder
     created_at?: SortOrder
@@ -17209,10 +17187,6 @@ export namespace Prisma {
     connect?: usersWhereUniqueInput
   }
 
-  export type StringFieldUpdateOperationsInput = {
-    set?: string
-  }
-
   export type NullableStringFieldUpdateOperationsInput = {
     set?: string | null
   }
@@ -17243,6 +17217,10 @@ export namespace Prisma {
     upsert?: usersUpsertWithoutApply_historyInput
     connect?: usersWhereUniqueInput
     update?: XOR<XOR<usersUpdateToOneWithWhereWithoutApply_historyInput, usersUpdateWithoutApply_historyInput>, usersUncheckedUpdateWithoutApply_historyInput>
+  }
+
+  export type StringFieldUpdateOperationsInput = {
+    set?: string
   }
 
   export type team_stack_positionsCreateNestedManyWithoutPositionsInput = {
@@ -19248,8 +19226,7 @@ export namespace Prisma {
   }
 
   export type apply_historyCreateWithoutTeamsInput = {
-    id?: string
-    ment?: string | null
+    message?: string | null
     apply_status?: $Enums.apply_status | null
     apply_from: $Enums.apply_from
     created_at?: Date | string | null
@@ -19258,9 +19235,8 @@ export namespace Prisma {
   }
 
   export type apply_historyUncheckedCreateWithoutTeamsInput = {
-    id?: string
     user_id: string
-    ment?: string | null
+    message?: string | null
     apply_status?: $Enums.apply_status | null
     apply_from: $Enums.apply_from
     created_at?: Date | string | null
@@ -19331,10 +19307,9 @@ export namespace Prisma {
     AND?: apply_historyScalarWhereInput | apply_historyScalarWhereInput[]
     OR?: apply_historyScalarWhereInput[]
     NOT?: apply_historyScalarWhereInput | apply_historyScalarWhereInput[]
-    id?: UuidFilter<"apply_history"> | string
     team_id?: UuidFilter<"apply_history"> | string
     user_id?: UuidFilter<"apply_history"> | string
-    ment?: StringNullableFilter<"apply_history"> | string | null
+    message?: StringNullableFilter<"apply_history"> | string | null
     apply_status?: Enumapply_statusNullableFilter<"apply_history"> | $Enums.apply_status | null
     apply_from?: Enumapply_fromFilter<"apply_history"> | $Enums.apply_from
     created_at?: DateTimeNullableFilter<"apply_history"> | Date | string | null
@@ -19510,8 +19485,7 @@ export namespace Prisma {
   }
 
   export type apply_historyCreateWithoutUsersInput = {
-    id?: string
-    ment?: string | null
+    message?: string | null
     apply_status?: $Enums.apply_status | null
     apply_from: $Enums.apply_from
     created_at?: Date | string | null
@@ -19520,9 +19494,8 @@ export namespace Prisma {
   }
 
   export type apply_historyUncheckedCreateWithoutUsersInput = {
-    id?: string
     team_id: string
-    ment?: string | null
+    message?: string | null
     apply_status?: $Enums.apply_status | null
     apply_from: $Enums.apply_from
     created_at?: Date | string | null
@@ -20181,9 +20154,8 @@ export namespace Prisma {
   }
 
   export type apply_historyCreateManyTeamsInput = {
-    id?: string
     user_id: string
-    ment?: string | null
+    message?: string | null
     apply_status?: $Enums.apply_status | null
     apply_from: $Enums.apply_from
     created_at?: Date | string | null
@@ -20202,8 +20174,7 @@ export namespace Prisma {
   }
 
   export type apply_historyUpdateWithoutTeamsInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    ment?: NullableStringFieldUpdateOperationsInput | string | null
+    message?: NullableStringFieldUpdateOperationsInput | string | null
     apply_status?: NullableEnumapply_statusFieldUpdateOperationsInput | $Enums.apply_status | null
     apply_from?: Enumapply_fromFieldUpdateOperationsInput | $Enums.apply_from
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -20212,9 +20183,8 @@ export namespace Prisma {
   }
 
   export type apply_historyUncheckedUpdateWithoutTeamsInput = {
-    id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
-    ment?: NullableStringFieldUpdateOperationsInput | string | null
+    message?: NullableStringFieldUpdateOperationsInput | string | null
     apply_status?: NullableEnumapply_statusFieldUpdateOperationsInput | $Enums.apply_status | null
     apply_from?: Enumapply_fromFieldUpdateOperationsInput | $Enums.apply_from
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -20222,9 +20192,8 @@ export namespace Prisma {
   }
 
   export type apply_historyUncheckedUpdateManyWithoutTeamsInput = {
-    id?: StringFieldUpdateOperationsInput | string
     user_id?: StringFieldUpdateOperationsInput | string
-    ment?: NullableStringFieldUpdateOperationsInput | string | null
+    message?: NullableStringFieldUpdateOperationsInput | string | null
     apply_status?: NullableEnumapply_statusFieldUpdateOperationsInput | $Enums.apply_status | null
     apply_from?: Enumapply_fromFieldUpdateOperationsInput | $Enums.apply_from
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -20267,9 +20236,8 @@ export namespace Prisma {
   }
 
   export type apply_historyCreateManyUsersInput = {
-    id?: string
     team_id: string
-    ment?: string | null
+    message?: string | null
     apply_status?: $Enums.apply_status | null
     apply_from: $Enums.apply_from
     created_at?: Date | string | null
@@ -20299,8 +20267,7 @@ export namespace Prisma {
   }
 
   export type apply_historyUpdateWithoutUsersInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    ment?: NullableStringFieldUpdateOperationsInput | string | null
+    message?: NullableStringFieldUpdateOperationsInput | string | null
     apply_status?: NullableEnumapply_statusFieldUpdateOperationsInput | $Enums.apply_status | null
     apply_from?: Enumapply_fromFieldUpdateOperationsInput | $Enums.apply_from
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -20309,9 +20276,8 @@ export namespace Prisma {
   }
 
   export type apply_historyUncheckedUpdateWithoutUsersInput = {
-    id?: StringFieldUpdateOperationsInput | string
     team_id?: StringFieldUpdateOperationsInput | string
-    ment?: NullableStringFieldUpdateOperationsInput | string | null
+    message?: NullableStringFieldUpdateOperationsInput | string | null
     apply_status?: NullableEnumapply_statusFieldUpdateOperationsInput | $Enums.apply_status | null
     apply_from?: Enumapply_fromFieldUpdateOperationsInput | $Enums.apply_from
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -20319,9 +20285,8 @@ export namespace Prisma {
   }
 
   export type apply_historyUncheckedUpdateManyWithoutUsersInput = {
-    id?: StringFieldUpdateOperationsInput | string
     team_id?: StringFieldUpdateOperationsInput | string
-    ment?: NullableStringFieldUpdateOperationsInput | string | null
+    message?: NullableStringFieldUpdateOperationsInput | string | null
     apply_status?: NullableEnumapply_statusFieldUpdateOperationsInput | $Enums.apply_status | null
     apply_from?: Enumapply_fromFieldUpdateOperationsInput | $Enums.apply_from
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null

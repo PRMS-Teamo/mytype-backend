@@ -3,7 +3,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from "@nestjs/common";
-import { PrismaClient as PgClient } from "@/prisma/postgres-client";
+import { PrismaClient as PgClient } from "@/prisma/postgres/postgres-client";
 
 @Injectable()
 export class UsersService {

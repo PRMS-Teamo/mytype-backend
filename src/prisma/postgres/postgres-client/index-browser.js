@@ -121,10 +121,9 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
 });
 
 exports.Prisma.Apply_historyScalarFieldEnum = {
-  id: 'id',
   team_id: 'team_id',
   user_id: 'user_id',
-  ment: 'ment',
+  message: 'message',
   apply_status: 'apply_status',
   apply_from: 'apply_from',
   created_at: 'created_at',
@@ -246,6 +245,7 @@ exports.Prisma.NullsOrder = {
 exports.apply_status = exports.$Enums.apply_status = {
   FAILED: 'FAILED',
   SUBMITTED: 'SUBMITTED',
+  CANCEL: 'CANCEL',
   SUCCESS: 'SUCCESS',
   REJECTED: 'REJECTED'
 };
