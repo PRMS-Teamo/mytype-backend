@@ -14,7 +14,6 @@ import { LoggerModule } from "./loggers/logger.module";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { ConfigModule } from "@nestjs/config";
 import { RepositoriesModule } from "@/repositories/repositories.module";
-import { AnalysisModule } from "./apis/analysis/analysis.module";
 
 @Module({
   imports: [
@@ -44,7 +43,6 @@ import { AnalysisModule } from "./apis/analysis/analysis.module";
     ChatsModule,
     AppliesModule,
     RepositoriesModule,
-    AnalysisModule,
   ],
   controllers: [AppController],
   providers: [
