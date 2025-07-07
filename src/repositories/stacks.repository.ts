@@ -1,11 +1,11 @@
-import { PrismaClient as PgClient } from "@/database/prisma/postgres-client";
+import { PostgresService } from "@/prisma/postgres/postgres.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PositionRepository } from "@/repositories/position.repository";
 
 @Injectable()
 export class StacksRepository {
   constructor(
-    private readonly prisma: PgClient,
+    private readonly prisma: PostgresService,
     private readonly positionRepository: PositionRepository,
   ) {}
 

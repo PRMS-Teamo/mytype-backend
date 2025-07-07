@@ -22,6 +22,7 @@ export class AuthService {
 
   generateToken(user: TokenPayload, isAccessToken: boolean): string {
     const payload = {
+      userId: user.userId,
       kakaoId: user.kakaoId,
       username: user.username,
       displayName: user.displayName,

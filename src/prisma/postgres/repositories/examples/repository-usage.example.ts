@@ -5,8 +5,8 @@
  */
 
 import { Injectable } from "@nestjs/common";
-import { PrismaClient as PgClient } from "@/database/prisma/postgres-client";
-import { BasePostgresRepository } from "@/database/postgres/repositories/base.postgres.repository";
+import { PostgresService } from "@/prisma/postgres/postgres.service";
+import { BasePostgresRepository } from "@/prisma/postgres/repositories/base.postgres.repository";
 
 // 타입 정의 (실제 사용시에는 별도 파일로 분리)
 interface BaseQueryOptions {
@@ -41,7 +41,7 @@ interface ComplexQueryOptions extends BaseQueryOptions {
 
 @Injectable()
 export class ExampleUsersRepository extends BasePostgresRepository<any> {
-  constructor(protected readonly prisma: PgClient) {
+  constructor(protected readonly prisma: PostgresService) {
     super(prisma, "users");
   }
 

@@ -2,11 +2,11 @@ import { Module } from "@nestjs/common";
 import { UsersService } from "./users.service";
 import { UsersController } from "./users.controller";
 import { AuthModule } from "@/apis/auth/auth.module";
-import { PrismaClient as PgClient } from "@/database/prisma/postgres-client";
+import { PostgresService } from "@/prisma/postgres/postgres.service";
 
 @Module({
   imports: [AuthModule],
   controllers: [UsersController],
-  providers: [UsersService, PgClient],
+  providers: [UsersService, PostgresService],
 })
 export class UsersModule {}

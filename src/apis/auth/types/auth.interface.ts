@@ -14,10 +14,14 @@ export interface KakaoProfileResponse {
 }
 
 export interface User {
+  userId: string;
   kakaoId: string;
   username: string;
   displayName: string;
   status: "DONE" | "NEW";
 }
 
-export type TokenPayload = Pick<User, "kakaoId" | "username" | "displayName">;
+export type TokenPayload = Pick<
+  User,
+  "userId" | "kakaoId" | "username" | "displayName"
+>;

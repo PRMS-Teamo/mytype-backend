@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { PrismaClient as PgClient } from "@/database/prisma/postgres-client";
+import { PostgresService } from "@/prisma/postgres/postgres.service";
 
 @Injectable()
 export class PositionRepository {
-  constructor(private readonly prisma: PgClient) {}
+  constructor(private readonly prisma: PostgresService) {}
 
   async getPositionIdByName(name: string) {
     const positionInfo = await this.prisma.positions.findFirst({

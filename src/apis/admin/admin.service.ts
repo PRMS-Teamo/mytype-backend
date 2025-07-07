@@ -4,12 +4,12 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from "@nestjs/common";
-import { PrismaClient as PgClient } from "@/database/prisma/postgres-client";
+import { PostgresService } from "@/prisma/postgres/postgres.service";
 import { stackDetails } from "@/apis/admin/dto/add-stack.dto";
 
 @Injectable()
 export class AdminService {
-  constructor(private prisma: PgClient) {}
+  constructor(private prisma: PostgresService) {}
   async addPlatform(data) {
     if (!data.platform) {
       return new BadRequestException("잘못된 요청");

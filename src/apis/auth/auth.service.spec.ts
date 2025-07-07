@@ -2,7 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { AuthService } from "./auth.service";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
-import { PrismaClient as PgClient } from "@/database/prisma/postgres-client";
+import { PostgresService } from "@/prisma/postgres/postgres.service";
 
 describe("AuthService", () => {
   let service: AuthService;
@@ -25,7 +25,7 @@ describe("AuthService", () => {
           },
         },
         {
-          provide: PgClient,
+          provide: PostgresService,
           useValue: {},
         },
       ],
