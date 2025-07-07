@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-teamo}
       POSTGRES_DB: ${DB_NAME:-teamo}
     volumes:
-      - ./database.init/postgres/init-database.sql:/docker-entrypoint-initdb.d/init-database.sql
+      - ./databases.init/postgres/init-database.sql:/docker-entrypoint-initdb.d/init-database.sql
     healthcheck:
       test:
         ["CMD-SHELL", "pg_isready -U ${DB_USER:-teamo} -d ${DB_NAME:-teamo}"]
@@ -23,7 +23,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${DB_USER:-teamo}
       MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD:-teamo}
     volumes:
-      - ./database.init/mongo/init.js:/docker-entrypoint-initdb.d/init.js
+      - ./databases.init/mongo/init.js:/docker-entrypoint-initdb.d/init.js
     healthcheck:
       test:
         [
@@ -47,7 +47,7 @@ services:
     ports:
       - 6389:6379
     volumes:
-      - ./database.init/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./databases.init/redis/redis.conf:/usr/local/etc/redis/redis.conf
     command: redis-server /usr/local/etc/redis/redis.conf
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
