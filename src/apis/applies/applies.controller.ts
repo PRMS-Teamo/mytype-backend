@@ -1,27 +1,114 @@
-import { Controller, Body, Put, UseGuards, Req, Res } from "@nestjs/common";
+import {
+  Controller,
+  Body,
+  Post,
+  Get,
+  Patch,
+  UseGuards,
+  Req,
+  Param,
+  Res,
+} from "@nestjs/common";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from "@nestjs/swagger";
 import { AppliesService } from "./applies.service";
 import { UpsertApplyRequestDto } from "./dto/upsert-apply.request.dto";
+import { UpsertApplyResponseDto } from "./dto/upsert-apply.response.dto";
 import { AccessTokenGuard } from "../auth/guard/bearer-token.guard";
+import { UpdateStatusDto } from "./dto/update-status.dto";
+import { Request, Response } from "express";
 import { User } from "@/apis/auth/types/auth.interface";
-import { Response, Request } from "express";
 
+@ApiTags("지원/초대 관리")
 @Controller("applies")
 export class AppliesController {
   constructor(private readonly appliesService: AppliesService) {}
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "팀에 지원하기" })
+  @ApiResponse({
+    status: 201,
+    description: "지원 성공",
+    type: UpsertApplyResponseDto,
+  })
+  @ApiResponse({ status: 400, description: "잘못된 요청" })
+  @ApiResponse({ status: 401, description: "인증 실패" })
   @UseGuards(AccessTokenGuard)
-  @Put()
-  async upsert(
-    @Body() upsertApplyRequestDto: UpsertApplyRequestDto,
+  @Post("teams/:teamId/apply")
+  applyToTeam(
+    @Body() applyRequestDto: UpsertApplyRequestDto,
+    @Param("teamId") teamId: string,
     @Req() req: Request,
     @Res() res: Response,
   ) {
     const user = req.user as User;
     const userId = user.userId;
-    upsertApplyRequestDto.user_id = userId;
-    const upsertApply = await this.appliesService.upsert(upsertApplyRequestDto);
-    return res
-      .status(201)
-      .send({ message: "지원이 정상적으로 완료되었습니다." });
+    return this.appliesService.upsert(applyRequestDto, userId, "APPLY", teamId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "사용자를 팀에 초대하기" })
+  @ApiResponse({
+    status: 201,
+    description: "초대 성공",
+    type: UpsertApplyResponseDto,
+  })
+  @ApiResponse({ status: 400, description: "잘못된 요청" })
+  @ApiResponse({ status: 401, description: "인증 실패" })
+  @UseGuards(AccessTokenGuard)
+  @Post("users/:userId/invite")
+  inviteUserToTeam(
+    @Body() inviteRequestDto: UpsertApplyRequestDto,
+    @Param("userId") userId: string,
+  ) {
+    return this.appliesService.upsert(
+      inviteRequestDto,
+      userId,
+      "INVITE",
+      "teamId",
+    );
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "팀소유자가 지원/초대 상태 조회" })
+  @ApiResponse({
+    status: 200,
+    description: "조회 성공",
+    type: UpsertApplyResponseDto,
+  })
+  @UseGuards(AccessTokenGuard)
+  @Get("teams/:teamId/history")
+  getApplyStatus(@Param("teamId") teamId: string) {
+    return this.appliesService.findByUserAndTeamHistoryByTeamId(teamId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "지원자가 지원/초대 상태 조회" })
+  @ApiResponse({
+    status: 200,
+    description: "조회 성공",
+    type: UpsertApplyResponseDto,
+  })
+  @UseGuards(AccessTokenGuard)
+  @Get("history")
+  getApplyStatusByUserId(@Req() req: any) {
+    return this.appliesService.findByUserAndTeamHistoryByUserId(req.user_id);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "지원/초대 상태 업데이트" })
+  @ApiResponse({
+    status: 200,
+    description: "업데이트 성공",
+    type: UpsertApplyResponseDto,
+  })
+  @UseGuards(AccessTokenGuard)
+  @Patch("status")
+  updateApplyStatus(@Body() updateRequestDto: UpdateStatusDto) {
+    return this.appliesService.updateStatus(updateRequestDto);
   }
 }

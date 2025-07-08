@@ -12,8 +12,10 @@ model apply_history {
   team_id      String        @db.Uuid
   user_id      String        @db.Uuid
   message      String?       @db.Text
+  is_read      Boolean?      @default(false)
+  reply        String?       @db.Text
   apply_status apply_status? @default(SUBMITTED)
-  apply_from   apply_from
+  action       action
   created_at   DateTime?     @default(now()) @db.Timestamp(6)
   updated_at   DateTime?     @db.Timestamp(6)
   teams        teams         @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_teams_TO_apply_history_1")
@@ -151,9 +153,9 @@ model auth_methods {
   user_auths  user_auths[]
 }
 
-enum apply_from {
-  INDIVIDUAL
-  OWNER
+enum action {
+  APPLY
+  INVITE
 }
 
 enum apply_status {
