@@ -7,7 +7,6 @@ import {
   UseGuards,
   Req,
   Param,
-  Res,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -20,7 +19,7 @@ import { UpsertApplyRequestDto } from "./dto/upsert-apply.request.dto";
 import { UpsertApplyResponseDto } from "./dto/upsert-apply.response.dto";
 import { AccessTokenGuard } from "../auth/guard/bearer-token.guard";
 import { UpdateStatusDto } from "./dto/update-status.dto";
-import { Request, Response } from "express";
+import { Request } from "express";
 import { User } from "@/apis/auth/types/auth.interface";
 
 @ApiTags("지원/초대 관리")
@@ -43,7 +42,6 @@ export class AppliesController {
     @Body() applyRequestDto: UpsertApplyRequestDto,
     @Param("teamId") teamId: string,
     @Req() req: Request,
-    @Res() res: Response,
   ) {
     const user = req.user as User;
     const userId = user.userId;
