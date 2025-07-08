@@ -12,7 +12,6 @@ export class AppliesService {
 
   async upsert(upsertApplyDto: UpsertApplyRequestDto) {
     const { team_id, message, apply_status, apply_from } = upsertApplyDto;
-
     try {
       this.logger.log(
         `Upserting apply record for user ${upsertApplyDto.user_id} and team ${team_id}`,
