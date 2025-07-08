@@ -20,14 +20,21 @@
     "typeRoots": ["./node_modules/@types"],
     "paths": {
       "@/*": ["src/*"],
-      "@config/*": ["src/config/*"],
+      "@config/*": ["src/infrastructure/config/*"],
       "@modules/*": ["src/modules/*"],
-      "@common/*": ["src/common/*"],
+      "@common/*": ["src/apis/shared/common/*"],
       "@interfaces/*": ["src/interfaces/*"],
-      "@utils/*": ["src/utils/*"]
+      "@utils/*": ["src/utils/*"],
+      "@postgres-client": ["generated/postgres-client"],
+      "@mongo-client": ["generated/mongo-client"]
     }
   },
-  "include": ["src/**/*", "src/types/**/*"],
+  "include": [
+    "src/**/*",
+    "src/types/**/*",
+    "generated/postgres-client",
+    "generated/mongo-client"
+  ],
   "exclude": [
     "node_modules",
     "dist",

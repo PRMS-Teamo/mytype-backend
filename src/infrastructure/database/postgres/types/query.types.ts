@@ -1,6 +1,6 @@
-import { Prisma as Postgres } from "@/prisma/postgres/postgres-client";
-import { PaginationRequest } from "@/common/params/pagination.types";
-import { Sort } from "@/common/params/sort.types";
+import { Prisma as Postgres } from "@postgres-client";
+import { PaginationRequest } from "@/apis/shared/types/pagination.types";
+import { Sort } from "@/apis/shared/types/sort.types";
 
 // 기본 쿼리 옵션 타입
 export interface BaseQueryOptions {

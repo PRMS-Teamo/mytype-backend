@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
-import { PostgresService } from "@/prisma/postgres/postgres.service";
+import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
 import { UsersService } from "@/apis/users/users.service";
-import { StacksRepository } from "@/repositories/stacks.repository";
-import { PositionRepository } from "@/repositories/position.repository";
+import { StacksRepository } from "@/apis/shared/repositories/stacks.repository";
+import { PositionRepository } from "@/apis/shared/repositories/position.repository";
 
 @Injectable()
 export class TeamsService {
@@ -13,7 +13,7 @@ export class TeamsService {
     private readonly positionRepository: PositionRepository,
   ) {}
 
-  async createTeam(data) {
+  async createTeam(data): Promise<{ message: string }> {
     const userUUID = data.user_id;
     const checkUUID = await this.usersService.getJoinStatusByUuid(userUUID);
     if (checkUUID) {

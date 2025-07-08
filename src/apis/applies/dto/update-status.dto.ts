@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsOptional, IsEnum, IsString } from "class-validator";
-import { apply_status } from "@/prisma/postgres/postgres-client";
+import { apply_status } from "@postgres-client";
 
 export class UpdateStatusDto {
   @ApiProperty({ description: "팀 ID", required: true })

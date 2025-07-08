@@ -62,6 +62,7 @@ services:
       - 30040:3000
     volumes:
       - ./src:/app/src
+      - ./generated:/app/generated
       - ./prisma:/app/prisma
       - ./package.json:/app/package.json
       - ./package-lock.json:/app/package-lock.json

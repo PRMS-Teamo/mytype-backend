@@ -5,11 +5,17 @@ WORKDIR /app
 # Install wait-for-it script
 RUN apk add --no-cache bash
 
-# Copy package files
+# Copy package files first for better caching
+COPY package*.json ./
+
+# Install dependencies (including devDependencies for build)
+RUN npm ci
+
+# Copy source code
 COPY . .
 
-# Install dependencies
-RUN npm install
+# Clean any existing build artifacts
+RUN npm run clean
 
 # Generate Prisma clients
 RUN npx prisma generate --schema=./prisma/postgres/schema.prisma
@@ -17,6 +23,8 @@ RUN npx prisma generate --schema=./prisma/mongo/schema.prisma
 
 # Build the application
 RUN npm run build
+
+# RUN npm prune --production
 
 # Create startup script
 RUN echo '#!/bin/bash' > /app/start.sh && \
@@ -29,7 +37,7 @@ RUN echo '#!/bin/bash' > /app/start.sh && \
     echo 'done' >> /app/start.sh && \
     echo '' >> /app/start.sh && \
     echo 'echo "PostgreSQL is up - checking migrations..."' >> /app/start.sh && \
-    echo 'if [ -d "prisma/migrations" ] && [ "$(ls -A prisma/migrations)" ]; then' >> /app/start.sh && \
+    echo 'if [ -d "prisma/postgres/migrations" ] && [ "$(ls -A prisma/postgres/migrations)" ]; then' >> /app/start.sh && \
     echo '  echo "Migrations found - running migrate deploy..."' >> /app/start.sh && \
     echo '  npx prisma migrate deploy --schema=./prisma/postgres/schema.prisma' >> /app/start.sh && \
     echo 'else' >> /app/start.sh && \

@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { PostgresService } from "@/prisma/postgres/postgres.service";
+import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
 import {
   BaseQueryOptions,
   IdQueryOptions,
@@ -11,7 +11,7 @@ import {
   DEFAULT_PAGINATION,
   Sort,
   PaginationRequest,
-} from "@/prisma/postgres/types";
+} from "@/infrastructure/database/postgres/types";
 
 @Injectable()
 export class BasePostgresRepository<T> {

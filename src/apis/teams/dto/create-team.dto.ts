@@ -1,13 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString, IsEnum } from "class-validator";
 
-import { proceed_type } from "@/prisma/postgres/postgres-client";
-import {
-  stacks,
-  stack_categories,
-  positions,
-  team_stack_positions,
-} from "@/prisma/postgres/postgres-client";
+import { proceed_type } from "@postgres-client";
+import { stacks, stack_categories, positions } from "@postgres-client";
 
 export class CreateTeamDto {
   @ApiProperty({ example: "마이타입" })

@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from "@nestjs/common";
-import { PostgresService } from "@/prisma/postgres/postgres.service";
+import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
 import { stackDetails } from "@/apis/admin/dto/add-stack.dto";
 
 @Injectable()

@@ -10,3 +10,4 @@ test
 eslint.config.mjs
 nest-cli.json
 databases
+teamo.pem

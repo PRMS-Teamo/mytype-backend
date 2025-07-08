@@ -6,7 +6,7 @@ import {
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { TokenPayload, User } from "@/apis/auth/types/auth.interface";
-import { PostgresService } from "@/prisma/postgres/postgres.service";
+import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
 
 @Injectable()
 export class AuthService {
