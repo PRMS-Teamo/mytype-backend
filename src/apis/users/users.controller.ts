@@ -3,11 +3,11 @@ import {
   Controller,
   Get,
   NotFoundException,
-  Put,
   Req,
   Res,
   UseGuards,
-  Query,
+  Patch,
+  Param,
 } from "@nestjs/common";
 import { UsersService } from "./users.service";
 import { AccessTokenGuard } from "@/apis/auth/guard/bearer-token.guard";
@@ -19,24 +19,36 @@ import { GetMyInfoDto, PutMyInfoDto } from "@/apis/users/dto/my-info.dto";
 @Controller("users")
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
-
-  // id로 정보 찾기
   @Get()
+  @UseGuards(AccessTokenGuard)
+  async getAllUsers(
+    @Res() res: Response,
+    @Body()
+    data: {
+      start: number;
+      end: number;
+    },
+  ) {
+    const findUsers = await this.usersService.findUsers(data.start, data.end);
+    return res.status(200).json(findUsers);
+  }
+
+  @Get(":id")
   @UseGuards(AccessTokenGuard)
   @ApiOkResponse({
     description: "아이디로 유저 정보 찾기",
     type: GetMyInfoDto,
   })
   async getUser(
-    @Query("id") id: string,
+    @Param("id") id: string,
     @Req() req: Request,
     @Res() res: Response,
   ) {
     const findUser = await this.usersService.findUserByUserId(id);
-    if (!findUser || !findUser["users"]) {
+    if (!findUser) {
       throw new NotFoundException("Not Found");
     }
-    return res.status(200).json(findUser["users"]);
+    return res.status(200).json(findUser);
   }
 
   @Get("/me")
@@ -49,13 +61,13 @@ export class UsersController {
     const user = req.user as User;
     const userId = user.userId;
     const findMyInfo = await this.usersService.findUserByUserId(userId);
-    if (!findMyInfo || !findMyInfo["users"]) {
+    if (!findMyInfo) {
       throw new NotFoundException("Not Found");
     }
-    return res.status(200).json(findMyInfo["users"]);
+    return res.status(200).json(findMyInfo);
   }
 
-  @Put()
+  @Patch()
   @UseGuards(AccessTokenGuard)
   async updateMyInfo(
     @Req() req: Request,
@@ -63,11 +75,11 @@ export class UsersController {
     @Res() res: Response,
   ) {
     const user = req.user as User;
-    const externalId = user.kakaoId;
-    const updatedUser = await this.usersService.updateUserInfoByExternalId(
-      externalId,
+    const userId = user.userId;
+    const updatedUser = await this.usersService.updateUserInfoByUserId(
+      userId,
       putMyInfo,
     );
-    return res.status(200).json(updatedUser);
+    return res.status(201).json(updatedUser);
   }
 }
