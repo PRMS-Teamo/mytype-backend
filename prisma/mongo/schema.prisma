@@ -8,3 +8,25 @@ datasource mongoClient {
   provider = "mongodb"
   url      = env("MONGODB_URI")
 }
+
+
+model ChatMessage {
+  id        String   @id @default(auto()) @map("_id") @mongoClient.ObjectId
+  roomId    String   
+  senderId  String
+  text      String
+  sentAt    DateTime @default(now())
+
+  @@index([roomId])
+  @@index([roomId, sentAt])
+}
+
+model MessageRead {
+  id         String   @id @default(auto()) @map("_id") @mongoClient.ObjectId
+  messageId  String   @mongoClient.ObjectId
+  userId     String
+  readAt     DateTime @default(now())
+
+  @@index([messageId])
+  @@unique([messageId, userId])
+}
