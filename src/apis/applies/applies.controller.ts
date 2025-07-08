@@ -5,7 +5,7 @@ import {
   Get,
   Patch,
   UseGuards,
-  Request,
+  Req,
   Param,
 } from "@nestjs/common";
 import {
@@ -19,6 +19,8 @@ import { UpsertApplyRequestDto } from "./dto/upsert-apply.request.dto";
 import { UpsertApplyResponseDto } from "./dto/upsert-apply.response.dto";
 import { AccessTokenGuard } from "../auth/guard/bearer-token.guard";
 import { UpdateStatusDto } from "./dto/update-status.dto";
+import { Request } from "express";
+import { User } from "@/apis/auth/types/auth.interface";
 
 @ApiTags("지원/초대 관리")
 @Controller("applies")
@@ -39,14 +41,11 @@ export class AppliesController {
   applyToTeam(
     @Body() applyRequestDto: UpsertApplyRequestDto,
     @Param("teamId") teamId: string,
-    @Request() req: any,
+    @Req() req: Request,
   ) {
-    return this.appliesService.upsert(
-      applyRequestDto,
-      req.user_id,
-      "APPLY",
-      teamId,
-    );
+    const user = req.user as User;
+    const userId = user.userId;
+    return this.appliesService.upsert(applyRequestDto, userId, "APPLY", teamId);
   }
 
   @ApiBearerAuth()
@@ -94,7 +93,7 @@ export class AppliesController {
   })
   @UseGuards(AccessTokenGuard)
   @Get("history")
-  getApplyStatusByUserId(@Request() req: any) {
+  getApplyStatusByUserId(@Req() req: any) {
     return this.appliesService.findByUserAndTeamHistoryByUserId(req.user_id);
   }
 
