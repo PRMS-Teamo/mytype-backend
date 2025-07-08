@@ -8,7 +8,7 @@ export class AppliesController {
   constructor(private readonly appliesService: AppliesService) {}
 
   @UseGuards(AccessTokenGuard)
-  @Put("apply")
+  @Put()
   upsert(
     @Body() upsertApplyRequestDto: UpsertApplyRequestDto,
     @Request() req: any,

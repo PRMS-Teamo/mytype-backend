@@ -1,11 +1,16 @@
-import { Controller, Get, UseGuards, Req, Res, Post } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  UseGuards,
+  Req,
+  Res,
+  Post,
+  Body,
+} from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { AuthGuard } from "@nestjs/passport";
 import { Request, Response } from "express";
-import {
-  AccessTokenGuard,
-  RefreshTokenGuard,
-} from "@/apis/auth/guard/bearer-token.guard";
+
 import { ApiOkResponse } from "@nestjs/swagger";
 import { KakaoCallbackResponseDto } from "./dto/kakao-callback-response.dto";
 import { User } from "@/apis/auth/types/auth.interface";
@@ -36,6 +41,16 @@ export class AuthController {
       userId: user.userId,
     };
     const tokens = this.authService.generateTokens(tokenPayload);
+
+    // 쿠키에 토큰 저장
+    res.header("Authorization", `Bearer ${tokens.accessToken}`);
+    res.cookie("refreshToken", tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // HTTPS에서만 전송
+      sameSite: "strict",
+      maxAge: 7 * 24 * 3600 * 1000, // 7일 (밀리초)
+    });
+
     const response = {
       ...user,
       tokens,
@@ -57,11 +72,22 @@ export class AuthController {
       </script>
     `);
   }
-  //
+
   @Post("refresh")
-  @UseGuards(RefreshTokenGuard)
-  refresh(@Req() req) {
-    const user = req.user as User;
+  refresh(@Req() req, @Res() res: Response) {
+    // 쿠키에서 refresh token 읽기
+    const refreshToken = req.cookies?.refreshToken;
+    if (!refreshToken) {
+      return res.status(401).json({ message: "Refresh token not found" });
+    }
+
+    // refresh token 검증
+    const result = this.authService.verifyToken(refreshToken);
+    if (!result || result.type !== "refresh") {
+      return res.status(401).json({ message: "Invalid refresh token" });
+    }
+
+    const user = result as User;
     const tokenPayload = {
       kakaoId: user.kakaoId,
       username: user.username,
@@ -69,18 +95,41 @@ export class AuthController {
       userId: user.userId,
     };
     const tokens = this.authService.generateTokens(tokenPayload);
-    return tokens;
+
+    res.header("Authorization", `Bearer ${tokens.accessToken}`);
+    res.cookie("refreshToken", tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 3600 * 1000,
+    });
+
+    return res.json({ message: "토큰이 갱신되었습니다." });
   }
 
-  @Get("test/refresh")
-  @UseGuards(RefreshTokenGuard)
-  test() {
-    return "test! Refresh";
+  @Post("logout")
+  logout(@Res() res: Response) {
+    // 쿠키에서 토큰 삭제
+    res.clearCookie("refreshToken");
+    return res.json({ message: "로그아웃되었습니다." });
   }
 
-  @Get("test/access")
-  @UseGuards(AccessTokenGuard)
-  testAccess() {
-    return "test! Access";
+  @Post("test")
+  async test(@Body() user: User, @Res() res: Response) {
+    const testUser = await this.authService.createOrGetTestUser(user);
+
+    const tokenPayload = {
+      kakaoId: user.kakaoId,
+      username: user.username,
+      displayName: user.displayName,
+      userId: testUser.id,
+    };
+    const tokens = this.authService.generateTokens(tokenPayload);
+    const response = {
+      ...user,
+      tokens,
+    };
+    res.header("Authorization", `Bearer ${tokens.accessToken}`);
+    return res.json(response);
   }
 }

@@ -1,13 +1,19 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
-import { TokenPayload } from "@/apis/auth/types/auth.interface";
+import { TokenPayload, User } from "@/apis/auth/types/auth.interface";
+import { PostgresService } from "@/prisma/postgres/postgres.service";
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
+    private readonly postgresService: PostgresService,
   ) {}
 
   generateTokens(user: TokenPayload) {
@@ -30,7 +36,7 @@ export class AuthService {
     };
     const token: string = this.jwtService.sign(payload, {
       secret: this.configService.get("JWT_SECRET"),
-      expiresIn: isAccessToken ? 3600 : 3600,
+      expiresIn: isAccessToken ? 3600 : 7 * 24 * 3600, // access: 1시간, refresh: 7일
     });
     return token;
   }
@@ -55,5 +61,43 @@ export class AuthService {
         cause: error,
       });
     }
+  }
+
+  async createOrGetTestUser(user: User) {
+    const existingUser = await this.postgresService.users.findFirst({
+      where: {
+        name: user.username,
+      },
+    });
+
+    if (existingUser) {
+      return existingUser;
+    }
+
+    const testUser = await this.postgresService.users.create({
+      data: {
+        name: user.username,
+        join_status: false,
+      },
+    });
+    const authMethodId = await this.postgresService.auth_methods.findFirst({
+      where: {
+        platform: "kakao",
+      },
+    });
+    if (!authMethodId) {
+      throw new BadRequestException("카카오 인증 방법 찾을 수 없음");
+    }
+    const userAuth = await this.postgresService.user_auths.create({
+      data: {
+        user_id: testUser.id,
+        auth_id: authMethodId.id,
+        external_id: user.kakaoId,
+      },
+    });
+    if (!userAuth) {
+      throw new BadRequestException("테스트 유저 인증 정보 생성 실패");
+    }
+    return testUser;
   }
 }
