@@ -6,7 +6,7 @@ export class AnalysisController {
   constructor(private readonly analysisService: AnalysisService) {}
 
   @Get()
-  getAnalysis() {
-    return "hello";
+  getSupplyDemand() {
+    return this.analysisService.getSupplyDemand();
   }
 }
