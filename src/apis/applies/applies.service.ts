@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { UpsertApplyRequestDto } from "./dto/upsert-apply.request.dto";
 import { PostgresService } from "@/prisma/postgres/postgres.service";
 import { UpsertApplyResponseDto } from "./dto/upsert-apply.response.dto";
@@ -43,7 +43,7 @@ export class AppliesService {
         `Successfully upserted apply record with status: ${result.apply_status}`,
       );
       if (!result || !result.user_id || !result.team_id) {
-        throw new Error("Apply record not found");
+        throw new NotFoundException("Apply record not found"); // NotFoundException로 변환
       }
       return plainToInstance(UpsertApplyResponseDto, result);
     } catch (error) {
