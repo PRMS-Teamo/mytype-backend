@@ -1,6 +1,5 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { PostgresService } from "@/prisma/postgres/postgres.service";
-import { UsersService } from "@/apis/users/users.service";
 import { StacksRepository } from "@/repositories/stacks.repository";
 import { PositionRepository } from "@/repositories/position.repository";
 
@@ -8,61 +7,39 @@ import { PositionRepository } from "@/repositories/position.repository";
 export class TeamsService {
   constructor(
     private prisma: PostgresService,
-    private usersService: UsersService,
     private readonly stackRepository: StacksRepository,
     private readonly positionRepository: PositionRepository,
   ) {}
 
-  async createTeam(data) {
-    const userUUID = data.user_id;
-    const checkUUID = await this.usersService.getJoinStatusByUuid(userUUID);
-    if (checkUUID) {
-      throw new BadRequestException("이미 팀에 소속되어있는 인원입니다.");
-    }
-    const { stacks, need, ...rest } = data; //stacks와 분리
+  async createTeam(userId: string, teamInfo) {
+    const { stacks, need, ...restTeamInfo } = teamInfo;
     const createTeamTransaction = await this.prisma.$transaction(async (tx) => {
-      // step 1. 팀 생성
+      // step1. 팀 정보 생성
       const createTeam = await tx.teams.create({
-        data: rest,
+        data: {
+          user_id: userId,
+          ...restTeamInfo,
+        },
       });
-      // step 2. 해당 team_id, stack_id 바탕으로 team_stack_position 업데이트 준비
-      const team_id = createTeam.id;
-      const idInfo =
-        await this.stackRepository.getStackIdsByStackObject(stacks);
-      const positionIds: Record<string, string> = idInfo.position;
-      const stackIds: Record<string, Record<string, string>> = idInfo.stacks;
+      const teamId = createTeam.id;
 
-      // step 3. id 관련 정보 입력 (team_stack_positions)
-      // position_stacks [] 타입으로 필드에서 데이터 선택 가능
-      // -> positionStacks 배열 데이터
-      // await tx.team_stack_positions.createMany({
-      //   data: positionStacks
-      // });
-      // prisma -> postgresql 쿼리로 변경 될때 형식만 확인하면 될 것 같습니다.
-      // [{},...], insert into model values {},{},{},{}
-      for (const [position, position_id] of Object.entries(positionIds)) {
-        console.log(position, position_id);
-        const targetStacks = stackIds[position];
-        for (const [stack, stack_id] of Object.entries(targetStacks)) {
-          await tx.team_stack_positions.create({
-            data: {
-              team_id,
-              stack_id,
+      // step2. stack_positions 설정
+      await tx.team_stack_positions.createMany({
+        data: Object.entries(stacks as Record<string, string[]>).flatMap(
+          ([position_id, stackList]) => {
+            return stackList.map((stack_id) => ({
+              team_id: teamId,
               position_id,
-              status: false,
-              count: need[position],
-            },
-          });
-          console.log(stack, stack_id);
-        }
-      }
-
-      // step 4. 생성 유저 정보 업데이트
-      await this.usersService.updateJoinStatusByUuid(userUUID, true);
+              stack_id,
+              status: true,
+              count: need[position_id],
+            }));
+          },
+        ),
+      });
 
       return { message: "팀 정상 생성" };
     });
-
     return createTeamTransaction;
   }
 }

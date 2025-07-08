@@ -21,13 +21,11 @@ export class TeamsController {
     @Res() res: Response,
   ) {
     const user = req.user as User;
-    const externalId = user.kakaoId;
-    const userInfo = await this.usersService.findUserByExternalId(externalId);
-    const userId = userInfo.user_id;
-    const response = await this.teamsService.createTeam({
-      ...createTeamDto,
-      user_id: userId,
-    });
-    return res.status(201).send(response);
+    const userId = user.userId;
+    const userInfo = await this.teamsService.createTeam(
+      userId,
+      createTeamDto
+    );
+    return res.status(201).send(userInfo);
   }
 }

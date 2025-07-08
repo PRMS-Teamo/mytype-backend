@@ -2,12 +2,6 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsString, IsEnum } from "class-validator";
 
 import { proceed_type } from "@/prisma/postgres/postgres-client";
-import {
-  stacks,
-  stack_categories,
-  positions,
-  team_stack_positions,
-} from "@/prisma/postgres/postgres-client";
 
 export class CreateTeamDto {
   @ApiProperty({ example: "마이타입" })
@@ -20,15 +14,18 @@ export class CreateTeamDto {
   @IsString()
   content: string;
 
-  @IsString()
-  user_id: string;
-
   @ApiProperty({ example: "BOTH", enum: proceed_type })
   @IsEnum(proceed_type)
   proceed_type: proceed_type;
 
+  @IsString()
+  user_id: string;
+
   @ApiProperty({ example: "이미지 형태 아직 미정" })
   img: any;
+
+  stacks: Record<string, string[]>;
+  need: Record<string, number>;
 }
 /**
  * {
