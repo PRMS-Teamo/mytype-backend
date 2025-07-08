@@ -1,15 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { PostgresService } from "@/prisma/postgres/postgres.service";
-import { StacksRepository } from "@/repositories/stacks.repository";
-import { PositionRepository } from "@/repositories/position.repository";
 
 @Injectable()
 export class TeamsService {
-  constructor(
-    private prisma: PostgresService,
-    private readonly stackRepository: StacksRepository,
-    private readonly positionRepository: PositionRepository,
-  ) {}
+  constructor(private prisma: PostgresService) {}
 
   async createTeam(userId: string, teamInfo) {
     const { stacks, need, ...restTeamInfo } = teamInfo;
@@ -41,5 +35,44 @@ export class TeamsService {
       return { message: "팀 정상 생성" };
     });
     return createTeamTransaction;
+  }
+
+  async updateTeam(userId: string, teamId: string, dto) {
+    const { stacks, need, ...restTeamInfo } = dto;
+    const transaction = await this.prisma.$transaction(async (tx) => {
+      await tx.teams.updateMany({
+        where: {
+          id: teamId,
+          user_id: userId,
+        },
+        data: {
+          ...restTeamInfo,
+          updated_at: new Date(),
+        },
+      });
+
+      await tx.team_stack_positions.deleteMany({
+        where: {
+          team_id: teamId,
+        },
+      });
+
+      await tx.team_stack_positions.createMany({
+        data: Object.entries(stacks as Record<string, string[]>).flatMap(
+          ([position_id, stackList]) =>
+            stackList.map((stack_id) => ({
+              team_id: teamId,
+              position_id,
+              stack_id,
+              status: true,
+              count: need[position_id],
+            })),
+        ),
+        skipDuplicates: true,
+      });
+
+      return { message: "팀 정보가 수정되었습니다." };
+    });
+    return transaction;
   }
 }
