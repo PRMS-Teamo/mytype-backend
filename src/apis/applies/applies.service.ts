@@ -1,9 +1,9 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { UpsertApplyRequestDto } from "./dto/upsert-apply.request.dto";
-import { PostgresService } from "@/prisma/postgres/postgres.service";
+import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
 import { UpsertApplyResponseDto } from "./dto/upsert-apply.response.dto";
 import { plainToInstance } from "class-transformer";
-import { action } from "@/prisma/postgres/postgres-client";
+import { action } from "@postgres-client";
 import { UpdateStatusDto } from "./dto/update-status.dto";
 
 @Injectable()

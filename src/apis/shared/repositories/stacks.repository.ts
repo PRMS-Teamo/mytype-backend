@@ -1,6 +1,6 @@
-import { PostgresService } from "@/prisma/postgres/postgres.service";
+import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { PositionRepository } from "@/repositories/position.repository";
+import { PositionRepository } from "./position.repository";
 
 @Injectable()
 export class StacksRepository {

@@ -1,0 +1,154 @@
+import { Test, TestingModule } from "@nestjs/testing";
+import { ConfigService } from "@nestjs/config";
+import Redis from "ioredis";
+import { RedisService } from "./redis.service";
+
+// Mock Redis 클라이언트
+const mockRedis = {
+  set: jest.fn().mockResolvedValue(undefined),
+  get: jest.fn().mockResolvedValue(null),
+  del: jest.fn().mockResolvedValue(undefined),
+  exists: jest.fn().mockResolvedValue(0),
+  expire: jest.fn().mockResolvedValue(0),
+  ttl: jest.fn().mockResolvedValue(-1),
+  publish: jest.fn().mockResolvedValue(0),
+  subscribe: jest.fn().mockResolvedValue(undefined),
+  unsubscribe: jest.fn().mockResolvedValue(undefined),
+  on: jest.fn(),
+};
+
+// Mock ConfigService
+const mockConfigService = {
+  get: jest.fn().mockReturnValue("mytype:"),
+};
+
+describe("RedisService", () => {
+  let service: RedisService;
+  let redisClient: jest.Mocked<Redis>;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        RedisService,
+        {
+          provide: "REDIS_CLIENT",
+          useValue: mockRedis,
+        },
+        {
+          provide: ConfigService,
+          useValue: mockConfigService,
+        },
+      ],
+    }).compile();
+
+    service = module.get<RedisService>(RedisService);
+    redisClient = module.get("REDIS_CLIENT");
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("should be defined", () => {
+    expect(service).toBeDefined();
+  });
+
+  describe("set", () => {
+    it("should set a string value without TTL", async () => {
+      const key = "test-key";
+      const value = "test-value";
+
+      await service.set(key, value);
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(redisClient.set).toHaveBeenCalledWith("mytype:test-key", value);
+    });
+
+    it("should set an object value with TTL", async () => {
+      const key = "test-key";
+      const value = { name: "test", age: 25 };
+      const ttl = 3600;
+
+      await service.set(key, value, ttl);
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(redisClient.set).toHaveBeenCalledWith(
+        "mytype:test-key",
+        JSON.stringify(value),
+        "EX",
+        ttl,
+      );
+    });
+  });
+
+  describe("get", () => {
+    it("should get a string value", async () => {
+      const key = "test-key";
+      const value = "test-value";
+
+      (redisClient.get as jest.Mock).mockResolvedValue(value);
+
+      const result = await service.get(key);
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(redisClient.get).toHaveBeenCalledWith("mytype:test-key");
+      expect(result).toBe(value);
+    });
+
+    it("should get and parse a JSON value", async () => {
+      const key = "test-key";
+      const value = JSON.stringify({ name: "test", age: 25 });
+
+      (redisClient.get as jest.Mock).mockResolvedValue(value);
+
+      const result = await service.get(key);
+
+      expect(result).toEqual({ name: "test", age: 25 });
+    });
+
+    it("should return null for non-existent key", async () => {
+      const key = "test-key";
+
+      (redisClient.get as jest.Mock).mockResolvedValue(null);
+
+      const result = await service.get(key);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe("del", () => {
+    it("should delete a key", async () => {
+      const key = "test-key";
+
+      await service.del(key);
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(redisClient.del).toHaveBeenCalledWith("mytype:test-key");
+    });
+  });
+
+  describe("exists", () => {
+    it("should return true for existing key", async () => {
+      const key = "test-key";
+
+      (redisClient.exists as jest.Mock).mockResolvedValue(1);
+
+      const result = await service.exists(key);
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(redisClient.exists).toHaveBeenCalledWith("mytype:test-key");
+      expect(result).toBe(true);
+    });
+
+    it("should return false for non-existing key", async () => {
+      const key = "test-key";
+
+      (redisClient.exists as jest.Mock).mockResolvedValue(0);
+
+      const result = await service.exists(key);
+
+      expect(result).toBe(false);
+    });
+  });
+});

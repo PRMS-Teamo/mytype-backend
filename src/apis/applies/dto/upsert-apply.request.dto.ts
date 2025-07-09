@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString, IsOptional, IsEnum } from "class-validator";
-import { apply_status } from "@/prisma/postgres/postgres-client";
+import { apply_status } from "@postgres-client";
 
 export class UpsertApplyRequestDto {
   @ApiProperty({ description: "지원 메시지", required: false })

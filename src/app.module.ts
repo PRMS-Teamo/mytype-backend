@@ -2,19 +2,17 @@ import { Module } from "@nestjs/common";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { APP_GUARD } from "@nestjs/core";
-import { UsersModule } from "./apis/users/users.module";
-import { AuthModule } from "./apis/auth/auth.module";
-import { AdminModule } from "./apis/admin/admin.module";
-import { ChatsModule } from "./websockets/chats/chats.module";
-import { TeamsModule } from "./apis/teams/teams.module";
-import { AppliesModule } from "./apis/applies/applies.module";
-import { PostgresModule } from "@/prisma/postgres/postgres.module";
-import { MongoModule } from "@/prisma/mongo/mongo.module";
-import { LoggerModule } from "./loggers/logger.module";
+import { UsersModule } from "@/apis/users/users.module";
+import { AuthModule } from "@/apis/auth/auth.module";
+import { AdminModule } from "@/apis/admin/admin.module";
+import { ChatsModule } from "@/presentation/websockets/chats/chats.module";
+import { TeamsModule } from "@/apis/teams/teams.module";
+import { AppliesModule } from "@/apis/applies/applies.module";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { ConfigModule } from "@nestjs/config";
-import { RepositoriesModule } from "@/repositories/repositories.module";
-import { AnalysisModule } from "./apis/analysis/analysis.module";
+import { RepositoriesModule } from "@/apis/shared/repositories/repositories.module";
+import { AnalysisModule } from "@/apis/analysis/analysis.module";
+import { InfrastructureModule } from "@/infrastructure/infrastructure.module";
 
 @Module({
   imports: [
@@ -33,18 +31,15 @@ import { AnalysisModule } from "./apis/analysis/analysis.module";
         limit: 100,
       },
     ]),
-    LoggerModule,
-    PostgresModule,
-    MongoModule,
     AuthModule,
     UsersModule,
     TeamsModule,
     AppliesModule,
     AdminModule,
     ChatsModule,
-    AppliesModule,
     RepositoriesModule,
     AnalysisModule,
+    InfrastructureModule,
   ],
   controllers: [AppController],
   providers: [

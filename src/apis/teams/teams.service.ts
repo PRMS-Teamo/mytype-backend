@@ -1,11 +1,13 @@
 import { Injectable } from "@nestjs/common";
-import { PostgresService } from "@/prisma/postgres/postgres.service";
+import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
+import { CreateTeamDto } from "./dto/create-team.dto";
+
 
 @Injectable()
 export class TeamsService {
   constructor(private prisma: PostgresService) {}
 
-  async createTeam(userId: string, teamInfo) {
+  async createTeam(userId: string, teamInfo: CreateTeamDto) {
     const { stacks, need, ...restTeamInfo } = teamInfo;
     const createTeamTransaction = await this.prisma.$transaction(async (tx) => {
       // step1. 팀 정보 생성
@@ -19,17 +21,16 @@ export class TeamsService {
 
       // step2. stack_positions 설정
       await tx.team_stack_positions.createMany({
-        data: Object.entries(stacks as Record<string, string[]>).flatMap(
-          ([position_id, stackList]) => {
-            return stackList.map((stack_id) => ({
-              team_id: teamId,
-              position_id,
-              stack_id,
-              status: true,
-              count: need[position_id],
-            }));
-          },
-        ),
+        data: Object.entries(stacks).flatMap(([position_id, stackList]) => {
+          return stackList.map((stack_id) => ({
+            team_id: teamId,
+            position_id,
+            stack_id,
+            status: true,
+            count: need[position_id],
+          }));
+        }),
+
       });
 
       return { message: "팀 정상 생성" };

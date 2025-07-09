@@ -99,8 +99,8 @@ ehthumbs.db
 Thumbs.db
 
 # Prisma generated clients
-src/prisma/postgres/postgres-client/
-src/prisma/mongo/mongo-client/
+generated/postgres-client/
+generated/mongo-client/
 
 # Database files
 *.db
@@ -125,3 +125,5 @@ tsconfig.build.tsbuildinfo
 
 # NestJS
 nest-cli.json
+
+.env

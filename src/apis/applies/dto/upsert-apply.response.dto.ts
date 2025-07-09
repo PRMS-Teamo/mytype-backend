@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { apply_status, action } from "@/prisma/postgres/postgres-client";
+import { apply_status, action } from "@postgres-client";
 
 export class UpsertApplyResponseDto {
   @ApiProperty({ description: "사용자 ID" })

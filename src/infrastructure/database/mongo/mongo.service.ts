@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from "@nestjs/common";
-import { PrismaClient } from "./mongo-client";
+import { PrismaClient } from "@mongo-client";
 
 @Injectable()
 export class MongoService

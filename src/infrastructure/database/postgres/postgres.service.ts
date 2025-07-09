@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from "@nestjs/common";
-import { PrismaClient } from "./postgres-client";
+import { PrismaClient } from "@postgres-client";
 
 @Injectable()
 export class PostgresService
