@@ -1,41 +1,75 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
-import { CreateTeamDto } from "./dto/create-team.dto";
-
+// import { CreateTeamDto } from "./dto/create-team.dto";
 
 @Injectable()
 export class TeamsService {
   constructor(private prisma: PostgresService) {}
 
-  async createTeam(userId: string, teamInfo: CreateTeamDto) {
-    const { stacks, need, ...restTeamInfo } = teamInfo;
-    const createTeamTransaction = await this.prisma.$transaction(async (tx) => {
-      // step1. 팀 정보 생성
-      const createTeam = await tx.teams.create({
+  async createTeam(userId: string, teamInfo: any) {
+    const { stacks, need, owner_position_id, ...restTeamInfo } = teamInfo;
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      // 1. 팀 생성
+      const createdTeam = await tx.teams.create({
         data: {
           user_id: userId,
           ...restTeamInfo,
         },
       });
-      const teamId = createTeam.id;
 
-      // step2. stack_positions 설정
-      await tx.team_stack_positions.createMany({
-        data: Object.entries(stacks).flatMap(([position_id, stackList]) => {
-          return stackList.map((stack_id) => ({
-            team_id: teamId,
-            position_id,
-            stack_id,
-            status: true,
-            count: need[position_id],
-          }));
+      const teamId = createdTeam.id;
+
+      // 2. 팀 포지션 생성
+      const teamPositionResults = await Promise.all(
+        Object.keys(stacks).map(async (positionId) => {
+          return tx.team_positions.create({
+            data: {
+              team_id: teamId,
+              position_id: positionId,
+              count: need[positionId],
+              status: true,
+            },
+          });
         }),
+      );
 
+      // 3. 포지션 ID와 연결된 스택들 등록
+      for (let i = 0; i < teamPositionResults.length; i++) {
+        const teamPosition = teamPositionResults[i];
+        const positionId = teamPosition.position_id;
+        const stackIds = stacks[positionId];
+
+        await tx.position_stacks.createMany({
+          data: stackIds.map((stackId) => ({
+            team_id: teamPosition.id,
+            stack_id: stackId,
+          })),
+        });
+      }
+      // 이때 owner가 속할 포지션을 지정해야 함
+
+      const ownerTeamPosition = teamPositionResults.find(
+        (tp) => tp.position_id === owner_position_id,
+      );
+      if (!ownerTeamPosition) {
+        throw new NotFoundException(
+          "owner_position_id와 일치하는 team_position을 찾을 수 없음.",
+        );
+      }
+      await tx.team_users.create({
+        data: {
+          user_id: userId,
+          team_position_id: ownerTeamPosition.id,
+          isOwner: true,
+          member_status: "ON_BOARD",
+        },
       });
 
-      return { message: "팀 정상 생성" };
+      return { message: "팀 생성 성공", teamId };
     });
-    return createTeamTransaction;
+
+    return result;
   }
 
   async updateTeam(userId: string, teamId: string, dto) {
@@ -52,13 +86,13 @@ export class TeamsService {
         },
       });
 
-      await tx.team_stack_positions.deleteMany({
+      await tx.team_positions.deleteMany({
         where: {
           team_id: teamId,
         },
       });
 
-      await tx.team_stack_positions.createMany({
+      await tx.team_positions.createMany({
         data: Object.entries(stacks as Record<string, string[]>).flatMap(
           ([position_id, stackList]) =>
             stackList.map((stack_id) => ({
