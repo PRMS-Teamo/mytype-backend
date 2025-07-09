@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
 import { CreateTeamDto } from "./dto/create-team.dto";
 
+
 @Injectable()
 export class TeamsService {
   constructor(private prisma: PostgresService) {}
@@ -29,6 +30,7 @@ export class TeamsService {
             count: need[position_id],
           }));
         }),
+
       });
 
       return { message: "팀 정상 생성" };

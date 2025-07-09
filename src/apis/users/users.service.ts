@@ -10,13 +10,40 @@ export class UsersService {
   constructor(private prisma: PostgresService) {}
 
   async findUserByExternalId(externalId: string) {
-    //return interface 정의 필요
     const user = await this.prisma.user_auths.findFirst({
       where: {
         external_id: externalId,
       },
       include: {
         users: true,
+      },
+    });
+    if (!user) {
+      throw new NotFoundException(
+        "해당 아이디에 해당하는 유저가 존재하지 않습니다.",
+      );
+    }
+    return user;
+  }
+
+  async findUserByUserId(user_id: string) {
+    const user = await this.prisma.users.findFirst({
+      where: {
+        id: user_id,
+      },
+      select: {
+        position_id: true,
+        nickname: true,
+        github_url: true,
+        img: true,
+        address: true,
+        join_status: true,
+        advertising: true,
+        user_stacks: {
+          select: {
+            stack_id: true,
+          },
+        },
       },
     });
     if (!user) {
@@ -36,69 +63,55 @@ export class UsersService {
     return isExist;
   }
 
-  async updateUserInfoByExternalId(externalId: string, userInfo: any) {
-    const targetUser = await this.findUserByExternalId(externalId);
+  async findUsers(start: number, end: number) {
+    const pageSize = end - start;
+    const users = await this.prisma.users.findMany({
+      where: {
+        advertising: true,
+      },
+      skip: start,
+      take: pageSize,
+    });
+    return users;
+  }
+
+  async updateUserInfoByUserId(user_id: string, userInfo: any) {
+    const targetUser = await this.findUserByUserId(user_id);
     if (!targetUser) {
       throw new NotFoundException("잘못된 유저 정보 입력.");
     }
-    const stack_ids: string[] = [];
-    for (const stack of userInfo["stacks"]) {
-      const stackInfo = await this.prisma.stacks.findFirst({
-        where: {
-          name: stack,
-        },
-      });
-      if (!stackInfo) {
-        throw new NotFoundException(
-          "해당 스택에 대한 정보를 찾을 수 없습니다.",
-        );
-      }
-      stack_ids.push(stackInfo["id"]);
-    }
-    const positionInfo = await this.prisma.positions.findFirst({
-      where: {
-        name: userInfo["position"],
-      },
-    });
-    if (!positionInfo) {
-      throw new NotFoundException("해당 포지션을 찾을 수 없습니다.");
-    }
-
-    // 스택 아이디까지 저장해뒀으니, 해당 유저의 정보를 찾고 지운 후 스택값을 다시 넣는 방식 선택
+    const { stack_ids, position_id, ...rest } = userInfo;
     await this.prisma.$transaction(async (tx) => {
-      // step 1. 삭제 시도
+      // step1. 기존에 등록한 유저 기술 스택 정보 제거
       await tx.user_stacks.deleteMany({
         where: {
-          user_id: targetUser.users.id,
+          user_id,
         },
       });
-
-      // 2. 스택 id 리스트를 insert
-      for (const stack_id of stack_ids) {
-        await tx.user_stacks.create({
-          data: {
-            user_id: targetUser.users.id,
-            stack_id,
-          },
-        });
-      }
-
-      // 3. 유저 정보 업데이트
+      // step2. 새로 등록할 기술 스택 등록
+      await tx.user_stacks.createMany({
+        data: stack_ids.map((stack_id) => ({
+          user_id,
+          stack_id,
+        })),
+      });
+      // step3. 유저 정보 등록
       await tx.users.update({
         where: {
-          id: targetUser.users.id,
+          id: user_id,
         },
         data: {
-          position_id: positionInfo["id"],
-          github_url: userInfo.github_url,
-          address: userInfo.address,
-          img: userInfo.img,
-          nickname: userInfo.nickname,
-          preferred_meeting: userInfo.preferred_meeting,
-          updated_at: new Date(),
+          positions: {
+            connect: {
+              id: position_id,
+            },
+          },
+          ...rest,
+          updated_at: new Date().toISOString(),
         },
       });
     });
+
     return { message: "유저 정보 및 스택이 성공적으로 업데이트 되었습니다." };
   }
 
