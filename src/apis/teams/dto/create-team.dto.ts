@@ -1,8 +1,20 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsEnum } from "class-validator";
+import { IsString, IsEnum, IsObject, IsArray } from "class-validator";
 
 import { proceed_type } from "@postgres-client";
-import { stacks, stack_categories, positions } from "@postgres-client";
+
+export class PositionStackDto {
+  @ApiProperty({ example: "position_id" })
+  @IsString()
+  position_id: string;
+
+  @ApiProperty({ example: ["stack_id1", "stack_id2"] })
+  @IsArray()
+  stacks: string[];
+
+  @ApiProperty({ example: 3 })
+  count: number;
+}
 
 export class CreateTeamDto {
   @ApiProperty({ example: "마이타입" })
@@ -15,15 +27,30 @@ export class CreateTeamDto {
   @IsString()
   content: string;
 
-  @IsString()
-  user_id: string;
-
   @ApiProperty({ example: "BOTH", enum: proceed_type })
   @IsEnum(proceed_type)
   proceed_type: proceed_type;
 
   @ApiProperty({ example: "이미지 형태 아직 미정" })
   img: any;
+
+  @ApiProperty({
+    example: {
+      position_id1: ["stack_id1", "stack_id2"],
+      position_id2: ["stack_id3", "stack_id4"],
+    },
+  })
+  @IsObject()
+  stacks: Record<string, string[]>;
+
+  @ApiProperty({
+    example: {
+      position_id1: 3,
+      position_id2: 2,
+    },
+  })
+  @IsObject()
+  need: Record<string, number>;
 }
 /**
  * {

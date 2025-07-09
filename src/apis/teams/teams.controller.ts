@@ -24,10 +24,7 @@ export class TeamsController {
     const externalId = user.kakaoId;
     const userInfo = await this.usersService.findUserByExternalId(externalId);
     const userId = userInfo.user_id;
-    const response = await this.teamsService.createTeam({
-      ...createTeamDto,
-      user_id: userId,
-    });
+    const response = await this.teamsService.createTeam(userId, createTeamDto);
     return res.status(201).send(response);
   }
 }
