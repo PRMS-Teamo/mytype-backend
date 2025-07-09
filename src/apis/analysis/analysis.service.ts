@@ -19,24 +19,24 @@ export class AnalysisService {
                 },
               },
             },
-            team_stack_positions: {
-              where: {
-                teams: {
-                  recruit_status: "OPEN",
-                },
-              },
-            },
+            // team_positions: {
+            //   where: {
+            //     teams: {
+            //       recruit_status: "OPEN",
+            //     },
+            //   },
+            // },
           },
         },
       },
     });
 
-    return result.map((stack) => ({
-      stackId: stack.id,
-      stackName: stack.name,
-      supplyCount: stack._count.user_stacks,
-      demandCount: stack._count.team_stack_positions,
-    }));
+  //   return result.map((stack) => ({
+  //     stackId: stack.id,
+  //     stackName: stack.name,
+  //     supplyCount: stack._count.user_stacks,
+  //     demandCount: stack._count.team_positions,
+  //   }));
   }
 }
 

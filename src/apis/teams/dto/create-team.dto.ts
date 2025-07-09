@@ -1,7 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString, IsEnum, IsObject, IsArray } from "class-validator";
 
-
 import { proceed_type } from "@postgres-client";
 
 export class PositionStackDto {
@@ -32,12 +31,11 @@ export class CreateTeamDto {
   @IsEnum(proceed_type)
   proceed_type: proceed_type;
 
-  @IsString()
-  user_id: string;
+  // @IsString()
+  // user_id: string;
 
   @ApiProperty({ example: "이미지 형태 아직 미정" })
   img: any;
-
 
   @ApiProperty({
     example: {
@@ -55,7 +53,6 @@ export class CreateTeamDto {
     },
   })
   @IsObject()
-
   need: Record<string, number>;
 }
 /**
