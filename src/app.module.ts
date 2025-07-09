@@ -13,6 +13,7 @@ import { ConfigModule } from "@nestjs/config";
 import { RepositoriesModule } from "@/apis/shared/repositories/repositories.module";
 import { AnalysisModule } from "@/apis/analysis/analysis.module";
 import { InfrastructureModule } from "@/infrastructure/infrastructure.module";
+import { HealthModule } from "@/apis/health/health.module";
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { InfrastructureModule } from "@/infrastructure/infrastructure.module";
     RepositoriesModule,
     AnalysisModule,
     InfrastructureModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [
