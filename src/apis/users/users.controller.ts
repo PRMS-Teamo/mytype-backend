@@ -44,7 +44,14 @@ export class UsersController {
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    const findUser = await this.usersService.findUserByUserId(id);
+    let userId;
+    if (id === "me") {
+      const user = req.user as User;
+      userId = user.userId;
+    } else {
+      userId = id;
+    }
+    const findUser = await this.usersService.findUserByUserId(userId);
     if (!findUser) {
       throw new NotFoundException("Not Found");
     }
@@ -60,6 +67,7 @@ export class UsersController {
   async getMyInfo(@Req() req: Request, @Res() res: Response) {
     const user = req.user as User;
     const userId = user.userId;
+    console.log("####", userId);
     const findMyInfo = await this.usersService.findUserByUserId(userId);
     if (!findMyInfo) {
       throw new NotFoundException("Not Found");

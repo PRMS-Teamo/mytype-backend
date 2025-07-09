@@ -8,10 +8,10 @@ export class UpdateStatusDto {
   @IsString()
   teamId: string;
 
-  @ApiProperty({ description: "지원자 ID", required: true })
+  @ApiProperty({ description: "대상 유저 ID", required: true })
   @IsOptional()
   @IsString()
-  userId: string;
+  targetUserId: string;
 
   @ApiProperty({ description: "답변", required: true })
   @IsOptional()

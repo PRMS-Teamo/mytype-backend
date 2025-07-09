@@ -9,5 +9,6 @@ import { RepositoriesModule } from "@/apis/shared/repositories/repositories.modu
   imports: [UsersModule, AuthModule, RepositoriesModule],
   controllers: [TeamsController],
   providers: [TeamsService],
+  exports: [TeamsService],
 })
 export class TeamsModule {}

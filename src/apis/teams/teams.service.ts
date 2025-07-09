@@ -1,74 +1,99 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
+import { UsersService } from "@/apis/users/users.service";
+import { Prisma } from "@postgres-client";
 // import { CreateTeamDto } from "./dto/create-team.dto";
 
 @Injectable()
 export class TeamsService {
-  constructor(private prisma: PostgresService) {}
+  constructor(
+    private prisma: PostgresService,
+    private readonly usersService: UsersService,
+  ) {}
+
+  async createdTeamTransaction(tx: Prisma.TransactionClient, userId, data) {
+    return tx.teams.create({
+      data: {
+        user_id: userId,
+        ...data,
+      },
+    });
+  }
+
+  async createTeamMemberTransaction(
+    tx: Prisma.TransactionClient,
+    userId,
+    teamPositionId,
+    isOwner,
+    memberStatus,
+  ) {
+    return tx.team_users.create({
+      data: {
+        user_id: userId,
+        team_position_id: teamPositionId,
+        isOwner,
+        member_status: memberStatus,
+      },
+    });
+  }
 
   async createTeam(userId: string, teamInfo: any) {
     const { stacks, need, owner_position_id, ...restTeamInfo } = teamInfo;
 
-    const result = await this.prisma.$transaction(async (tx) => {
-      // 1. 팀 생성
-      const createdTeam = await tx.teams.create({
-        data: {
-          user_id: userId,
-          ...restTeamInfo,
-        },
-      });
-
-      const teamId = createdTeam.id;
-
-      // 2. 팀 포지션 생성
-      const teamPositionResults = await Promise.all(
-        Object.keys(stacks).map(async (positionId) => {
-          return tx.team_positions.create({
-            data: {
-              team_id: teamId,
-              position_id: positionId,
-              count: need[positionId],
-              status: true,
-            },
-          });
-        }),
-      );
-
-      // 3. 포지션 ID와 연결된 스택들 등록
-      for (let i = 0; i < teamPositionResults.length; i++) {
-        const teamPosition = teamPositionResults[i];
-        const positionId = teamPosition.position_id;
-        const stackIds = stacks[positionId];
-
-        await tx.position_stacks.createMany({
-          data: stackIds.map((stackId) => ({
-            team_id: teamPosition.id,
-            stack_id: stackId,
-          })),
-        });
-      }
-      // 이때 owner가 속할 포지션을 지정해야 함
-
-      const ownerTeamPosition = teamPositionResults.find(
-        (tp) => tp.position_id === owner_position_id,
-      );
-      if (!ownerTeamPosition) {
-        throw new NotFoundException(
-          "owner_position_id와 일치하는 team_position을 찾을 수 없음.",
+    const result = await this.prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        // 1. 팀 생성
+        const createdTeam = await this.createdTeamTransaction(
+          tx,
+          userId,
+          restTeamInfo,
         );
-      }
-      await tx.team_users.create({
-        data: {
-          user_id: userId,
-          team_position_id: ownerTeamPosition.id,
-          isOwner: true,
-          member_status: "ON_BOARD",
-        },
-      });
+        const teamId = createdTeam.id;
+        // 2. 팀 포지션 생성
+        const teamPositionResults = await Promise.all(
+          Object.keys(stacks).map(async (positionId) => {
+            return tx.team_positions.create({
+              data: {
+                team_id: teamId,
+                position_id: positionId,
+                count: need[positionId],
+                status: true,
+              },
+            });
+          }),
+        );
+        // 3. 포지션 ID와 연결된 스택들 등록
+        for (let i = 0; i < teamPositionResults.length; i++) {
+          const teamPosition = teamPositionResults[i];
+          const positionId = teamPosition.position_id;
+          const stackIds = stacks[positionId];
 
-      return { message: "팀 생성 성공", teamId };
-    });
-
+          await tx.position_stacks.createMany({
+            data: stackIds.map((stackId) => ({
+              team_id: teamPosition.id,
+              stack_id: stackId,
+            })),
+          });
+        }
+        // 이때 owner가 속할 포지션을 지정해야 함
+        const ownerTeamPosition = teamPositionResults.find(
+          (tp) => tp.position_id === owner_position_id,
+        );
+        if (!ownerTeamPosition) {
+          throw new NotFoundException(
+            "owner_position_id와 일치하는 team_position을 찾을 수 없음.",
+          );
+        }
+        await this.createTeamMemberTransaction(
+          tx,
+          userId,
+          ownerTeamPosition.id,
+          true,
+          "ON_BOARD",
+        );
+        return { message: "팀 생성 성공", teamId };
+      },
+    );
     return result;
   }
 
@@ -207,5 +232,20 @@ export class TeamsService {
       }
       return { message: "팀 정보가 수정되었습니다." };
     });
+  }
+
+  async addTeamMember(teamPositionId: string, newMemberId: string) {
+    console.log(teamPositionId, newMemberId);
+    await this.prisma.$transaction(async (tx) => {
+      await this.createTeamMemberTransaction(
+        tx,
+        newMemberId,
+        teamPositionId,
+        false,
+        "ON_BOARD",
+      );
+      await this.usersService.updateJoinStatusByUuid(newMemberId, true);
+    });
+    return { message: "hello" };
   }
 }
