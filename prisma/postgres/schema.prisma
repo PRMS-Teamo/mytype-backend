@@ -9,19 +9,19 @@ datasource db {
   url      = env("POSTGRES_URL")
 }
 model apply_history {
-  team_id      String        @db.Uuid
-  user_id      String        @db.Uuid
-  message      String?       @db.Text
-  is_read      Boolean?      @default(false)
-  reply        String?       @db.Text
-  apply_status apply_status? @default(SUBMITTED)
-  action       action
-  created_at   DateTime?     @default(now()) @db.Timestamp(6)
-  updated_at   DateTime?     @db.Timestamp(6)
-  teams        teams         @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_teams_TO_apply_history_1")
-  users        users         @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_users_TO_apply_history_1")
+  team_position_id String         @db.Uuid // TODO : 팀 position Id 로 수정
+  user_id          String         @db.Uuid
+  message          String?        @db.Text
+  is_read          Boolean?       @default(false)
+  reply            String?        @db.Text
+  apply_status     apply_status?  @default(SUBMITTED)
+  action           action
+  created_at       DateTime?      @default(now()) @db.Timestamp(6)
+  updated_at       DateTime?      @db.Timestamp(6)
+  team_positions   team_positions @relation(fields: [team_position_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_teams_TO_apply_history_1")
+  users            users          @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_users_TO_apply_history_1")
 
-  @@id([user_id, team_id], map: "PK_APPLY_HISTORY")
+  @@id([user_id, team_position_id], map: "PK_APPLY_HISTORY")
 }
 
 model positions {
@@ -66,6 +66,7 @@ model team_positions {
   positions       positions         @relation(fields: [position_id], references: [id])
   team_users      team_users[]
   position_stacks position_stacks[]
+  apply_history   apply_history[]
 }
 
 model position_stacks {
@@ -104,7 +105,6 @@ model teams {
   created_at     DateTime?       @default(now()) @db.Timestamp(6)
   updated_at     DateTime?       @db.Timestamp(6)
 
-  apply_history  apply_history[]
   team_positions team_positions[]
   chat_rooms     chat_rooms[]
 }

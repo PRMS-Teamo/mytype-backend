@@ -37,15 +37,20 @@ export class AppliesController {
   @ApiResponse({ status: 400, description: "잘못된 요청" })
   @ApiResponse({ status: 401, description: "인증 실패" })
   @UseGuards(AccessTokenGuard)
-  @Post("teams/:teamId/apply")
+  @Post("teams/:teamPositionId/apply")
   applyToTeam(
     @Body() applyRequestDto: UpsertApplyRequestDto,
-    @Param("teamId") teamId: string,
+    @Param("teamPositionId") teamPositionId: string,
     @Req() req: Request,
   ) {
     const user = req.user as User;
     const userId = user.userId;
-    return this.appliesService.upsert(applyRequestDto, userId, "APPLY", teamId);
+    return this.appliesService.upsert(
+      applyRequestDto,
+      userId,
+      "APPLY",
+      teamPositionId,
+    );
   }
 
   @ApiBearerAuth()
@@ -106,7 +111,12 @@ export class AppliesController {
   })
   @UseGuards(AccessTokenGuard)
   @Patch("status")
-  updateApplyStatus(@Body() updateRequestDto: UpdateStatusDto) {
-    return this.appliesService.updateStatus(updateRequestDto);
+  updateApplyStatus(
+    @Req() req: Request,
+    @Body() updateRequestDto: UpdateStatusDto,
+  ) {
+    const user = req.user as User;
+    const userId = user.userId;
+    return this.appliesService.updateStatus(userId, updateRequestDto);
   }
 }

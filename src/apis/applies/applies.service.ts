@@ -5,41 +5,45 @@ import { UpsertApplyResponseDto } from "./dto/upsert-apply.response.dto";
 import { plainToInstance } from "class-transformer";
 import { action } from "@postgres-client";
 import { UpdateStatusDto } from "./dto/update-status.dto";
+import { TeamsService } from "@/apis/teams/teams.service";
 
 @Injectable()
 export class AppliesService {
   private readonly logger = new Logger(AppliesService.name);
 
-  constructor(private readonly prisma: PostgresService) {}
+  constructor(
+    private readonly prisma: PostgresService,
+    private readonly teamsService: TeamsService,
+  ) {}
 
   async upsert(
     upsertApplyDto: UpsertApplyRequestDto,
     userId: string,
     action: action,
-    teamId: string,
+    teamPositionId: string,
   ) {
     try {
       this.logger.log(
-        `Upserting apply record for user ${userId} and team ${teamId}`,
+        `Upserting apply record for user ${userId} and team ${teamPositionId}`,
       );
 
-      if (teamId === "teamId") {
-        const team = await this.prisma.teams.findFirst({
-          where: {
-            user_id: userId,
-          },
-        });
-        if (!team) {
-          throw new Error("Team not found");
-        }
-        teamId = team.id;
-      }
-
+      // if (teamPositionId === "teamId") {
+      //   // TODO : 해당 사용자의 기술스택에 맞는 초대를 보내도록 해야함.
+      //   const team = await this.prisma.teams.findFirst({
+      //     where: {
+      //       user_id: userId,
+      //     },
+      //   });
+      //   if (!team) {
+      //     throw new Error("Team not found");
+      //   }
+      //   teamPositionId = team.id;
+      // }
       const result = await this.prisma.apply_history.upsert({
         where: {
-          user_id_team_id: {
+          user_id_team_position_id: {
             user_id: userId,
-            team_id: teamId,
+            team_position_id: teamPositionId,
           },
         },
         update: {
@@ -50,7 +54,7 @@ export class AppliesService {
         },
         create: {
           user_id: userId,
-          team_id: teamId,
+          team_position_id: teamPositionId, // TODO: 팀 포지션 아이디로 수정예정
           message: upsertApplyDto.message,
           apply_status: upsertApplyDto.apply_status || "SUBMITTED",
           action: action,
@@ -60,7 +64,7 @@ export class AppliesService {
       this.logger.log(
         `Successfully upserted apply record with status: ${result.apply_status}`,
       );
-      if (!result || !result.user_id || !result.team_id) {
+      if (!result || !result.user_id || !result.team_position_id) {
         throw new Error("Apply record not found");
       }
       return plainToInstance(UpsertApplyResponseDto, result);
@@ -74,13 +78,27 @@ export class AppliesService {
     try {
       this.logger.log(`Finding apply record for team ${teamId}`);
 
-      const result = await this.prisma.apply_history.findMany({
+      const teamPositions = await this.prisma.team_positions.findMany({
         where: {
           team_id: teamId,
         },
         select: {
+          id: true,
+        },
+      });
+
+      const teamPositionIds = teamPositions.map((tp) => tp.id);
+      if (teamPositionIds.length === 0) {
+        this.logger.warn(`No team position found for team ${teamId}`);
+      }
+
+      const result = await this.prisma.apply_history.findMany({
+        where: {
+          team_position_id: { in: teamPositionIds },
+        },
+        select: {
           user_id: true,
-          team_id: true,
+          team_position_id: true,
           message: true,
           apply_status: true,
           action: true,
@@ -95,7 +113,7 @@ export class AppliesService {
         },
       });
 
-      if (!result) {
+      if (!result || result.length === 0) {
         throw new Error("Apply record not found");
       }
 
@@ -130,18 +148,23 @@ export class AppliesService {
     }
   }
 
-  async updateStatus(updateRequestDto: UpdateStatusDto) {
-    const { teamId, userId, apply_status, reply = null } = updateRequestDto;
+  async updateStatus(userId: string, updateRequestDto: UpdateStatusDto) {
+    const {
+      teamId,
+      targetUserId,
+      apply_status,
+      reply = null,
+    } = updateRequestDto;
     try {
       this.logger.log(
-        `Updating apply status for user ${userId} and team ${teamId}`,
+        `Updating apply status for user ${targetUserId} and team ${teamId}`,
       );
 
       const result = await this.prisma.apply_history.update({
         where: {
-          user_id_team_id: {
-            user_id: userId,
-            team_id: teamId,
+          user_id_team_position_id: {
+            user_id: targetUserId,
+            team_position_id: teamId,
           },
         },
         data: {
@@ -154,6 +177,12 @@ export class AppliesService {
       this.logger.log(
         `Successfully updated apply record with status: ${result.apply_status}`,
       );
+
+      // TODO : 정상적으로 등록했다면, 이와 같은 과정도 진행해야함.
+      if (apply_status === "SUCCESS") {
+        // 팀 등록 로직이 진행되어야함.
+        await this.teamsService.addTeamMember(teamId, userId);
+      }
 
       return plainToInstance(UpsertApplyResponseDto, result);
     } catch (error) {
