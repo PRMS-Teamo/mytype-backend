@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
+import { Prisma } from "@postgres-client";
 
 @Injectable()
 export class UsersService {
@@ -115,6 +116,7 @@ export class UsersService {
     return { message: "유저 정보 및 스택이 성공적으로 업데이트 되었습니다." };
   }
 
+  // 해당 유저가 팀에 소속되어있는지 확인
   async getJoinStatusByUuid(uuid: string) {
     const isJoined = await this.prisma.users.findFirst({
       where: {
@@ -129,8 +131,13 @@ export class UsersService {
     return isJoined.join_status;
   }
 
-  async updateJoinStatusByUuid(uuid: string, status: boolean) {
-    const updateJoin = await this.prisma.users.update({
+  async updateJoinStatusByUuid(
+    uuid: string,
+    status: boolean,
+    tx?: Prisma.TransactionClient,
+  ) {
+    const client = tx ?? this.prisma;
+    const updateJoin = await client.users.update({
       where: {
         id: uuid,
       },
@@ -144,5 +151,32 @@ export class UsersService {
       );
     }
     return true;
+  }
+
+  // 해당 유저의 정보 중 null값이 있는지 판단.
+  async checkNullInfo(uuid: string) {
+    const userInfo = await this.findUserByUserId(uuid);
+    const isValid = Object.entries(userInfo).every(([key, value]) => {
+      if (key === "join_status") return true;
+      if (value === null) return false;
+      if (key === "user_stacks" && Array.isArray(value) && value.length === 0)
+        return false;
+      return true;
+    });
+    return isValid;
+  }
+
+  // 해당 유저가 팀장인지 확인
+  async checkOwner(uuid: string) {
+    const findMyTeam = await this.prisma.teams.findFirst({
+      where: {
+        user_id: uuid,
+      },
+    });
+    if (!findMyTeam) {
+      return false;
+    } else {
+      return true;
+    }
   }
 }
