@@ -23,6 +23,7 @@ import { UpdateStatusDto } from "./dto/update-status.dto";
 import { Request } from "express";
 import { User } from "@/apis/auth/types/auth.interface";
 import { UsersService } from "@/apis/users/users.service";
+import { USER_INFO_NULL, USER_JOINED } from "@/constants/errorMessage";
 
 @ApiTags("지원/초대 관리")
 @Controller("applies")
@@ -52,9 +53,11 @@ export class AppliesController {
     const userId = user.userId;
     const userJoinStatus = await this.usersService.getJoinStatusByUuid(userId);
     if (!userJoinStatus) {
-      throw new UnauthorizedException(
-        "팀에 소속된 자는 지원을 할 수 없습니다.",
-      );
+      throw new UnauthorizedException({ USER_JOINED });
+    }
+    const userInfoStatus = await this.usersService.checkNullInfo(userId);
+    if (!userInfoStatus) {
+      throw new UnauthorizedException({ USER_INFO_NULL });
     }
     return this.appliesService.upsert(
       applyRequestDto,

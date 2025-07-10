@@ -16,6 +16,7 @@ import { Request, Response } from "express";
 import { User } from "@/apis/auth/types/auth.interface";
 import { UpdateTeamDto } from "./dto/update-team.dto";
 import { UsersService } from "@/apis/users/users.service";
+import { USER_INFO_NULL, USER_NOT_OWNER } from "@/constants/errorMessage";
 
 @Controller("teams")
 export class TeamsController {
@@ -35,9 +36,7 @@ export class TeamsController {
     const userId = user.userId;
     const userInfoValid = await this.usersService.checkNullInfo(userId);
     if (!userInfoValid) {
-      throw new UnauthorizedException(
-        "마이페이지에서 정보를 등록해야만 그룹 생성이 가능합니다.",
-      );
+      throw new UnauthorizedException({ userInfoNullError: USER_INFO_NULL });
     }
     const userInfo = await this.teamsService.createTeam(userId, createTeamDto);
     return res.status(201).send(userInfo);
@@ -55,7 +54,7 @@ export class TeamsController {
     const userId = user.userId;
     const isOwner = await this.usersService.checkOwner(userId);
     if (!isOwner) {
-      throw new UnauthorizedException("팀장만 수정이 가능합니다.");
+      throw new UnauthorizedException({ USER_NOT_OWNER });
     }
     await this.teamsService.updateTeam(userId, id, updateTeamDto);
     return res.status(201).send({ message: "팀 정보 업데이트 성공" });

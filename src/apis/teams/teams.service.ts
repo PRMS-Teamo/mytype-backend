@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
 import { UsersService } from "@/apis/users/users.service";
 import { Prisma } from "@postgres-client";
+import { NOTFOUND_POSITION } from "@/constants/errorMessage";
 // import { CreateTeamDto } from "./dto/create-team.dto";
 
 @Injectable()
@@ -80,9 +81,7 @@ export class TeamsService {
           (tp) => tp.position_id === owner_position_id,
         );
         if (!ownerTeamPosition) {
-          throw new NotFoundException(
-            "owner_position_id와 일치하는 team_position을 찾을 수 없음.",
-          );
+          throw new NotFoundException({ NOTFOUND_POSITION });
         }
         await this.createTeamMemberTransaction(
           tx,
@@ -199,7 +198,7 @@ export class TeamsService {
         });
 
         if (!newOwnerPosition) {
-          throw new NotFoundException("지정된 포지션이 존재하지 않습니다.");
+          throw new NotFoundException({ NOTFOUND_POSITION });
         }
 
         const current = await tx.team_users.findFirst({
