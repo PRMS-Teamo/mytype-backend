@@ -145,4 +145,31 @@ export class UsersService {
     }
     return true;
   }
+
+  // 해당 유저의 정보 중 null값이 있는지 판단.
+  async checkNullInfo(uuid: string) {
+    const userInfo = await this.findUserByUserId(uuid);
+    const isValid = Object.entries(userInfo).every(([key, value]) => {
+      if (key === "join_status") return true;
+      if (value === null) return false;
+      if (key === "user_stacks" && Array.isArray(value) && value.length === 0)
+        return false;
+      return true;
+    });
+    return isValid;
+  }
+
+  // 해당 유저가 팀장인지 확인
+  async checkOwner(uuid: string) {
+    const findMyTeam = await this.prisma.teams.findFirst({
+      where: {
+        user_id: uuid,
+      },
+    });
+    if (!findMyTeam) {
+      return false;
+    } else {
+      return true;
+    }
+  }
 }

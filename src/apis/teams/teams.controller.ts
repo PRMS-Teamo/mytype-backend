@@ -7,6 +7,7 @@ import {
   Res,
   Param,
   Patch,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { TeamsService } from "./teams.service";
 import { CreateTeamDto } from "./dto/create-team.dto";
@@ -14,10 +15,14 @@ import { AccessTokenGuard } from "@/apis/auth/guard/bearer-token.guard";
 import { Request, Response } from "express";
 import { User } from "@/apis/auth/types/auth.interface";
 import { UpdateTeamDto } from "./dto/update-team.dto";
+import { UsersService } from "@/apis/users/users.service";
 
 @Controller("teams")
 export class TeamsController {
-  constructor(private readonly teamsService: TeamsService) {}
+  constructor(
+    private readonly teamsService: TeamsService,
+    private readonly usersService: UsersService,
+  ) {}
 
   @Post()
   @UseGuards(AccessTokenGuard)
@@ -28,6 +33,12 @@ export class TeamsController {
   ) {
     const user = req.user as User;
     const userId = user.userId;
+    const userInfoValid = await this.usersService.checkNullInfo(userId);
+    if (!userInfoValid) {
+      throw new UnauthorizedException(
+        "마이페이지에서 정보를 등록해야만 그룹 생성이 가능합니다.",
+      );
+    }
     const userInfo = await this.teamsService.createTeam(userId, createTeamDto);
     return res.status(201).send(userInfo);
   }
@@ -41,7 +52,12 @@ export class TeamsController {
     @Res() res: Response,
   ) {
     const user = req.user as User;
-    await this.teamsService.updateTeam(user.userId, id, updateTeamDto);
+    const userId = user.userId;
+    const isOwner = await this.usersService.checkOwner(userId);
+    if (!isOwner) {
+      throw new UnauthorizedException("팀장만 수정이 가능합니다.");
+    }
+    await this.teamsService.updateTeam(userId, id, updateTeamDto);
     return res.status(201).send({ message: "팀 정보 업데이트 성공" });
   }
 }
