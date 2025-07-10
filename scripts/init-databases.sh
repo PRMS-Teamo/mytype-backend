@@ -85,7 +85,7 @@ cat > .env << EOF
 # Server Configuration
 NODE_ENV=development
 PORT=3000
-URL=http://localhost:3000
+URL=http://localhost:30040
 
 # Database Configuration
 MONGODB_URI=mongodb://$MONGO_DB_USER:$MONGO_DB_USER_PASSWORD@mongo_teamo:27017/$MONGO_DB_NAME?authSource=admin
@@ -100,7 +100,7 @@ POSTGRES_DB_USER=$POSTGRES_DB_USER
 POSTGRES_DB_USER_PASSWORD=$POSTGRES_DB_USER_PASSWORD
 
 # CORS Configuration
-CORS_ORIGIN=*
+CORS_ORIGIN=http://localhost:5173,http://localhost:30040
 CORS_METHODS=GET,HEAD,PUT,PATCH,POST,DELETE
 CORS_CREDENTIALS=true
 

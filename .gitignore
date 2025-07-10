@@ -127,3 +127,4 @@ tsconfig.build.tsbuildinfo
 nest-cli.json
 
 .env
+ex.json
