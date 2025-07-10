@@ -5,6 +5,7 @@ export const USER_NOT_OWNER = "팀장만이 해당 기능을 사용할 수 있�
 export const USER_OWNER = "팀장은 해당 기능을 사용할 수 없습니다."; // 팀탈퇴 등의 경우에 활용
 export const USER_JOINED = "이미 팀에 소속되어 있습니다.";
 export const UESR_NOT_JOINED = "팀에 소속되어 있지 않습니다.";
+export const TEAM_DIFFERENCE = "다른 팀에 소속되어 있습니다.";
 
 // NOTFOUND
 export const NOTFOUND_POSITION = "해당 포지션을 찾을 수 없습니다.";

@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
 import { UsersService } from "@/apis/users/users.service";
 import { Prisma } from "@postgres-client";
-import { NOTFOUND_POSITION } from "@/constants/errorMessage";
+import { NOTFOUND_POSITION, NOTFOUND_TEAM } from "@/constants/errorMessage";
 // import { CreateTeamDto } from "./dto/create-team.dto";
 
 @Injectable()
@@ -246,5 +246,96 @@ export class TeamsService {
       await this.usersService.updateJoinStatusByUuid(newMemberId, true);
     });
     return { message: "hello" };
+  }
+
+  async deleteTeamMember(memberId: string) {
+    const deleteMemberTransaction = await this.prisma.$transaction(
+      async (tx) => {
+        // step1. 유저의 소속 정보를 false로 변경한다.
+        await this.usersService.updateJoinStatusByUuid(memberId, false, tx);
+
+        // step2. 팀 정보에서 제거한다.
+        const teamPositionId = await this.getTeamPositionIdByUserId(memberId);
+        const deleteMember = await tx.team_users.delete({
+          where: {
+            user_id_team_position_id: {
+              user_id: memberId,
+              team_position_id: teamPositionId,
+            },
+          },
+        });
+        return deleteMember;
+      },
+    );
+    return deleteMemberTransaction;
+  }
+
+  async getTeamPositionIds(teamId: string) {
+    const positions = await this.prisma.team_positions.findMany({
+      where: {
+        team_id: teamId,
+      },
+      select: {
+        id: true,
+      },
+    });
+    if (!positions) {
+      throw new NotFoundException({ NOTFOUND_POSITION });
+    }
+    return positions.map((pos) => pos.id);
+  }
+
+  async getTeamPositionIdByUserId(userId: string) {
+    const result = await this.prisma.team_users.findFirst({
+      where: {
+        user_id: userId,
+      },
+      select: {
+        team_position_id: true,
+      },
+    });
+    if (!result) {
+      throw new NotFoundException({ NOTFOUND_POSITION });
+    }
+    return result.team_position_id;
+  }
+
+  async getTeamIdByUserId(userId: string) {
+    const team = await this.prisma.teams.findFirst({
+      where: {
+        user_id: userId,
+      },
+      select: {
+        id: true,
+      },
+    });
+    if (!team) {
+      throw new NotFoundException({ NOTFOUND_TEAM });
+    }
+    return team.id;
+  }
+
+  async getTeamOwnerIdByTeamId(teamId: string) {
+    const teamInfo = await this.prisma.teams.findFirst({
+      where: {
+        id: teamId,
+      },
+    });
+    if (!teamInfo) {
+      throw new NotFoundException({ NOTFOUND_TEAM });
+    }
+    return teamInfo.user_id;
+  }
+
+  async getTeamMembers(teamId: string) {
+    const teamPositionIds = await this.getTeamPositionIds(teamId);
+    const teamMembers = await this.prisma.team_users.findMany({
+      where: {
+        team_position_id: {
+          in: teamPositionIds,
+        },
+      },
+    });
+    return teamMembers;
   }
 }

@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
+import { Prisma } from "@postgres-client";
 
 @Injectable()
 export class UsersService {
@@ -130,8 +131,13 @@ export class UsersService {
     return isJoined.join_status;
   }
 
-  async updateJoinStatusByUuid(uuid: string, status: boolean) {
-    const updateJoin = await this.prisma.users.update({
+  async updateJoinStatusByUuid(
+    uuid: string,
+    status: boolean,
+    tx?: Prisma.TransactionClient,
+  ) {
+    const client = tx ?? this.prisma;
+    const updateJoin = await client.users.update({
       where: {
         id: uuid,
       },
