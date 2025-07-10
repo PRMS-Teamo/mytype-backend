@@ -33,6 +33,9 @@ export class AuthController {
     if (!req.user) {
       return res.status(401).json({ message: "User not found" });
     }
+    if (req.headers.referer === undefined) {
+      return res.status(403).json({ message: "잘못된 접근" });
+    }
     const user = req.user as User;
     const tokenPayload = {
       kakaoId: user.kakaoId,
@@ -42,32 +45,19 @@ export class AuthController {
     };
     const tokens = this.authService.generateTokens(tokenPayload);
 
-    // 쿠키에 토큰 저장
-    res.header("Authorization", `Bearer ${tokens.accessToken}`);
-    res.cookie("refreshToken", tokens.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // HTTPS에서만 전송
-      sameSite: "strict",
-      maxAge: 7 * 24 * 3600 * 1000, // 7일 (밀리초)
-    });
-
     const response = {
       ...user,
       tokens,
     };
     const FEURL = "http://localhost:5173";
-
     return res.send(`
       <script>
           // 이 팝업 창을 연 부모 창이 있는지 확인합니다.
           if (window.opener) {
-              // window.opener.postMessage를 사용하여 부모 창으로 데이터를 보냅니다.
-              // 첫 번째 인수는 보낼 데이터, 두 번째 인수는 허용되는 부모 창의 Origin(URL)입니다.
               window.opener.postMessage(${JSON.stringify(response)}, '${FEURL}');
-              window.close(); // 데이터를 보낸 후 팝업 창을 닫습니다.
+              window.close();
           } else {
-              // TODO 직접 접근하는 경우로, 실제 배포시엔 제거해야함.
-              document.body.innerHTML = '<h1>로그인 정보 수신 완료</h1><pre>' + JSON.stringify(${JSON.stringify(response)}, null, 2) + '</pre><p>이 창을 수동으로 닫아주세요.</p>';
+              document.body.innerHTML = '<h1>잘못된 접근으로 로그인을 시도했습니다.</h1>';
           }
       </script>
     `);
