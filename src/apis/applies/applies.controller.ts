@@ -7,6 +7,7 @@ import {
   UseGuards,
   Req,
   Param,
+  UnauthorizedException,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -21,11 +22,15 @@ import { AccessTokenGuard } from "../auth/guard/bearer-token.guard";
 import { UpdateStatusDto } from "./dto/update-status.dto";
 import { Request } from "express";
 import { User } from "@/apis/auth/types/auth.interface";
+import { UsersService } from "@/apis/users/users.service";
 
 @ApiTags("지원/초대 관리")
 @Controller("applies")
 export class AppliesController {
-  constructor(private readonly appliesService: AppliesService) {}
+  constructor(
+    private readonly appliesService: AppliesService,
+    private readonly usersService: UsersService,
+  ) {}
 
   @ApiBearerAuth()
   @ApiOperation({ summary: "팀에 지원하기" })
@@ -38,13 +43,19 @@ export class AppliesController {
   @ApiResponse({ status: 401, description: "인증 실패" })
   @UseGuards(AccessTokenGuard)
   @Post("teams/:teamPositionId/apply")
-  applyToTeam(
+  async applyToTeam(
     @Body() applyRequestDto: UpsertApplyRequestDto,
     @Param("teamPositionId") teamPositionId: string,
     @Req() req: Request,
   ) {
     const user = req.user as User;
     const userId = user.userId;
+    const userJoinStatus = await this.usersService.getJoinStatusByUuid(userId);
+    if (!userJoinStatus) {
+      throw new UnauthorizedException(
+        "팀에 소속된 자는 지원을 할 수 없습니다.",
+      );
+    }
     return this.appliesService.upsert(
       applyRequestDto,
       userId,

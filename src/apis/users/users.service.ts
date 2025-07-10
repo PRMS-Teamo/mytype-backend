@@ -115,6 +115,7 @@ export class UsersService {
     return { message: "유저 정보 및 스택이 성공적으로 업데이트 되었습니다." };
   }
 
+  // 해당 유저가 팀에 소속되어있는지 확인
   async getJoinStatusByUuid(uuid: string) {
     const isJoined = await this.prisma.users.findFirst({
       where: {
