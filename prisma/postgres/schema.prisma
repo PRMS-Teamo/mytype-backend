@@ -9,7 +9,7 @@ datasource db {
   url      = env("POSTGRES_URL")
 }
 model apply_history {
-  team_position_id String         @db.Uuid // TODO : 팀 position Id 로 수정
+  team_position_id          String         @db.Uuid 
   user_id          String         @db.Uuid
   message          String?        @db.Text
   is_read          Boolean?       @default(false)
@@ -18,7 +18,7 @@ model apply_history {
   action           action
   created_at       DateTime?      @default(now()) @db.Timestamp(6)
   updated_at       DateTime?      @db.Timestamp(6)
-  team_positions   team_positions @relation(fields: [team_position_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_teams_TO_apply_history_1")
+  team_positions            team_positions          @relation(fields: [team_position_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_team_positions_TO_apply_history_1")
   users            users          @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_users_TO_apply_history_1")
 
   @@id([user_id, team_position_id], map: "PK_APPLY_HISTORY")
@@ -126,14 +126,15 @@ model users {
   role              roles?              @default(USER)
   name              String              @db.VarChar(50)
   nickname          String?             @db.VarChar(30)
-  salt              String?             @db.VarChar(200)
-  github_url        String?             @db.VarChar(200)
+  email             String?             @db.VarChar(100)
+  hashed_refresh_token                 String?             @db.VarChar(200)
+  github_id         String?             @db.VarChar(200)
   img               String?             @db.VarChar(200)
   address           String?             @db.VarChar(100)
   join_status       Boolean?
   create_at         DateTime?           @default(now()) @db.Timestamp(6)
   updated_at        DateTime?           @db.Timestamp(6)
-  Field             String?             @db.VarChar(255)
+
   apply_history     apply_history[]
   team_users        team_users[]
   user_auths        user_auths[]
@@ -159,7 +160,7 @@ model user_auths {
 model auth_methods {
   id          String       @id(map: "PK_AUTH_METHODS") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   auth_method auth_method? @default(OAuth)
-  platform    String       @db.VarChar(50)
+  provider    String       @db.VarChar(50)
   created_at  DateTime?    @default(now()) @db.Timestamp(6)
   updated_at  DateTime?    @db.Timestamp(6)
   user_auths  user_auths[]

@@ -57,7 +57,7 @@ describe("AuthController", () => {
 
     console.log(mockReq);
 
-    controller.kakaoCallback(mockReq, mockRes);
+    controller.handleProviderCallback(mockReq.user, mockRes);
     const returnValue = mockRes.json.mock.calls[0][0];
     expect(returnValue).toEqual({
       ...mockUser,

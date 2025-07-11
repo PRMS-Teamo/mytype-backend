@@ -3,24 +3,25 @@ import {
   Controller,
   Get,
   NotFoundException,
-  Req,
   Res,
   UseGuards,
   Patch,
   Param,
 } from "@nestjs/common";
 import { UsersService } from "./users.service";
-import { AccessTokenGuard } from "@/apis/auth/guard/bearer-token.guard";
-import { Request, Response } from "express";
-import { User } from "@/apis/auth/types/auth.interface";
+import { JwtAuthGuard } from "@/apis/auth/guard/jwt-auth.guard";
+import { Response } from "express";
 import { ApiOkResponse } from "@nestjs/swagger";
 import { GetMyInfoDto, PutMyInfoDto } from "@/apis/users/dto/my-info.dto";
+import { AuthenticatedUser } from "@/apis/auth/types/authenticated-user.interface";
+import { User as UserDecorator } from "@/apis/auth/decorators/user.decorator";
 
 @Controller("users")
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
   @Get()
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(JwtAuthGuard)
   async getAllUsers(
     @Res() res: Response,
     @Body()
@@ -34,20 +35,19 @@ export class UsersController {
   }
 
   @Get(":id")
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOkResponse({
     description: "아이디로 유저 정보 찾기",
     type: GetMyInfoDto,
   })
   async getUser(
     @Param("id") id: string,
-    @Req() req: Request,
+    @UserDecorator() user: AuthenticatedUser,
     @Res() res: Response,
   ) {
     let userId;
     if (id === "me") {
-      const user = req.user as User;
-      userId = user.userId;
+      userId = user.id; // 이제 직접 id에 접근 가능!
     } else {
       userId = id;
     }
@@ -59,15 +59,18 @@ export class UsersController {
   }
 
   @Get("/me")
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOkResponse({
     description: "나의 정보 불러오기",
     type: GetMyInfoDto,
   })
-  async getMyInfo(@Req() req: Request, @Res() res: Response) {
-    const user = req.user as User;
-    const userId = user.userId;
-    console.log("####", userId);
+  async getMyInfo(
+    @UserDecorator() user: AuthenticatedUser,
+    @Res() res: Response,
+  ) {
+    const userId = user.id; // 이제 직접 id에 접근 가능!
+    console.log("+++++++++++++사용자 ID 조회:", userId);
+    console.log("+++++++++++++");
     const findMyInfo = await this.usersService.findUserByUserId(userId);
     if (!findMyInfo) {
       throw new NotFoundException("Not Found");
@@ -76,14 +79,13 @@ export class UsersController {
   }
 
   @Patch()
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(JwtAuthGuard)
   async updateMyInfo(
-    @Req() req: Request,
+    @UserDecorator() user: AuthenticatedUser,
     @Body() putMyInfo: PutMyInfoDto,
     @Res() res: Response,
   ) {
-    const user = req.user as User;
-    const userId = user.userId;
+    const userId = user.id; // 이제 직접 id에 접근 가능!
     const updatedUser = await this.usersService.updateUserInfoByUserId(
       userId,
       putMyInfo,

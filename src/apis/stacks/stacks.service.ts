@@ -1,16 +1,16 @@
 import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { PositionRepository } from "./position.repository";
+import { PositionService } from "../positions/positions.service";
 
 @Injectable()
-export class StacksRepository {
+export class StacksService {
   constructor(
-    private readonly prisma: PostgresService,
-    private readonly positionRepository: PositionRepository,
+    private readonly postgresService: PostgresService,
+    private readonly positionService: PositionService,
   ) {}
 
   async getStackIdByName(name: string) {
-    const stackInfo = await this.prisma.stacks.findFirst({
+    const stackInfo = await this.postgresService.stacks.findFirst({
       where: {
         name: name,
       },
@@ -26,7 +26,7 @@ export class StacksRepository {
     const stackObj = {};
     for (const [position, stacks] of Object.entries(obj)) {
       const position_id =
-        await this.positionRepository.getPositionIdByName(position);
+        await this.positionService.getPositionIdByName(position);
       positionObj[position] = position_id;
       const stackDetail = {};
       for (const stack of stacks) {

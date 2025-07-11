@@ -10,10 +10,11 @@ import { TeamsModule } from "@/apis/teams/teams.module";
 import { AppliesModule } from "@/apis/applies/applies.module";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { ConfigModule } from "@nestjs/config";
-import { RepositoriesModule } from "@/apis/shared/repositories/repositories.module";
 import { AnalysisModule } from "@/apis/analysis/analysis.module";
 import { InfrastructureModule } from "@/infrastructure/infrastructure.module";
 import { HealthModule } from "./apis/health/health.module";
+import { StacksModule } from "./apis/stacks/stacks.module";
+import { PositionsModule } from "./apis/positions/positions.module";
 
 @Module({
   imports: [
@@ -38,10 +39,11 @@ import { HealthModule } from "./apis/health/health.module";
     AppliesModule,
     AdminModule,
     ChatsModule,
-    RepositoriesModule,
     AnalysisModule,
     InfrastructureModule,
     HealthModule,
+    StacksModule,
+    PositionsModule,
   ],
   controllers: [AppController],
   providers: [

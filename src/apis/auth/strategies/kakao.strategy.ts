@@ -1,98 +1,94 @@
 import { Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
-import { Strategy } from "passport-kakao";
+import { Strategy, Profile } from "passport-kakao";
 import { ConfigService } from "@nestjs/config";
-import { KakaoProfileResponse } from "@/apis/auth/types/auth.interface";
-import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
+import { SocialUserProfile } from "../types/social-user-profile.interface";
 
 @Injectable()
 export class KakaoStrategy extends PassportStrategy(Strategy, "kakao") {
-  constructor(
-    private configService: ConfigService,
-    private prisma: PostgresService,
-  ) {
+  constructor(private configService: ConfigService) {
+    const callbackUrl = `${configService.get("REDIRECT_URL")}/auth/kakao/callback`;
+    const isTestMode = configService.get("NODE_ENV") === "development";
+
+    console.log("+++++++++++++Kakao Strategy Configuration:");
+    console.log("+++++++++++++Client ID:", configService.get("KAKAO_API_KEY"));
+    console.log("+++++++++++++Callback URL:", callbackUrl);
+    console.log("+++++++++++++OAuth 2.0 흐름 적용");
+    console.log("+++++++++++++테스트 모드 여부:", isTestMode);
+    console.log("+++++++++++++");
+
     super({
       clientID: configService.get("KAKAO_API_KEY") as string,
-      callbackURL: `${configService.get("URL")}/auth/kakao/callback`,
+      clientSecret: configService.get("KAKAO_CLIENT_SECRET") || "",
+      callbackURL: callbackUrl,
+      ...(isTestMode && {
+        authorizationParams: {
+          prompt: "login",
+        },
+      }),
     });
   }
-  async validate(
+
+  validate(
     accessToken: string,
     refreshToken: string,
-    profile: KakaoProfileResponse,
-    done: (error: any, user?: any) => void,
-  ) {
-    const kakaoId = String(profile.id);
-    // 1. external_id에서 카카오 아이디 매칭 확인
-    // 2. 사용자 정보 생성 users 등록
-    // 3. 해당 테이블에서 id를 가져온다.
-    // 4. auth_methods 에 등록되어있는 id를 가져온다.
-    // 5. user_auth에 정보를 등록한다.
+    profile: Profile,
+    done: (error: any, user?: SocialUserProfile) => void,
+  ): void {
+    try {
+      console.log("+++++++++++++카카오 OAuth 콜백 성공!");
+      console.log("+++++++++++++Access Token 길이:", accessToken?.length || 0);
+      console.log(
+        "+++++++++++++Refresh Token 길이:",
+        refreshToken?.length || 0,
+      );
+      console.log("+++++++++++++Profile ID:", profile.id);
 
-    const authMethod = "kakao";
-    const authMethodData = await this.prisma.auth_methods.findFirst({
-      where: {
-        platform: authMethod,
-      },
-    });
-    if (!authMethodData) {
-      throw Error("해당 authMethod에 해당하는 데이터가 존재하지 않습니다.");
-    }
-    const authMethodId = authMethodData["id"];
+      if (!profile.id) {
+        console.error("+++++++++++++카카오 사용자 ID를 가져올 수 없습니다.");
+        return done(new Error("카카오 사용자 ID를 가져올 수 없습니다."));
+      }
 
-    const isExist = await this.prisma.user_auths.findFirst({
-      where: {
-        external_id: kakaoId,
-      },
-    });
+      const kakaoAccount = profile._json?.kakao_account;
+      const email = kakaoAccount?.email;
+      const emailVerified = kakaoAccount?.is_email_verified;
+      const emailValid = kakaoAccount?.is_email_valid;
 
-    let user;
-    if (!isExist) {
-      const addUser = await this.prisma.users.create({
-        data: {
-          name: profile.username as string,
-          nickname: profile.displayName as string,
-          // preferred_meeting: "BOTH",
-          join_status: false,
-        },
-      });
-      const userUUID = addUser.id;
+      const nickname = kakaoAccount?.profile?.nickname || profile.displayName;
 
-      await this.prisma.user_auths.create({
-        data: {
-          user_id: userUUID,
-          auth_id: authMethodId,
-          external_id: kakaoId,
-        },
+      console.log("+++++++++++++이메일 정보:", {
+        email,
+        verified: emailVerified,
+        valid: emailValid,
       });
 
-      user = {
-        userId: userUUID,
-        kakaoId,
-        username: profile.username,
-        displayName: profile.displayName,
-        status: "NEW",
+      const userProfile: SocialUserProfile = {
+        provider: "kakao",
+        externalId: String(profile.id),
+        name: nickname || "카카오사용자",
+        email: email && emailVerified && emailValid ? email : undefined,
+        _rawData: {
+          accessToken,
+          refreshToken,
+          profileImage: kakaoAccount?.profile?.profile_image_url,
+          thumbnailImage: kakaoAccount?.profile?.thumbnail_image_url,
+          ageRange: kakaoAccount?.age_range,
+          gender: kakaoAccount?.gender,
+          kakaoAccount: kakaoAccount,
+        },
       };
-    } else {
-      // 기존 사용자의 경우 user_id를 가져와야 함
-      const existingUserAuth = await this.prisma.user_auths.findFirst({
-        where: {
-          external_id: kakaoId,
-        },
-        include: {
-          users: true,
-        },
+
+      console.log("+++++++++++++사용자 프로필 생성 완료:", {
+        provider: userProfile.provider,
+        externalId: userProfile.externalId,
+        name: userProfile.name,
+        hasEmail: !!userProfile.email,
       });
 
-      user = {
-        userId: existingUserAuth?.user_id,
-        kakaoId,
-        username: profile.username,
-        displayName: profile.displayName,
-        status: "DONE",
-      };
+      done(null, userProfile);
+    } catch (error: any) {
+      console.error("+++++++++++++카카오 OAuth 처리 중 오류:", error);
+      done(error);
     }
-
-    done(null, user);
   }
 }

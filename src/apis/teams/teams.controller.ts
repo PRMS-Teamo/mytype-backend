@@ -13,9 +13,9 @@ import {
 } from "@nestjs/common";
 import { TeamsService } from "./teams.service";
 import { CreateTeamDto } from "./dto/create-team.dto";
-import { AccessTokenGuard } from "@/apis/auth/guard/bearer-token.guard";
+import { JwtAuthGuard } from "@/apis/auth/guard/jwt-auth.guard";
 import { Request, Response } from "express";
-import { User } from "@/apis/auth/types/auth.interface";
+import { AuthenticatedUser } from "@/apis/auth/types/authenticated-user.interface";
 import { UpdateTeamDto } from "./dto/update-team.dto";
 import { UsersService } from "@/apis/users/users.service";
 import {
@@ -32,14 +32,14 @@ export class TeamsController {
   ) {}
 
   @Post()
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(JwtAuthGuard)
   async createTeam(
     @Req() req: Request,
     @Body() createTeamDto: CreateTeamDto,
     @Res() res: Response,
   ) {
-    const user = req.user as User;
-    const userId = user.userId;
+    const user = req.user as AuthenticatedUser;
+    const userId = user.id;
     const userInfoValid = await this.usersService.checkNullInfo(userId);
     if (!userInfoValid) {
       throw new UnauthorizedException({ userInfoNullError: USER_INFO_NULL });
@@ -49,15 +49,15 @@ export class TeamsController {
   }
 
   @Patch(":id")
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(JwtAuthGuard)
   async patchTeam(
     @Param("id") id: string,
     @Body() updateTeamDto: UpdateTeamDto,
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    const user = req.user as User;
-    const userId = user.userId;
+    const user = req.user as AuthenticatedUser;
+    const userId = user.id;
     const isOwner = await this.usersService.checkOwner(userId);
     if (!isOwner) {
       throw new UnauthorizedException({ USER_NOT_OWNER });
@@ -67,7 +67,7 @@ export class TeamsController {
   }
 
   @Get(":teamId/members")
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(JwtAuthGuard)
   async getMembers(
     @Req() req: Request,
     @Res() res: Response,
@@ -78,15 +78,15 @@ export class TeamsController {
   }
 
   @Delete(":teamId/members/:memberId")
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(JwtAuthGuard)
   async removeMembers(
     @Req() req: Request,
     @Res() res: Response,
     @Param("teamId") teamId: string,
     @Param("memberId") memberId: string,
   ) {
-    const user = req.user as User;
-    const userId = user.userId;
+    const user = req.user as AuthenticatedUser;
+    const userId = user.id;
     // 예외1. 해당 팀의 오너인가
     const teamOwnerId = await this.teamsService.getTeamOwnerIdByTeamId(teamId);
     if (teamOwnerId !== userId) {

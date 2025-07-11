@@ -6,9 +6,9 @@ import { stackDetails } from "@/apis/admin/dto/add-stack.dto";
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
-  @Post("addPlatform")
+  @Post("addProvider")
   addKakao(@Body() data: object) {
-    return this.adminService.addPlatform(data);
+    return this.adminService.addProvider(data);
   }
 
   @Post("addStackCategory")

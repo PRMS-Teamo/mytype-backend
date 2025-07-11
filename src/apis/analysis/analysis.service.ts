@@ -3,10 +3,10 @@ import { PostgresService } from "@/infrastructure/database/postgres/postgres.ser
 
 @Injectable()
 export class AnalysisService {
-  constructor(private readonly prisma: PostgresService) {}
+  constructor(private readonly postgres: PostgresService) {}
 
   async getSupplyDemand() {
-    const result = await this.prisma.stacks.findMany({
+    const result = await this.postgres.stacks.findMany({
       select: {
         id: true,
         name: true,
@@ -19,47 +19,25 @@ export class AnalysisService {
                 },
               },
             },
-            // team_positions: {
-            //   where: {
-            //     teams: {
-            //       recruit_status: "OPEN",
-            //     },
-            //   },
-            // },
+            position_stacks: {
+              where: {
+                team_positions: {
+                  teams: {
+                    recruit_status: "OPEN",
+                  },
+                },
+              },
+            },
           },
         },
       },
     });
 
-  //   return result.map((stack) => ({
-  //     stackId: stack.id,
-  //     stackName: stack.name,
-  //     supplyCount: stack._count.user_stacks,
-  //     demandCount: stack._count.team_positions,
-  //   }));
+    return result.map((stack) => ({
+      stackId: stack.id,
+      stackName: stack.name,
+      supplyCount: stack._count.user_stacks,
+      demandCount: stack._count.position_stacks,
+    }));
   }
 }
-
-/* 
-select 
-  s.id as stack_id,
-  s."name" as stack_name,  
-  count(s.name) as supply_count,
-  count(tsp.id) as demand_count
-from 
-  users u
-  join user_stacks us on u.id = us.user_id
-  join stacks s on us.stack_id = s.id
-  join teams t on t.recruit_status = 'OPEN'
-  join team_stack_positions tsp on t.id = tsp.team_id and s.id = tsp.stack_id
-where 
-  u.join_status = false
-group by 
-  s.id, s."name";
-
-
-
-
-
-
-*/

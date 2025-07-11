@@ -9,14 +9,14 @@ import { stackDetails } from "@/apis/admin/dto/add-stack.dto";
 
 @Injectable()
 export class AdminService {
-  constructor(private prisma: PostgresService) {}
-  async addPlatform(data) {
-    if (!data.platform) {
+  constructor(private postgresService: PostgresService) {}
+  async addProvider(data) {
+    if (!data.provider) {
       return new BadRequestException("잘못된 요청");
     }
-    const checkPlatform = await this.prisma.auth_methods.findFirst({
+    const checkPlatform = await this.postgresService.auth_methods.findFirst({
       where: {
-        platform: data.platform,
+        provider: data.provider,
       },
     });
     if (checkPlatform) {
@@ -25,32 +25,32 @@ export class AdminService {
     let addObject;
     if (!data.auth_method) {
       addObject = {
-        platform: data.platform,
+        provider: data.provider,
       };
     } else {
       addObject = {
-        platform: data.platform,
+        provider: data.provider,
         auth_method: data.auth_method,
       };
     }
-    const addPlatform = await this.prisma.auth_methods.create({
+    const addPlatform = await this.postgresService.auth_methods.create({
       data: addObject,
     });
 
-    return `${addPlatform.platform} 추가 완료`;
+    return `${addPlatform.provider} 추가 완료`;
   }
 
   async addStackCategory(data: string[]) {
     const alreadyExistCategories: string[] = [];
     const newCategories: string[] = [];
     for (const category of data) {
-      const isExist = await this.prisma.stack_categories.findFirst({
+      const isExist = await this.postgresService.stack_categories.findFirst({
         where: {
           name: category,
         },
       });
       if (!isExist) {
-        const newCategory = await this.prisma.stack_categories.create({
+        const newCategory = await this.postgresService.stack_categories.create({
           data: {
             name: category,
           },
@@ -79,22 +79,23 @@ export class AdminService {
       const name = stack.toLowerCase();
       const category = details["category"].toLowerCase();
       const img_url = details["img_url"].toLowerCase();
-      const isExist = await this.prisma.stacks.findFirst({
+      const isExist = await this.postgresService.stacks.findFirst({
         where: {
           name: name,
         },
       });
       if (!isExist) {
-        const category_id = await this.prisma.stack_categories.findFirst({
-          where: {
-            name: category,
-          },
-        });
+        const category_id =
+          await this.postgresService.stack_categories.findFirst({
+            where: {
+              name: category,
+            },
+          });
         if (!category_id)
           throw new NotFoundException(
             `${category} 카테고리는 존재하지 않는 카테고리입니다.`,
           );
-        const newStack = await this.prisma.stacks.create({
+        const newStack = await this.postgresService.stacks.create({
           data: {
             name: name,
             img_url: img_url,
@@ -108,28 +109,30 @@ export class AdminService {
         newStacks.push(name);
       } else {
         const DBimg_url = isExist["img_url"];
-        const DBcategory = await this.prisma.stack_categories.findFirst({
-          where: {
-            id: isExist["category_id"],
-          },
-        });
+        const DBcategory =
+          await this.postgresService.stack_categories.findFirst({
+            where: {
+              id: isExist["category_id"],
+            },
+          });
         if (!DBimg_url || !DBcategory) {
           throw new InternalServerErrorException(
             "카테고리, 이미지 url을 찾지 못했어요.",
           );
         }
         if (DBimg_url !== img_url || DBcategory.name !== category) {
-          const newCategoryInfo = await this.prisma.stack_categories.findFirst({
-            where: {
-              name: category,
-            },
-          });
+          const newCategoryInfo =
+            await this.postgresService.stack_categories.findFirst({
+              where: {
+                name: category,
+              },
+            });
           if (!newCategoryInfo) {
             throw new NotFoundException(
               "해당 카테고리는 존재하지 않는 카테고리입니다.",
             );
           }
-          await this.prisma.stacks.update({
+          await this.postgresService.stacks.update({
             where: {
               id: isExist.id,
             },
@@ -154,13 +157,13 @@ export class AdminService {
   async addPositions(data: string[]) {
     const addedPositions: string[] = [];
     for (const position of data) {
-      const isExist = await this.prisma.positions.findFirst({
+      const isExist = await this.postgresService.positions.findFirst({
         where: {
           name: position,
         },
       });
       if (!isExist) {
-        await this.prisma.positions.create({
+        await this.postgresService.positions.create({
           data: {
             name: position,
           },

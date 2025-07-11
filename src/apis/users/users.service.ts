@@ -4,14 +4,13 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
-import { Prisma } from "@postgres-client";
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PostgresService) {}
+  constructor(private postgresService: PostgresService) {}
 
   async findUserByExternalId(externalId: string) {
-    const user = await this.prisma.user_auths.findFirst({
+    const user = await this.postgresService.user_auths.findFirst({
       where: {
         external_id: externalId,
       },
@@ -28,14 +27,16 @@ export class UsersService {
   }
 
   async findUserByUserId(user_id: string) {
-    const user = await this.prisma.users.findFirst({
+    const user = await this.postgresService.users.findFirst({
       where: {
         id: user_id,
       },
       select: {
+        id: true,
         position_id: true,
         nickname: true,
-        github_url: true,
+        email: true,
+        github_id: true,
         img: true,
         address: true,
         join_status: true,
@@ -56,7 +57,7 @@ export class UsersService {
   }
 
   async findStacks(stackName: string) {
-    const isExist = await this.prisma.stacks.findFirst({
+    const isExist = await this.postgresService.stacks.findFirst({
       where: {
         name: stackName,
       },
@@ -66,7 +67,7 @@ export class UsersService {
 
   async findUsers(start: number, end: number) {
     const pageSize = end - start;
-    const users = await this.prisma.users.findMany({
+    const users = await this.postgresService.users.findMany({
       where: {
         advertising: true,
       },
@@ -82,21 +83,18 @@ export class UsersService {
       throw new NotFoundException("잘못된 유저 정보 입력.");
     }
     const { stack_ids, position_id, ...rest } = userInfo;
-    await this.prisma.$transaction(async (tx) => {
-      // step1. 기존에 등록한 유저 기술 스택 정보 제거
+    await this.postgresService.$transaction(async (tx) => {
       await tx.user_stacks.deleteMany({
         where: {
           user_id,
         },
       });
-      // step2. 새로 등록할 기술 스택 등록
       await tx.user_stacks.createMany({
         data: stack_ids.map((stack_id) => ({
           user_id,
           stack_id,
         })),
       });
-      // step3. 유저 정보 등록
       await tx.users.update({
         where: {
           id: user_id,
@@ -116,9 +114,8 @@ export class UsersService {
     return { message: "유저 정보 및 스택이 성공적으로 업데이트 되었습니다." };
   }
 
-  // 해당 유저가 팀에 소속되어있는지 확인
   async getJoinStatusByUuid(uuid: string) {
-    const isJoined = await this.prisma.users.findFirst({
+    const isJoined = await this.postgresService.users.findFirst({
       where: {
         id: uuid,
       },
@@ -134,9 +131,9 @@ export class UsersService {
   async updateJoinStatusByUuid(
     uuid: string,
     status: boolean,
-    tx?: Prisma.TransactionClient,
+    tx?: PostgresService,
   ) {
-    const client = tx ?? this.prisma;
+    const client = tx ?? this.postgresService;
     const updateJoin = await client.users.update({
       where: {
         id: uuid,
@@ -153,7 +150,6 @@ export class UsersService {
     return true;
   }
 
-  // 해당 유저의 정보 중 null값이 있는지 판단.
   async checkNullInfo(uuid: string) {
     const userInfo = await this.findUserByUserId(uuid);
     const isValid = Object.entries(userInfo).every(([key, value]) => {
@@ -166,9 +162,8 @@ export class UsersService {
     return isValid;
   }
 
-  // 해당 유저가 팀장인지 확인
   async checkOwner(uuid: string) {
-    const findMyTeam = await this.prisma.teams.findFirst({
+    const findMyTeam = await this.postgresService.teams.findFirst({
       where: {
         user_id: uuid,
       },

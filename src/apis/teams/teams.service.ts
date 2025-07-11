@@ -1,18 +1,15 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
 import { UsersService } from "@/apis/users/users.service";
-import { Prisma } from "@postgres-client";
 import { NOTFOUND_POSITION, NOTFOUND_TEAM } from "@/constants/errorMessage";
-// import { CreateTeamDto } from "./dto/create-team.dto";
 
 @Injectable()
 export class TeamsService {
   constructor(
-    private prisma: PostgresService,
+    private postgresService: PostgresService,
     private readonly usersService: UsersService,
   ) {}
-
-  async createdTeamTransaction(tx: Prisma.TransactionClient, userId, data) {
+  async createdTeamTransaction(tx: PostgresService, userId, data) {
     return tx.teams.create({
       data: {
         user_id: userId,
@@ -22,7 +19,7 @@ export class TeamsService {
   }
 
   async createTeamMemberTransaction(
-    tx: Prisma.TransactionClient,
+    tx: PostgresService,
     userId,
     teamPositionId,
     isOwner,
@@ -41,16 +38,14 @@ export class TeamsService {
   async createTeam(userId: string, teamInfo: any) {
     const { stacks, need, owner_position_id, ...restTeamInfo } = teamInfo;
 
-    const result = await this.prisma.$transaction(
-      async (tx: Prisma.TransactionClient) => {
-        // 1. 팀 생성
+    const result = await this.postgresService.$transaction(
+      async (tx: PostgresService) => {
         const createdTeam = await this.createdTeamTransaction(
           tx,
           userId,
           restTeamInfo,
         );
         const teamId = createdTeam.id;
-        // 2. 팀 포지션 생성
         const teamPositionResults = await Promise.all(
           Object.keys(stacks).map(async (positionId) => {
             return tx.team_positions.create({
@@ -63,7 +58,6 @@ export class TeamsService {
             });
           }),
         );
-        // 3. 포지션 ID와 연결된 스택들 등록
         for (let i = 0; i < teamPositionResults.length; i++) {
           const teamPosition = teamPositionResults[i];
           const positionId = teamPosition.position_id;
@@ -76,7 +70,6 @@ export class TeamsService {
             })),
           });
         }
-        // 이때 owner가 속할 포지션을 지정해야 함
         const ownerTeamPosition = teamPositionResults.find(
           (tp) => tp.position_id === owner_position_id,
         );
@@ -99,8 +92,7 @@ export class TeamsService {
   async updateTeam(userId: string, teamId: string, dto: any) {
     const { stacks, need, new_owner, ...restTeamInfo } = dto;
 
-    return await this.prisma.$transaction(async (tx) => {
-      // 1. 팀 자체 정보만 수정
+    return await this.postgresService.$transaction(async (tx) => {
       if (Object.keys(restTeamInfo).length > 0) {
         await tx.teams.update({
           where: { id: teamId, user_id: userId },
@@ -111,7 +103,6 @@ export class TeamsService {
         });
       }
 
-      // 2. 포지션/스택이 주어진 경우만 처리
       if (stacks && need) {
         const prevPositions = await tx.team_positions.findMany({
           where: { team_id: teamId },
@@ -120,12 +111,10 @@ export class TeamsService {
 
         const incomingPositionIds = Object.keys(stacks);
 
-        // 삭제 대상 찾기
         const toDelete = prevPositions.filter(
           (pos) => !incomingPositionIds.includes(pos.position_id),
         );
 
-        // 삭제 처리
         for (const pos of toDelete) {
           await tx.position_stacks.deleteMany({ where: { team_id: pos.id } });
           await tx.team_users.deleteMany({
@@ -134,13 +123,11 @@ export class TeamsService {
           await tx.team_positions.delete({ where: { id: pos.id } });
         }
 
-        // 업데이트/삽입
         for (const positionId of incomingPositionIds) {
           const stackList = stacks[positionId];
           const prev = prevPositions.find((p) => p.position_id === positionId);
 
           if (prev) {
-            // count 값만 업데이트
             if (prev.count !== need[positionId]) {
               await tx.team_positions.update({
                 where: { id: prev.id },
@@ -148,7 +135,6 @@ export class TeamsService {
               });
             }
 
-            // 스택 비교 후 추가/삭제
             const oldStackIds = prev.position_stacks.map((s) => s.stack_id);
             const toAdd = stackList.filter((s) => !oldStackIds.includes(s));
             const toRemove = oldStackIds.filter((s) => !stackList.includes(s));
@@ -171,7 +157,6 @@ export class TeamsService {
               });
             }
           } else {
-            // 새 포지션 삽입
             const newTeamPosition = await tx.team_positions.create({
               data: {
                 team_id: teamId,
@@ -191,7 +176,6 @@ export class TeamsService {
         }
       }
 
-      // 3. 팀장 포지션 변경 (선택)
       if (new_owner) {
         const newOwnerPosition = await tx.team_positions.findFirst({
           where: { team_id: teamId, position_id: new_owner },
@@ -235,7 +219,7 @@ export class TeamsService {
 
   async addTeamMember(teamPositionId: string, newMemberId: string) {
     console.log(teamPositionId, newMemberId);
-    await this.prisma.$transaction(async (tx) => {
+    await this.postgresService.$transaction(async (tx: PostgresService) => {
       await this.createTeamMemberTransaction(
         tx,
         newMemberId,
@@ -249,12 +233,10 @@ export class TeamsService {
   }
 
   async deleteTeamMember(memberId: string) {
-    const deleteMemberTransaction = await this.prisma.$transaction(
-      async (tx) => {
-        // step1. 유저의 소속 정보를 false로 변경한다.
+    const deleteMemberTransaction = await this.postgresService.$transaction(
+      async (tx: PostgresService) => {
         await this.usersService.updateJoinStatusByUuid(memberId, false, tx);
 
-        // step2. 팀 정보에서 제거한다.
         const teamPositionId = await this.getTeamPositionIdByUserId(memberId);
         const deleteMember = await tx.team_users.delete({
           where: {
@@ -271,7 +253,7 @@ export class TeamsService {
   }
 
   async getTeamPositionIds(teamId: string) {
-    const positions = await this.prisma.team_positions.findMany({
+    const positions = await this.postgresService.team_positions.findMany({
       where: {
         team_id: teamId,
       },
@@ -286,7 +268,7 @@ export class TeamsService {
   }
 
   async getTeamPositionIdByUserId(userId: string) {
-    const result = await this.prisma.team_users.findFirst({
+    const result = await this.postgresService.team_users.findFirst({
       where: {
         user_id: userId,
       },
@@ -301,7 +283,7 @@ export class TeamsService {
   }
 
   async getTeamIdByUserId(userId: string) {
-    const team = await this.prisma.teams.findFirst({
+    const team = await this.postgresService.teams.findFirst({
       where: {
         user_id: userId,
       },
@@ -316,7 +298,7 @@ export class TeamsService {
   }
 
   async getTeamOwnerIdByTeamId(teamId: string) {
-    const teamInfo = await this.prisma.teams.findFirst({
+    const teamInfo = await this.postgresService.teams.findFirst({
       where: {
         id: teamId,
       },
@@ -329,7 +311,7 @@ export class TeamsService {
 
   async getTeamMembers(teamId: string) {
     const teamPositionIds = await this.getTeamPositionIds(teamId);
-    const teamMembers = await this.prisma.team_users.findMany({
+    const teamMembers = await this.postgresService.team_users.findMany({
       where: {
         team_position_id: {
           in: teamPositionIds,

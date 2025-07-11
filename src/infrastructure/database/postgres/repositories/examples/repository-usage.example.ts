@@ -41,8 +41,8 @@ interface ComplexQueryOptions extends BaseQueryOptions {
 
 @Injectable()
 export class ExampleUsersRepository extends BasePostgresRepository<any> {
-  constructor(protected readonly prisma: PostgresService) {
-    super(prisma, "users");
+  constructor(protected readonly postgresService: PostgresService) {
+    super(postgresService, "users");
   }
 
   /**

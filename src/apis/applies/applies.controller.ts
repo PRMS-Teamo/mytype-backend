@@ -18,10 +18,10 @@ import {
 import { AppliesService } from "./applies.service";
 import { UpsertApplyRequestDto } from "./dto/upsert-apply.request.dto";
 import { UpsertApplyResponseDto } from "./dto/upsert-apply.response.dto";
-import { AccessTokenGuard } from "../auth/guard/bearer-token.guard";
+import { JwtAuthGuard } from "@/apis/auth/guard/jwt-auth.guard";
 import { UpdateStatusDto } from "./dto/update-status.dto";
 import { Request } from "express";
-import { User } from "@/apis/auth/types/auth.interface";
+import { AuthenticatedUser } from "@/apis/auth/types/authenticated-user.interface";
 import { UsersService } from "@/apis/users/users.service";
 import { USER_INFO_NULL, USER_JOINED } from "@/constants/errorMessage";
 
@@ -42,15 +42,15 @@ export class AppliesController {
   })
   @ApiResponse({ status: 400, description: "잘못된 요청" })
   @ApiResponse({ status: 401, description: "인증 실패" })
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(JwtAuthGuard)
   @Post("teams/:teamPositionId/apply")
   async applyToTeam(
     @Body() applyRequestDto: UpsertApplyRequestDto,
     @Param("teamPositionId") teamPositionId: string,
     @Req() req: Request,
   ) {
-    const user = req.user as User;
-    const userId = user.userId;
+    const user = req.user as AuthenticatedUser;
+    const userId = user.id;
     const userJoinStatus = await this.usersService.getJoinStatusByUuid(userId);
     if (!userJoinStatus) {
       throw new UnauthorizedException({ USER_JOINED });
@@ -76,7 +76,7 @@ export class AppliesController {
   })
   @ApiResponse({ status: 400, description: "잘못된 요청" })
   @ApiResponse({ status: 401, description: "인증 실패" })
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(JwtAuthGuard)
   @Post("users/:userId/invite")
   inviteUserToTeam(
     @Body() inviteRequestDto: UpsertApplyRequestDto,
@@ -97,7 +97,7 @@ export class AppliesController {
     description: "조회 성공",
     type: UpsertApplyResponseDto,
   })
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(JwtAuthGuard)
   @Get("teams/:teamId/history")
   getApplyStatus(@Param("teamId") teamId: string) {
     return this.appliesService.findByUserAndTeamHistoryByTeamId(teamId);
@@ -110,7 +110,7 @@ export class AppliesController {
     description: "조회 성공",
     type: UpsertApplyResponseDto,
   })
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(JwtAuthGuard)
   @Get("history")
   getApplyStatusByUserId(@Req() req: any) {
     return this.appliesService.findByUserAndTeamHistoryByUserId(req.user_id);
@@ -123,14 +123,14 @@ export class AppliesController {
     description: "업데이트 성공",
     type: UpsertApplyResponseDto,
   })
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(JwtAuthGuard)
   @Patch("status")
   updateApplyStatus(
     @Req() req: Request,
     @Body() updateRequestDto: UpdateStatusDto,
   ) {
-    const user = req.user as User;
-    const userId = user.userId;
+    const user = req.user as AuthenticatedUser;
+    const userId = user.id;
     return this.appliesService.updateStatus(userId, updateRequestDto);
   }
 }

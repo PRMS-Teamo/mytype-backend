@@ -12,7 +12,7 @@ export class AppliesService {
   private readonly logger = new Logger(AppliesService.name);
 
   constructor(
-    private readonly prisma: PostgresService,
+    private readonly postgresService: PostgresService,
     private readonly teamsService: TeamsService,
   ) {}
 
@@ -26,20 +26,7 @@ export class AppliesService {
       this.logger.log(
         `Upserting apply record for user ${userId} and team ${teamPositionId}`,
       );
-
-      // if (teamPositionId === "teamId") {
-      //   // TODO : 해당 사용자의 기술스택에 맞는 초대를 보내도록 해야함.
-      //   const team = await this.prisma.teams.findFirst({
-      //     where: {
-      //       user_id: userId,
-      //     },
-      //   });
-      //   if (!team) {
-      //     throw new Error("Team not found");
-      //   }
-      //   teamPositionId = team.id;
-      // }
-      const result = await this.prisma.apply_history.upsert({
+      const result = await this.postgresService.apply_history.upsert({
         where: {
           user_id_team_position_id: {
             user_id: userId,
@@ -54,7 +41,7 @@ export class AppliesService {
         },
         create: {
           user_id: userId,
-          team_position_id: teamPositionId, // TODO: 팀 포지션 아이디로 수정예정
+          team_position_id: teamPositionId,
           message: upsertApplyDto.message,
           apply_status: upsertApplyDto.apply_status || "SUBMITTED",
           action: action,
@@ -78,7 +65,7 @@ export class AppliesService {
     try {
       this.logger.log(`Finding apply record for team ${teamId}`);
 
-      const teamPositions = await this.prisma.team_positions.findMany({
+      const teamPositions = await this.postgresService.team_positions.findMany({
         where: {
           team_id: teamId,
         },
@@ -92,7 +79,7 @@ export class AppliesService {
         this.logger.warn(`No team position found for team ${teamId}`);
       }
 
-      const result = await this.prisma.apply_history.findMany({
+      const result = await this.postgresService.apply_history.findMany({
         where: {
           team_position_id: { in: teamPositionIds },
         },
@@ -128,7 +115,7 @@ export class AppliesService {
     try {
       this.logger.log(`Finding apply record for user ${userId}`);
 
-      const result = await this.prisma.apply_history.findMany({
+      const result = await this.postgresService.apply_history.findMany({
         where: {
           user_id: userId,
         },
@@ -160,7 +147,7 @@ export class AppliesService {
         `Updating apply status for user ${targetUserId} and team ${teamId}`,
       );
 
-      const result = await this.prisma.apply_history.update({
+      const result = await this.postgresService.apply_history.update({
         where: {
           user_id_team_position_id: {
             user_id: targetUserId,
