@@ -33,11 +33,13 @@ export class AnalysisService {
       },
     });
 
-    return result.map((stack) => ({
+    const mappedResult = result.map((stack) => ({
       stackId: stack.id,
       stackName: stack.name,
       supplyCount: stack._count.user_stacks,
       demandCount: stack._count.position_stacks,
     }));
+
+    return { analysis: mappedResult };
   }
 }

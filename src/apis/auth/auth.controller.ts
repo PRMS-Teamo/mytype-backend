@@ -25,7 +25,7 @@ export class AuthController {
   @UseGuards(DynamicAuthGuard)
   redirectToProvider(@Param("provider") provider: string) {
     console.log(
-      "이 로그가 출력되면 안 됩니다! Guard가 먼저 처리해야 합니다: 일부러 리턴 줌!",
+      `이 로그가 출력되면 안 됩니다! Guard가 먼저 처리해야 합니다: 일부러 리턴 줌: ${provider}`,
     );
     return;
   }

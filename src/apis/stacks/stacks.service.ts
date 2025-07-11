@@ -1,6 +1,10 @@
 import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PositionService } from "../positions/positions.service";
+import {
+  mapToStacksResponse,
+  StacksResponse,
+} from "./utils/stack-mapping.util";
 
 @Injectable()
 export class StacksService {
@@ -9,7 +13,18 @@ export class StacksService {
     private readonly positionService: PositionService,
   ) {}
 
-  async getStackIdByName(name: string) {
+  async getAllStacksWithMapping(): Promise<StacksResponse> {
+    const stacks = await this.postgresService.stacks.findMany({
+      select: {
+        id: true,
+        name: true,
+        img_url: true,
+      },
+    });
+    return mapToStacksResponse(stacks);
+  }
+
+  async getStackIdByName(name: string): Promise<string> {
     const stackInfo = await this.postgresService.stacks.findFirst({
       where: {
         name: name,
@@ -21,7 +36,10 @@ export class StacksService {
     return stackInfo.id;
   }
 
-  async getStackIdsByStackObject(obj: Record<string, string[]>) {
+  async getStackIdsByStackObject(obj: Record<string, string[]>): Promise<{
+    position: Record<string, string>;
+    stacks: Record<string, string>;
+  }> {
     const positionObj = {};
     const stackObj = {};
     for (const [position, stacks] of Object.entries(obj)) {
