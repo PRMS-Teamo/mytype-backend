@@ -68,7 +68,8 @@ export class AuthController {
     console.log("+++++++++++++");
 
     try {
-      const tokens = await this.authService.socialLogin(userProfile);
+      const { tokens, status } =
+        await this.authService.socialLogin(userProfile);
 
       console.log("+++++++++++++토큰 생성 성공:", {
         accessTokenLength: tokens.accessToken?.length || 0,
@@ -89,7 +90,9 @@ export class AuthController {
       console.log("+++++++++++++");
       const response = {
         accessToken: tokens.accessToken,
+        status,
       };
+
       return res.send(`
         <script>
             if (window.opener) {

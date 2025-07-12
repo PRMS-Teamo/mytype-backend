@@ -148,10 +148,13 @@ export class AuthService {
     });
 
     let user;
+    let status;
     if (userAuth) {
       user = userAuth.users;
+      status = "EXISTING";
     } else {
       user = await this.createNewUserFromSocialProfile(userProfile);
+      status = "NEW";
     }
 
     const tokens = this.generateTokens({
@@ -160,7 +163,7 @@ export class AuthService {
     });
     await this.setCurrentRefreshToken(tokens.refreshToken, user.id);
 
-    return tokens;
+    return { tokens, status };
   }
 
   private async createNewUserFromSocialProfile(userProfile: {

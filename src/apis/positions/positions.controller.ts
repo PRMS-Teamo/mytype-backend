@@ -128,31 +128,6 @@ export class PositionsController {
     return this.positionsService.getAllPositionsAsPlainObjects();
   }
 
-  /**
-   * 
-   * [
-backend_teamo-1  |   {
-backend_teamo-1  |     id: '62c94818-da31-4b46-8513-06f470eb2126',
-backend_teamo-1  |     name: 'frontend',
-backend_teamo-1  |     created_at: 2025-07-11T09:30:49.326Z,
-backend_teamo-1  |     updated_at: null
-backend_teamo-1  |   },
-backend_teamo-1  |   {
-backend_teamo-1  |     id: '8c480ef4-1305-45ae-b59e-3f9336526166',
-backend_teamo-1  |     name: 'backend',
-backend_teamo-1  |     created_at: 2025-07-11T09:30:49.329Z,
-backend_teamo-1  |     updated_at: null
-backend_teamo-1  |   },
-backend_teamo-1  |   {
-backend_teamo-1  |     id: 'eb8e0fee-d4bc-4c97-a5fa-63f4ecc94275',
-backend_teamo-1  |     name: 'fullstack',
-backend_teamo-1  |     created_at: 2025-07-11T09:30:49.331Z,
-backend_teamo-1  |     updated_at: null
-backend_teamo-1  |   }
-backend_teamo-1  | ]
-   * 
-  */
-
   @Get(":name")
   @UseGuards(JwtAuthGuard)
   findOne(@Param("name") name: string, @Res() res: Response) {
