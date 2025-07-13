@@ -246,11 +246,26 @@ export class AuthController {
       name: testUser.name,
     };
     const tokens = this.authService.generateTokens(tokenPayload);
-    const response = {
+
+    // 실제 소셜 로그인과 동일하게 refreshToken을 DB에 저장
+    await this.authService.setCurrentRefreshToken(
+      tokens.refreshToken,
+      testUser.id,
+    );
+
+    // 실제 소셜 로그인과 동일하게 refreshToken을 쿠키에 저장
+    res.cookie("refreshToken", tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+
+    // accessToken은 헤더로도 내려주고, 응답 body에도 포함
+    res.header("Authorization", `Bearer ${tokens.accessToken}`);
+
+    return res.json({
       user: testUser,
       tokens,
-    };
-    res.header("Authorization", `Bearer ${tokens.accessToken}`);
-    return res.json(response);
+    });
   }
 }
