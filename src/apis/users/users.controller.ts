@@ -2,13 +2,13 @@ import {
   Controller,
   Get,
   Post,
-  Put,
   Param,
   Body,
   Query,
   UseGuards,
   HttpStatus,
   HttpCode,
+  Patch,
 } from "@nestjs/common";
 import {
   ApiOkResponse,
@@ -163,11 +163,11 @@ export class UsersController {
   /**
    * 내 정보 수정
    */
-  @Put("me")
+  @Patch("me")
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: "내 정보 수정",
-    description: "로그인한 사용자의 정보를 수정합니다.",
+    description: "로그인한 사용자의 정보를 부분적으로 수정합니다.",
   })
   @ApiOkResponse({
     description: "내 정보 수정 성공",
@@ -193,11 +193,12 @@ export class UsersController {
   /**
    * 특정 사용자 정보 수정 (관리자용)
    */
-  @Put(":id")
+  @Patch(":id")
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: "사용자 정보 수정",
-    description: "특정 사용자의 정보를 수정합니다. (관리자 권한 필요)",
+    description:
+      "특정 사용자의 정보를 부분적으로 수정합니다. (관리자 권한 필요)",
   })
   @ApiParam({ name: "id", description: "사용자 ID" })
   @ApiOkResponse({
