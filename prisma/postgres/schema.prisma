@@ -17,7 +17,7 @@ model apply_history {
   apply_status     apply_status?  @default(SUBMITTED)
   action           action
   created_at       DateTime?      @default(now()) @db.Timestamp(6)
-  updated_at       DateTime?      @db.Timestamp(6)
+  updated_at       DateTime?      @updatedAt @db.Timestamp(6)
   team_positions            team_positions          @relation(fields: [team_position_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_team_positions_TO_apply_history_1")
   users            users          @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_users_TO_apply_history_1")
 
@@ -28,7 +28,7 @@ model positions {
   id             String           @id(map: "PK_POSITIONS") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name           String           @db.VarChar(50)
   created_at     DateTime?        @default(now()) @db.Timestamp(6)
-  updated_at     DateTime?        @db.Timestamp(6)
+  updated_at     DateTime?        @updatedAt @db.Timestamp(6)
   team_positions team_positions[]
   users          users[]
 }
@@ -37,7 +37,7 @@ model stack_categories {
   id         String    @id(map: "PK_STACK_CATEGORIES") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name       String?   @db.VarChar(30)
   created_at DateTime? @default(now()) @db.Timestamp(6)
-  updated_at DateTime? @db.Timestamp(6)
+  updated_at DateTime? @updatedAt @db.Timestamp(6) @default(now())
   stacks     stacks[]
 }
 
@@ -47,7 +47,7 @@ model stacks {
   name             String?           @db.VarChar(50)
   img_url          String
   created_at       DateTime?         @default(now()) @db.Timestamp(6)
-  updated_at       DateTime?         @db.Timestamp(6)
+  updated_at       DateTime?         @updatedAt @db.Timestamp(6) @default(now())
   stack_categories stack_categories  @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_stack_categories_TO_stacks_1")
   position_stacks  position_stacks[]
   user_stacks      user_stacks[]
@@ -61,7 +61,7 @@ model team_positions {
   count           Int?              @default(1)
   status          Boolean
   created_at      DateTime?         @default(now()) @db.Timestamp(6)
-  updated_at      DateTime?         @db.Timestamp(6)
+  updated_at      DateTime?         @updatedAt @db.Timestamp(6) @default(now())
   teams           teams             @relation(fields: [team_id], references: [id])
   positions       positions         @relation(fields: [position_id], references: [id])
   team_users      team_users[]
@@ -86,7 +86,7 @@ model team_users {
   message          String?        @db.VarChar(3000)
   member_status    member_status? @default(ON_BOARD)
   created_at       DateTime?      @default(now()) @db.Timestamp(6)
-  updated_at       DateTime?      @db.Timestamp(6)
+  updated_at       DateTime?      @updatedAt @db.Timestamp(6) @default(now())
   team_positions   team_positions @relation(fields: [team_position_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_team_stack_positions_TO_team_users_1")
   users            users          @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_users_TO_team_users_1")
 
@@ -103,7 +103,7 @@ model teams {
   proceed_type   proceed_type?   @default(ONLINE)
   img            String?
   created_at     DateTime?       @default(now()) @db.Timestamp(6)
-  updated_at     DateTime?       @db.Timestamp(6)
+  updated_at     DateTime?       @updatedAt @db.Timestamp(6) @default(now())
 
   team_positions team_positions[]
   chat_rooms     chat_rooms[]
@@ -113,7 +113,7 @@ model user_stacks {
   user_id    String    @db.Uuid
   stack_id   String    @db.Uuid
   created_at DateTime? @default(now()) @db.Timestamp(6)
-  updated_at DateTime? @db.Timestamp(6)
+  updated_at DateTime? @updatedAt @db.Timestamp(6) @default(now())
   stacks     stacks    @relation(fields: [stack_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_stacks_TO_user_stacks_1")
   users      users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_users_TO_user_stacks_1")
 
@@ -131,9 +131,10 @@ model users {
   github_id         String?             @db.VarChar(200)
   img_url           String?             @db.VarChar(200)
   address           String?             @db.VarChar(100)
+  beginner          Boolean?            @default(false)
   join_status       Boolean?
   create_at         DateTime?           @default(now()) @db.Timestamp(6)
-  updated_at        DateTime?           @db.Timestamp(6)
+  updated_at        DateTime?           @updatedAt @db.Timestamp(6) @default(now())
   description       String?             @db.VarChar(200)
   proceed_type      proceed_type?       @default(ONLINE)
   apply_history     apply_history[]
@@ -144,6 +145,19 @@ model users {
   preferred_meeting meetings?
   is_public         Boolean?
   chat_participants chat_participants[]
+  user_bumps       user_bumps[]
+}
+
+model user_bumps {
+  user_id String @db.Uuid
+  bump_count Int @default(0)
+  bump_limit Int @default(10)
+  next_available_at DateTime?
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_at DateTime? @updatedAt @db.Timestamp(6) @default(now())
+  users users @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_users_TO_user_bumps_1")
+
+  @@id([user_id], map: "PK_USER_BUMP")
 }
 
 model user_auths {
@@ -151,7 +165,7 @@ model user_auths {
   auth_id      String       @db.Uuid
   external_id  String       @db.VarChar(100)
   created_at   DateTime?    @default(now()) @db.Timestamp(6)
-  updated_at   DateTime?    @db.Timestamp(6)
+  updated_at   DateTime?    @updatedAt @db.Timestamp(6) @default(now())
   auth_methods auth_methods @relation(fields: [auth_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_auth_methods_TO_user_auths_1")
   users        users        @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_users_TO_user_auths_1")
 
@@ -163,7 +177,7 @@ model auth_methods {
   auth_method auth_method? @default(OAuth)
   provider    String       @db.VarChar(50)
   created_at  DateTime?    @default(now()) @db.Timestamp(6)
-  updated_at  DateTime?    @db.Timestamp(6)
+  updated_at  DateTime?    @updatedAt @db.Timestamp(6) @default(now())
   user_auths  user_auths[]
 }
 
@@ -173,7 +187,7 @@ model chat_rooms {
   inquery_id        String              @db.Uuid
   type              chat_room_type
   created_at        DateTime?           @default(now()) @db.Timestamp(6)
-  updated_at        DateTime?           @db.Timestamp(6)
+  updated_at        DateTime?           @updatedAt @db.Timestamp(6) @default(now())
   teams             teams               @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_teams_TO_chat_rooms_1")
   chat_participants chat_participants[]
 }
@@ -183,7 +197,7 @@ model chat_participants {
   room_id    String     @db.Uuid
   user_id    String     @db.Uuid
   created_at DateTime?  @default(now()) @db.Timestamp(6)
-  updated_at DateTime?  @db.Timestamp(6)
+  updated_at DateTime?  @updatedAt @db.Timestamp(6) @default(now())
   chat_rooms chat_rooms @relation(fields: [room_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_chat_rooms_TO_chat_participants_1")
   users      users      @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_users_TO_chat_participants_1")
 }

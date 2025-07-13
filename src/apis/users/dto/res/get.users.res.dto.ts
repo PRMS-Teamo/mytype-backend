@@ -8,13 +8,13 @@ import { User } from "../../entities/user.entity";
 export class GetUsersResDto extends PickType(User, [
   "id",
   "nickname",
-  "email",
   "github",
   "profileImage",
   "location",
   "description",
   "proceedType",
   "positionId",
+  "beginner",
 ] as const) {
   constructor(user: User) {
     super();

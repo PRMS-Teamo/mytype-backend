@@ -62,7 +62,6 @@ export function mapDbFormatToCreateDto(dto: CreateUserResDto) {
     name: dto.name,
     role: "USER",
     nickname: dto.nickname,
-    email: dto.email,
     github: dto.github,
     profileImage: dto.profileImage,
     location: dto.location,
@@ -80,7 +79,6 @@ export function mapDbFormatToGetDto(dto: GetUserResDto) {
     name: dto.name,
     role: "USER",
     nickname: dto.nickname,
-    email: dto.email,
     github: dto.github,
     profileImage: dto.profileImage,
     location: dto.location,
@@ -98,7 +96,6 @@ export function mapDbFormatToUpdateDto(dto: UpdateUserResDto) {
     name: dto.name,
     role: "USER",
     nickname: dto.nickname,
-    email: dto.email,
     github: dto.github,
     profileImage: dto.profileImage,
     location: dto.location,
@@ -117,7 +114,6 @@ export function mapUpdateDtoToDbFormat(dto: UpdateUserReqDto) {
   const mapped: Record<string, any> = {};
 
   if (dto.nickname !== undefined) mapped.nickname = dto.nickname;
-  if (dto.email !== undefined) mapped.email = dto.email;
   if (dto.github !== undefined) mapped.github_id = dto.github; // github -> github_id
   if (dto.profileImage !== undefined) mapped.img_url = dto.profileImage; // profileImage -> img_url
   if (dto.location !== undefined) mapped.address = dto.location; // location -> address

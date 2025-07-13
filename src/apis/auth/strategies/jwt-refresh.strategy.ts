@@ -67,7 +67,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
         tokenType: payload.type,
         originalPayload: payload,
         nickname: user.nickname,
-        joinStatus: user.join_status,
+        joinStatus: user.isJoined || false,
         userStacks: [],
       },
     };

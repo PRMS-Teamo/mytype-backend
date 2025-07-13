@@ -38,17 +38,18 @@ export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
       id: user.id,
       nickname: user.nickname,
       email: user.email || undefined,
-      join_status: user.join_status,
-      user_stacks: user.user_stacks?.map((stack) => ({
-        stack_id: stack.stack_id,
-      })),
-      is_public: user.is_public || false,
-      position_id: user.position_id || undefined,
-      img_url: user.img_url || undefined,
-      address: user.address || undefined,
-      github_id: user.github_id || undefined,
-      description: user.description || undefined, // 추가된 필드
-      proceed_type: user.proceed_type || undefined, // 추가된 필드
+      join_status: user.isJoined || false,
+      user_stacks:
+        user.userStacks?.map((stack) => ({
+          stack_id: stack.stackId,
+        })) || [],
+      is_public: user.isPublic || false,
+      position_id: user.positionId || undefined,
+      img_url: user.profileImage || undefined,
+      address: user.location || undefined,
+      github_id: user.github || undefined,
+      description: user.description || undefined,
+      proceed_type: user.proceedType || undefined,
     };
 
     return authenticatedUser;

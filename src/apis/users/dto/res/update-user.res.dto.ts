@@ -8,7 +8,6 @@ import { User } from "../../entities/user.entity";
 export class UpdateUserResDto extends PickType(User, [
   "id",
   "nickname",
-  "email",
   "github",
   "profileImage",
   "location",
@@ -19,6 +18,7 @@ export class UpdateUserResDto extends PickType(User, [
   "name",
   "userStacks",
   "updatedAt",
+  "beginner",
 ] as const) {
   constructor(user: User) {
     super();

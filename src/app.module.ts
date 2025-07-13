@@ -15,6 +15,8 @@ import { InfrastructureModule } from "@/infrastructure/infrastructure.module";
 import { HealthModule } from "./apis/health/health.module";
 import { StacksModule } from "./apis/stacks/stacks.module";
 import { PositionsModule } from "./apis/positions/positions.module";
+import { BumpsModule } from "./apis/bumps/bumps.module";
+import { SchedulerModule } from "@/infrastructure/scheduler/scheduler.module";
 
 @Module({
   imports: [
@@ -44,6 +46,8 @@ import { PositionsModule } from "./apis/positions/positions.module";
     HealthModule,
     StacksModule,
     PositionsModule,
+    BumpsModule,
+    SchedulerModule,
   ],
   controllers: [AppController],
   providers: [

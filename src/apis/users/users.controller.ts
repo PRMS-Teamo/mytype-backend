@@ -87,7 +87,6 @@ export class UsersController {
     if (!userEntity.isPublic) {
       const limitedUser = new User({
         ...userInfo,
-        email: null,
         github_id: null,
         address: null,
         description: "비공개 프로필입니다.",

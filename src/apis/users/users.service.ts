@@ -12,6 +12,7 @@ import {
   mapUpdateDtoToDbFormat,
   mapStackIdsToUserStacks,
 } from "./utils/user-mapping.util";
+import { GetUserResDto } from "./dto/res/get.user.res.dto";
 
 @Injectable()
 export class UsersService {
@@ -39,8 +40,8 @@ export class UsersService {
   /**
    * 사용자 ID로 사용자 조회 (완전한 정보 포함)
    */
-  async findUserByUserId(userId: string): Promise<AuthenticatedUser> {
-    const user = await this.postgresService.users.findFirst({
+  async findUserByUserId(userId: string): Promise<GetUserResDto> {
+    const user = await this.postgresService.users.findUnique({
       where: {
         id: userId,
       },
@@ -48,7 +49,6 @@ export class UsersService {
         id: true,
         position_id: true,
         nickname: true,
-        email: true,
         github_id: true,
         img_url: true,
         address: true,
@@ -56,6 +56,7 @@ export class UsersService {
         is_public: true,
         description: true,
         proceed_type: true,
+        beginner: true,
         user_stacks: {
           select: {
             stacks: {
@@ -79,40 +80,31 @@ export class UsersService {
     }
 
     // Prisma 결과를 AuthenticatedUser 형태로 변환
-    const authenticatedUser: AuthenticatedUser = {
+    const getUserResDto: GetUserResDto = {
       id: user.id,
-      position_id: user.position_id,
-      nickname: user.nickname,
-      email: user.email,
-      github_id: user.github_id,
-      img_url: user.img_url,
-      address: user.address,
-      join_status: user.join_status,
-      is_public: user.is_public,
-      description: user.description,
-      proceed_type: user.proceed_type,
-      role: user.role,
-      name: user.name,
-      user_stacks: user.user_stacks?.map((stack) => ({
-        stack_id: stack.stacks.id,
-      })),
-      create_at: user.create_at?.toISOString(),
-      updated_at: user.updated_at?.toISOString(),
+      positionId: user.position_id ?? undefined,
+      nickname: user.nickname ?? undefined,
+      github: user.github_id ?? undefined,
+      profileImage: user.img_url ?? undefined,
+      location: user.address ?? undefined,
+      isJoined: user.join_status ?? undefined,
+      isPublic: user.is_public ?? undefined,
+      description: user.description ?? undefined,
+      proceedType: user.proceed_type ?? undefined,
+      role: user.role ?? undefined,
+      name: user.name ?? undefined,
+      beginner: user.beginner ?? false,
+      userStacks:
+        user.user_stacks?.map((stack) => ({
+          stackId: stack.stacks.id,
+          stackName: stack.stacks.name,
+          stackImg: stack.stacks.img_url,
+        })) ?? [],
+      createdAt: user.create_at?.toISOString(),
+      updatedAt: user.updated_at?.toISOString(),
     };
 
-    return authenticatedUser;
-  }
-
-  /**
-   * 스택 이름으로 스택 조회
-   */
-  async findStacks(stackName: string) {
-    const stack = await this.postgresService.stacks.findFirst({
-      where: {
-        name: stackName,
-      },
-    });
-    return stack;
+    return getUserResDto;
   }
 
   /**
@@ -130,7 +122,6 @@ export class UsersService {
         id: true,
         position_id: true,
         nickname: true,
-        email: true,
         github_id: true,
         img_url: true,
         address: true,
@@ -140,6 +131,7 @@ export class UsersService {
         proceed_type: true,
         role: true,
         name: true,
+        beginner: true,
         create_at: true,
         updated_at: true,
       },
@@ -149,7 +141,6 @@ export class UsersService {
       id: user.id,
       position_id: user.position_id,
       nickname: user.nickname,
-      email: user.email,
       github_id: user.github_id,
       img_url: user.img_url,
       address: user.address,
@@ -159,6 +150,7 @@ export class UsersService {
       proceed_type: user.proceed_type,
       role: user.role,
       name: user.name,
+      beginner: user.beginner,
       user_stacks: [], // 목록 조회에서는 스택 정보 제외
       create_at: user.create_at?.toISOString(),
       updated_at: user.updated_at?.toISOString(),
@@ -296,7 +288,6 @@ export class UsersService {
     // 필수 필드들이 모두 채워져 있는지 확인
     const requiredFields = [
       "nickname",
-      "email",
       "github_id",
       "img_url",
       "address",
@@ -310,7 +301,7 @@ export class UsersService {
     });
 
     // 스택도 하나 이상 있어야 함
-    const hasStacks = Boolean(userInfo.user_stacks?.length);
+    const hasStacks = Boolean(userInfo.userStacks?.length);
 
     return isValid && hasStacks;
   }

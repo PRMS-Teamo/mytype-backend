@@ -36,6 +36,8 @@ export interface AuthenticatedUser {
   user_stacks?: Array<{ stack_id: string }>;
   /** 역할 */
   role?: string | null;
+  /** 초보자 여부 */
+  beginner?: boolean | null;
   /** 기타 사용자 정보 */
   [key: string]: any;
 }

@@ -19,10 +19,11 @@ export class User {
     this.positionId = user.position_id || ""; // position_id -> positionId
 
     // 추가 속성들
-    this.description = user.description || ""; // description -> description
+    this.description = user.description || "";
     this.proceedType = user.proceed_type || "ONLINE"; // proceed_type -> proceedType
     this.role = user.role || "USER"; // role
     this.name = user.name || ""; // name
+    this.beginner = user.beginner || false; // beginner -> beginner
 
     // user_stacks는 AuthenticatedUser에서 제공
     if ("user_stacks" in user && user.user_stacks) {
@@ -147,4 +148,11 @@ export class User {
     required: false,
   })
   updatedAt?: string;
+
+  @ApiProperty({
+    example: true,
+    description: "초보자 여부",
+    required: false,
+  })
+  beginner?: boolean;
 }
