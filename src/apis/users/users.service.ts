@@ -13,10 +13,18 @@ import {
   mapStackIdsToUserStacks,
 } from "./utils/user-mapping.util";
 import { GetUserResDto } from "./dto/res/get.user.res.dto";
+import {
+  FileUploadInfo,
+  S3Service,
+} from "@/infrastructure/storage/files/s3/s3.service";
+import { ContentType } from "../shared/types/content.type";
 
 @Injectable()
 export class UsersService {
-  constructor(private postgresService: PostgresService) {}
+  constructor(
+    private postgresService: PostgresService,
+    private s3Service: S3Service,
+  ) {}
 
   /**
    * 외부 ID로 사용자 조회 (소셜 로그인용)
@@ -186,6 +194,20 @@ export class UsersService {
     return this.findUserByUserId(newUser.id);
   }
 
+  async generatePresignedUrl(
+    userId: string,
+    fileName: string,
+  ): Promise<FileUploadInfo> {
+    const fileExtension = fileName.split(".").pop();
+    const folder = "images/users";
+    return this.s3Service.generatePresignedUrl(
+      userId,
+      fileName,
+      fileExtension as ContentType,
+      folder,
+    );
+  }
+
   /**
    * 사용자 정보 수정
    */
@@ -196,7 +218,11 @@ export class UsersService {
     // 사용자 존재 확인
     await this.findUserByUserId(userId);
 
+    console.log("🔍 Original userInfo:", userInfo); // 디버깅 로그 추가
+
     const { userStacks, ...mappedData } = mapUpdateDtoToDbFormat(userInfo);
+
+    console.log("🔍 Mapped data:", mappedData); // 디버깅 로그 추가
 
     await this.postgresService.$transaction(async (tx) => {
       // 스택 정보 업데이트 (제공된 경우)

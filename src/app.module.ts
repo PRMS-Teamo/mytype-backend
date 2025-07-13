@@ -17,6 +17,7 @@ import { StacksModule } from "./apis/stacks/stacks.module";
 import { PositionsModule } from "./apis/positions/positions.module";
 import { BumpsModule } from "./apis/bumps/bumps.module";
 import { SchedulerModule } from "@/infrastructure/scheduler/scheduler.module";
+import { FilesModule } from "./infrastructure/storage/files/files.module";
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { SchedulerModule } from "@/infrastructure/scheduler/scheduler.module";
     PositionsModule,
     BumpsModule,
     SchedulerModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [

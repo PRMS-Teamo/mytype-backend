@@ -40,6 +40,75 @@ docker compose up --build
 
 ```
 
+## Environment Variables
+
+프로젝트 실행을 위해 다음 환경 변수들을 설정해야 합니다:
+
+```bash
+# Database
+DATABASE_URL="postgresql://username:password@localhost:5432/database_name"
+
+# JWT
+JWT_SECRET="your-jwt-secret-key"
+JWT_EXPIRATION="7d"
+COOKIE_SECRET="your-cookie-secret"
+
+# AWS S3 Configuration (파일 업로드용)
+AWS_ACCESS_KEY_ID="your-aws-access-key-id"
+AWS_SECRET_ACCESS_KEY="your-aws-secret-access-key"
+AWS_REGION="ap-northeast-2"
+AWS_S3_BUCKET_NAME="your-s3-bucket-name"
+
+# Server
+PORT=3000
+NODE_ENV="development"
+```
+
+## File Upload with S3
+
+프로젝트는 AWS S3를 사용한 파일 업로드 기능을 제공합니다.
+
+### 1. Presigned URL 발급
+
+```bash
+POST /files/presigned-url
+Authorization: Bearer <jwt-token>
+Content-Type: application/json
+
+{
+  "fileName": "profile.jpg",
+  "contentType": "image/jpeg",
+  "folder": "profiles"  // 선택사항
+}
+```
+
+응답:
+
+```json
+{
+  "key": "profiles/uuid-filename.jpg",
+  "url": "https://bucket-name.s3.region.amazonaws.com/profiles/uuid-filename.jpg",
+  "presignedUrl": "https://bucket-name.s3.region.amazonaws.com/profiles/uuid-filename.jpg?X-Amz-Algorithm=...",
+  "expiresIn": 3600
+}
+```
+
+### 2. 파일 업로드
+
+프론트엔드에서 받은 presignedUrl로 직접 S3에 파일을 업로드합니다.
+
+### 3. 사용자 프로필 이미지 업데이트
+
+```bash
+PATCH /users/me
+Authorization: Bearer <jwt-token>
+Content-Type: application/json
+
+{
+  "profileImage": "https://bucket-name.s3.region.amazonaws.com/profiles/uuid-filename.jpg"
+}
+```
+
 ## Run tests
 
 ```bash

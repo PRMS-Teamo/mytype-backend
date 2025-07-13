@@ -22,7 +22,10 @@ import { JwtAuthGuard } from "@/apis/auth/guard/jwt-auth.guard";
 import { AuthenticatedUser } from "@/apis/auth/types/authenticated-user.interface";
 import { User as UserDecorator } from "@/apis/auth/decorators/user.decorator";
 import { User } from "./entities/user.entity";
-import { mapToUserEntity } from "./utils/user-mapping.util";
+import {
+  mapToUserEntity,
+  mapGetUserResDtoToUserEntity,
+} from "./utils/user-mapping.util";
 
 // Request DTOs
 import { CreateUserReqDto } from "./dto/req/create-user.req.dto";
@@ -36,6 +39,7 @@ import {
   GetUsersResDto,
   GetUsersResponseDto,
 } from "./dto/res/get.users.res.dto";
+import { FileUploadInfo } from "@/infrastructure/storage/files/s3/s3.service";
 
 @ApiTags("users")
 @Controller("users")
@@ -160,6 +164,29 @@ export class UsersController {
   }
 
   /**
+   * 프로필 이미지 업로드를 위한 Presigned URL 생성
+   */
+
+  @Post("me/presigned-url")
+  @ApiOperation({
+    summary: "프로필 이미지 업로드를 위한 Presigned URL 생성",
+    description: "프로필 이미지 업로드를 위한 Presigned URL을 생성합니다.",
+  })
+  @ApiOkResponse({
+    description: "Presigned URL 생성 성공",
+  })
+  @UseGuards(JwtAuthGuard)
+  async generatePresignedUrl(
+    @UserDecorator() authenticatedUser: AuthenticatedUser,
+    @Body() dto: { fileName: string },
+  ): Promise<FileUploadInfo> {
+    return this.usersService.generatePresignedUrl(
+      authenticatedUser.id,
+      dto.fileName,
+    );
+  }
+
+  /**
    * 내 정보 수정
    */
   @Patch("me")
@@ -185,7 +212,12 @@ export class UsersController {
     const updatedUser = await this.usersService.findUserByUserId(
       authenticatedUser.id,
     );
-    const userEntity = mapToUserEntity(updatedUser);
+    console.log("🔍 Updated user from DB:", updatedUser); // 디버깅 로그 추가
+
+    // GetUserResDto를 User 엔티티로 변환
+    const userEntity = mapGetUserResDtoToUserEntity(updatedUser);
+    console.log("🔍 User entity after mapping:", userEntity); // 디버깅 로그 추가
+
     return new UpdateUserResDto(userEntity);
   }
 

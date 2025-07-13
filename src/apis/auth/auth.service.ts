@@ -12,7 +12,6 @@ import { SocialUserProfile } from "./types/social-user-profile.interface";
 import axios from "axios";
 import { mapDbFormatToGetDto } from "../users/utils/user-mapping.util";
 import { CreateUserReqDto } from "../users/dto/req/create-user.req.dto";
-import { GetUserResDto } from "../users/dto/res/get.user.res.dto";
 
 @Injectable()
 export class AuthService {
@@ -168,7 +167,7 @@ export class AuthService {
 
     // 사용자 정보를 camelCase로 변환
     const transformedUser = await this.usersService.findUserByUserId(user.id);
-    const camelCaseUser = mapDbFormatToGetDto(transformedUser as GetUserResDto);
+    const camelCaseUser = mapDbFormatToGetDto(transformedUser);
 
     // userId가 undefined인 경우 처리
     if (!camelCaseUser.userId) {
@@ -302,7 +301,7 @@ export class AuthService {
       const user = await this.usersService.findUserByUserId(
         existingUser.users.id,
       );
-      return mapDbFormatToGetDto(user as GetUserResDto);
+      return mapDbFormatToGetDto(user);
     }
 
     // 새 사용자 생성
@@ -348,7 +347,7 @@ export class AuthService {
 
     // DB에서 생성된 사용자 정보를 다시 조회하여 camelCase로 변환
     const createdUser = await this.usersService.findUserByUserId(testUser.id);
-    return mapDbFormatToGetDto(createdUser as GetUserResDto);
+    return mapDbFormatToGetDto(createdUser);
   }
 
   // 카카오 로그아웃 (카카오 서버에서 토큰 무효화)

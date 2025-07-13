@@ -4,6 +4,7 @@ import { MongoModule } from "./database/mongo/mongo.module";
 import { RedisModule } from "./cache/redis.module";
 import { LoggerModule } from "./loggers/logger.module";
 import { SchedulerModule } from "./scheduler/scheduler.module";
+import { FilesModule } from "./storage/files/files.module";
 
 @Global()
 @Module({
@@ -13,6 +14,7 @@ import { SchedulerModule } from "./scheduler/scheduler.module";
     RedisModule,
     LoggerModule,
     SchedulerModule,
+    FilesModule,
   ],
   exports: [
     PostgresModule,
@@ -20,6 +22,7 @@ import { SchedulerModule } from "./scheduler/scheduler.module";
     RedisModule,
     LoggerModule,
     SchedulerModule,
+    FilesModule,
   ],
 })
 export class InfrastructureModule {}

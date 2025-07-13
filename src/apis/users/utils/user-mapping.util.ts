@@ -15,6 +15,36 @@ export function mapToUserEntity(authenticatedUser: AuthenticatedUser): User {
 }
 
 /**
+ * GetUserResDto -> User 엔티티 변환
+ * GetUserResDto를 User 엔티티로 변환
+ */
+export function mapGetUserResDtoToUserEntity(
+  getUserResDto: GetUserResDto,
+): User {
+  return new User({
+    id: getUserResDto.id,
+    nickname: getUserResDto.nickname,
+    email: getUserResDto.email,
+    github_id: getUserResDto.github,
+    img_url: getUserResDto.profileImage,
+    address: getUserResDto.location,
+    join_status: getUserResDto.isJoined,
+    is_public: getUserResDto.isPublic,
+    position_id: getUserResDto.positionId,
+    description: getUserResDto.description,
+    proceed_type: getUserResDto.proceedType,
+    role: getUserResDto.role,
+    name: getUserResDto.name,
+    beginner: getUserResDto.beginner,
+    user_stacks:
+      getUserResDto.userStacks?.map((stack) => ({ stack_id: stack.stackId })) ||
+      [],
+    create_at: getUserResDto.createdAt,
+    updated_at: getUserResDto.updatedAt,
+  } as AuthenticatedUser);
+}
+
+/**
  * User 엔티티 -> 데이터베이스 형식 변환
  * 클라이언트에서 받은 User 데이터를 데이터베이스 저장 형식으로 변환
  */
@@ -111,17 +141,46 @@ export function mapDbFormatToUpdateDto(dto: UpdateUserResDto) {
  * UpdateUserReqDto -> 데이터베이스 형식 변환
  */
 export function mapUpdateDtoToDbFormat(dto: UpdateUserReqDto) {
+  console.log("🔍 mapUpdateDtoToDbFormat input:", dto); // 디버깅 로그 추가
+
   const mapped: Record<string, any> = {};
 
-  if (dto.nickname !== undefined) mapped.nickname = dto.nickname;
-  if (dto.github !== undefined) mapped.github_id = dto.github; // github -> github_id
-  if (dto.profileImage !== undefined) mapped.img_url = dto.profileImage; // profileImage -> img_url
-  if (dto.location !== undefined) mapped.address = dto.location; // location -> address
-  if (dto.isPublic !== undefined) mapped.is_public = dto.isPublic; // isPublic -> is_public
-  if (dto.positionId !== undefined) mapped.position_id = dto.positionId; // positionId -> position_id
-  if (dto.description !== undefined) mapped.description = dto.description; // description -> description
-  if (dto.proceedType !== undefined) mapped.proceed_type = dto.proceedType; // proceedType -> proceed_type
-  if (dto.name !== undefined) mapped.name = dto.name;
+  if (dto.nickname !== undefined) {
+    mapped.nickname = dto.nickname;
+    console.log("🔍 Setting nickname:", dto.nickname);
+  }
+  if (dto.github !== undefined) {
+    mapped.github_id = dto.github; // github -> github_id
+    console.log("🔍 Setting github_id:", dto.github);
+  }
+  if (dto.profileImage !== undefined) {
+    mapped.img_url = dto.profileImage; // profileImage -> img_url
+    console.log("🔍 Setting img_url:", dto.profileImage);
+  }
+  if (dto.location !== undefined) {
+    mapped.address = dto.location; // location -> address
+    console.log("🔍 Setting address:", dto.location);
+  }
+  if (dto.isPublic !== undefined) {
+    mapped.is_public = dto.isPublic; // isPublic -> is_public
+    console.log("🔍 Setting is_public:", dto.isPublic);
+  }
+  if (dto.positionId !== undefined) {
+    mapped.position_id = dto.positionId; // positionId -> position_id
+    console.log("🔍 Setting position_id:", dto.positionId);
+  }
+  if (dto.description !== undefined) {
+    mapped.description = dto.description; // description -> description
+    console.log("🔍 Setting description:", dto.description);
+  }
+  if (dto.proceedType !== undefined) {
+    mapped.proceed_type = dto.proceedType; // proceedType -> proceed_type
+    console.log("🔍 Setting proceed_type:", dto.proceedType);
+  }
+  if (dto.name !== undefined) {
+    mapped.name = dto.name;
+    console.log("🔍 Setting name:", dto.name);
+  }
 
   // 항상 업데이트 시간 갱신
   mapped.updated_at = new Date().toISOString();
