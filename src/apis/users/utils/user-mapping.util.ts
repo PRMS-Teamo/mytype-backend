@@ -2,6 +2,9 @@ import { AuthenticatedUser } from "@/apis/auth/types/authenticated-user.interfac
 import { User } from "../entities/user.entity";
 import { CreateUserReqDto } from "../dto/req/create-user.req.dto";
 import { UpdateUserReqDto } from "../dto/req/update-user.req.dto";
+import { CreateUserResDto } from "../dto/res/create-user.res.dto";
+import { GetUserResDto } from "../dto/res/get.user.res.dto";
+import { UpdateUserResDto } from "../dto/res/update-user.res.dto";
 
 /**
  * AuthenticatedUser -> User 엔티티 변환
@@ -41,7 +44,8 @@ export function mapCreateDtoToDbFormat(dto: CreateUserReqDto) {
     img_url: dto.profileImage, // profileImage -> img_url
     address: dto.location, // location -> address
     is_public: dto.isPublic ?? false, // isPublic -> is_public
-    position_id: dto.positionId, // positionId -> position_id
+    position_id:
+      dto.positionId && dto.positionId.trim() !== "" ? dto.positionId : null, // positionId -> position_id (빈 문자열은 null로)
     description: dto.description, // description -> description
     proceed_type: dto.proceedType ?? "ONLINE", // proceedType -> proceed_type
     name: dto.name,
@@ -49,6 +53,60 @@ export function mapCreateDtoToDbFormat(dto: CreateUserReqDto) {
     join_status: false, // 새 사용자는 기본적으로 미가입 상태
     create_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
+  };
+}
+
+export function mapDbFormatToCreateDto(dto: CreateUserResDto) {
+  return {
+    userId: dto.id,
+    name: dto.name,
+    role: "USER",
+    nickname: dto.nickname,
+    email: dto.email,
+    github: dto.github,
+    profileImage: dto.profileImage,
+    location: dto.location,
+    isPublic: dto.isPublic,
+    positionId: dto.positionId,
+    description: dto.description,
+    proceedType: dto.proceedType,
+    userStacks: dto.userStacks,
+  };
+}
+
+export function mapDbFormatToGetDto(dto: GetUserResDto) {
+  return {
+    userId: dto.id,
+    name: dto.name,
+    role: "USER",
+    nickname: dto.nickname,
+    email: dto.email,
+    github: dto.github,
+    profileImage: dto.profileImage,
+    location: dto.location,
+    isPublic: dto.isPublic,
+    positionId: dto.positionId,
+    description: dto.description,
+    proceedType: dto.proceedType,
+    userStacks: dto.userStacks,
+  };
+}
+
+export function mapDbFormatToUpdateDto(dto: UpdateUserResDto) {
+  return {
+    userId: dto.id,
+    name: dto.name,
+    role: "USER",
+    nickname: dto.nickname,
+    email: dto.email,
+    github: dto.github,
+    profileImage: dto.profileImage,
+    location: dto.location,
+    isPublic: dto.isPublic,
+    positionId: dto.positionId,
+    description: dto.description,
+    proceedType: dto.proceedType,
+    userStacks: dto.userStacks,
   };
 }
 

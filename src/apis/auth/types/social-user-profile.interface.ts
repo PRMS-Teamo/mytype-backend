@@ -3,9 +3,10 @@
  * OAuth 콜백에서만 사용됨
  */
 export interface SocialUserProfile {
-  provider: string;
+  provider?: string;
   externalId: string;
   name: string;
+  displayName?: string;
   email?: string;
   _rawData?: {
     accessToken?: string;

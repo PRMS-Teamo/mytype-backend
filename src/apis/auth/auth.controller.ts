@@ -68,7 +68,7 @@ export class AuthController {
     console.log("+++++++++++++");
 
     try {
-      const { tokens, status } =
+      const { tokens, status, user } =
         await this.authService.socialLogin(userProfile);
 
       console.log("+++++++++++++토큰 생성 성공:", {
@@ -88,8 +88,14 @@ export class AuthController {
 
       console.log("+++++++++++++Redirecting to frontend:", redirectUrl);
       console.log("+++++++++++++");
+
+      // 테스트 로그인과 동일한 응답 형식
       const response = {
-        accessToken: tokens.accessToken,
+        user,
+        tokens: {
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+        },
         status,
       };
 
@@ -242,15 +248,15 @@ export class AuthController {
     const testUser = await this.authService.createOrGetTestUser(userProfile);
 
     const tokenPayload = {
-      userId: testUser.id,
-      name: testUser.name,
+      userId: testUser.userId,
+      name: testUser.name || "사용자",
     };
     const tokens = this.authService.generateTokens(tokenPayload);
 
     // 실제 소셜 로그인과 동일하게 refreshToken을 DB에 저장
     await this.authService.setCurrentRefreshToken(
       tokens.refreshToken,
-      testUser.id,
+      testUser.userId,
     );
 
     // 실제 소셜 로그인과 동일하게 refreshToken을 쿠키에 저장
@@ -265,7 +271,10 @@ export class AuthController {
 
     return res.json({
       user: testUser,
-      tokens,
+      tokens: {
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+      },
     });
   }
 }

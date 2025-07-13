@@ -18,7 +18,6 @@ export class CreateUserReqDto extends OmitType(User, [
   "isJoined",
   "createdAt",
   "updatedAt",
-  "role",
 ] as const) {
   @ApiProperty({
     example: "닉네임",

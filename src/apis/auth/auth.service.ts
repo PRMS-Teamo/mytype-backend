@@ -10,6 +10,9 @@ import { UsersService } from "../users/users.service";
 import * as bcrypt from "bcrypt";
 import { SocialUserProfile } from "./types/social-user-profile.interface";
 import axios from "axios";
+import { mapDbFormatToGetDto } from "../users/utils/user-mapping.util";
+import { CreateUserReqDto } from "../users/dto/req/create-user.req.dto";
+import { GetUserResDto } from "../users/dto/res/get.user.res.dto";
 
 @Injectable()
 export class AuthService {
@@ -137,14 +140,20 @@ export class AuthService {
   }
 
   async socialLogin(userProfile: {
-    provider: string;
+    provider?: string;
     externalId: string;
     name: string;
     email?: string;
   }) {
     const userAuth = await this.postgresService.user_auths.findFirst({
       where: { external_id: userProfile.externalId },
-      include: { users: true },
+      include: {
+        users: {
+          include: {
+            user_stacks: true,
+          },
+        },
+      },
     });
 
     let user;
@@ -157,49 +166,73 @@ export class AuthService {
       status = "NEW";
     }
 
-    const tokens = this.generateTokens({
-      userId: user.id,
-      name: user.name,
-    });
-    await this.setCurrentRefreshToken(tokens.refreshToken, user.id);
+    // 사용자 정보를 camelCase로 변환
+    const transformedUser = await this.usersService.findUserByUserId(user.id);
+    const camelCaseUser = mapDbFormatToGetDto(transformedUser as GetUserResDto);
 
-    return { tokens, status };
+    // userId가 undefined인 경우 처리
+    if (!camelCaseUser.userId) {
+      throw new BadRequestException("사용자 ID를 찾을 수 없습니다.");
+    }
+
+    const tokens = this.generateTokens({
+      userId: camelCaseUser.userId,
+      name: camelCaseUser.name || "사용자",
+    });
+    await this.setCurrentRefreshToken(
+      tokens.refreshToken,
+      camelCaseUser.userId,
+    );
+
+    return {
+      tokens,
+      status,
+      user: camelCaseUser, // 테스트 로그인과 동일한 user 객체 포함
+    };
   }
 
   private async createNewUserFromSocialProfile(userProfile: {
-    provider: string;
+    provider?: string;
     externalId: string;
     name: string;
     email?: string;
   }) {
-    return this.postgresService.$transaction(async (tx: PostgresService) => {
-      const authMethod = await tx.auth_methods.findFirst({
-        where: { provider: userProfile.provider },
-      });
-      if (!authMethod) {
-        throw new BadRequestException(
-          `${userProfile.provider} auth method not found.`,
-        );
-      }
+    // usersService.createUser를 사용하여 테스트 로그인과 동일한 방식으로 사용자 생성
+    const newUser = await this.usersService.createUser({
+      name: userProfile.name,
+      nickname: userProfile.name,
+      isPublic: false, // 소셜 로그인 기본값
+      proceedType: "ONLINE",
+      userStacks: [],
+      description: "",
+      positionId: undefined,
+      email: userProfile.email,
+      github: "",
+      profileImage: "",
+      location: "",
+    } as CreateUserReqDto);
 
-      const newUser = await tx.users.create({
-        data: {
-          name: userProfile.name,
-          nickname: userProfile.name,
-          join_status: false,
-        },
-      });
-
-      await tx.user_auths.create({
-        data: {
-          user_id: newUser.id,
-          auth_id: authMethod.id,
-          external_id: userProfile.externalId,
-        },
-      });
-
-      return newUser;
+    // 인증 방법 조회
+    const authMethod = await this.postgresService.auth_methods.findFirst({
+      where: { provider: userProfile.provider || "kakao" },
     });
+
+    if (!authMethod) {
+      throw new BadRequestException(
+        `${userProfile.provider || "kakao"} auth method not found.`,
+      );
+    }
+
+    // 사용자 인증 정보 생성
+    await this.postgresService.user_auths.create({
+      data: {
+        user_id: newUser.id,
+        auth_id: authMethod.id,
+        external_id: userProfile.externalId,
+      },
+    });
+
+    return newUser;
   }
 
   generateTokens(user: { userId: string; name: string }) {
@@ -251,42 +284,71 @@ export class AuthService {
   }
 
   async createOrGetTestUser(userProfile: SocialUserProfile) {
-    const existingUser = await this.postgresService.users.findFirst({
+    // 기존 사용자 확인
+    const existingUser = await this.postgresService.user_auths.findFirst({
       where: {
-        name: userProfile.name,
+        external_id: userProfile.externalId,
+      },
+      include: {
+        users: {
+          include: {
+            user_stacks: true,
+          },
+        },
       },
     });
 
     if (existingUser) {
-      return existingUser;
+      const user = await this.usersService.findUserByUserId(
+        existingUser.users.id,
+      );
+      return mapDbFormatToGetDto(user as GetUserResDto);
     }
 
-    const testUser = await this.postgresService.users.create({
-      data: {
-        name: userProfile.name,
-        join_status: false,
-      },
-    });
-    const authMethodId = await this.postgresService.auth_methods.findFirst({
+    // 새 사용자 생성
+    const testUser = await this.usersService.createUser({
+      name: userProfile.name,
+      nickname: userProfile.displayName || userProfile.name,
+      isPublic: true,
+      proceedType: "ONLINE",
+      userStacks: [],
+      description: "",
+      positionId: undefined, // 빈 문자열 대신 undefined 사용
+      email: userProfile.email,
+      github: "",
+      profileImage: "",
+      location: "",
+    } as CreateUserReqDto);
+
+    // 인증 방법 조회
+    const authMethod = await this.postgresService.auth_methods.findFirst({
       where: {
         provider: "kakao",
       },
     });
-    if (!authMethodId) {
-      throw new BadRequestException("카카오 인증 방법 찾을 수 없음");
+
+    if (!authMethod) {
+      throw new BadRequestException("카카오 인증 방법을 찾을 수 없습니다.");
     }
+
+    // 사용자 인증 정보 생성
     const userAuth = await this.postgresService.user_auths.create({
       data: {
         user_id: testUser.id,
-        auth_id: authMethodId.id,
+        auth_id: authMethod.id,
         external_id: userProfile.externalId,
       },
     });
+
     if (!userAuth) {
-      throw new BadRequestException("테스트 유저 인증 정보 생성 실패");
+      throw new BadRequestException(
+        "테스트 유저 인증 정보 생성에 실패했습니다.",
+      );
     }
 
-    return testUser;
+    // DB에서 생성된 사용자 정보를 다시 조회하여 camelCase로 변환
+    const createdUser = await this.usersService.findUserByUserId(testUser.id);
+    return mapDbFormatToGetDto(createdUser as GetUserResDto);
   }
 
   // 카카오 로그아웃 (카카오 서버에서 토큰 무효화)
