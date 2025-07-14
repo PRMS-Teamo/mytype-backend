@@ -7,15 +7,16 @@ async function main() {
 
   await prisma.auth_methods.createMany({
     data: [
-      { provider: "email", auth_method: "OAuth" },
-      { provider: "google", auth_method: "OAuth" },
-      { provider: "github", auth_method: "OAuth" },
-      { provider: "kakao", auth_method: "OAuth" },
+      { provider: "email", auth_method: "Social" },
+      { provider: "google", auth_method: "Social" },
+      { provider: "github", auth_method: "Social" },
+      { provider: "kakao", auth_method: "Social" },
     ],
   });
 
   await prisma.positions.createMany({
     data: [
+      { name: "팀 생성자" },
       { name: "프론트엔드" },
       { name: "백엔드" },
       { name: "풀스택" },

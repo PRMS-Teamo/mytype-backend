@@ -12,17 +12,13 @@ import {
   Delete,
 } from "@nestjs/common";
 import { TeamsService } from "./teams.service";
-import { CreateTeamDto } from "./dto/create-team.dto";
 import { JwtAuthGuard } from "@/apis/auth/guard/jwt-auth.guard";
 import { Request, Response } from "express";
 import { AuthenticatedUser } from "@/apis/auth/types/authenticated-user.interface";
-import { UpdateTeamDto } from "./dto/update-team.dto";
 import { UsersService } from "@/apis/users/users.service";
-import {
-  TEAM_DIFFERENCE,
-  USER_INFO_NULL,
-  USER_NOT_OWNER,
-} from "@/constants/errorMessage";
+import { TEAM_DIFFERENCE, USER_NOT_OWNER } from "@/constants/errorMessage";
+import { Team } from "./entities/team.entity";
+import { User } from "../auth/decorators/user.decorator";
 
 @Controller("teams")
 export class TeamsController {
@@ -34,25 +30,20 @@ export class TeamsController {
   @Post()
   @UseGuards(JwtAuthGuard)
   async createTeam(
-    @Req() req: Request,
-    @Body() createTeamDto: CreateTeamDto,
+    @Body() team: Team,
+    @User() user: AuthenticatedUser,
     @Res() res: Response,
   ) {
-    const user = req.user as AuthenticatedUser;
     const userId = user.id;
-    const userInfoValid = await this.usersService.checkNullInfo(userId);
-    if (!userInfoValid) {
-      throw new UnauthorizedException({ userInfoNullError: USER_INFO_NULL });
-    }
-    const userInfo = await this.teamsService.createTeam(userId, createTeamDto);
-    return res.status(201).send(userInfo);
+    const createdTeam = await this.teamsService.createTeam(userId, team);
+    return res.status(201).send(createdTeam);
   }
 
   @Patch(":id")
   @UseGuards(JwtAuthGuard)
   async patchTeam(
     @Param("id") id: string,
-    @Body() updateTeamDto: UpdateTeamDto,
+    @Body() updateTeamDto: Team,
     @Req() req: Request,
     @Res() res: Response,
   ) {
