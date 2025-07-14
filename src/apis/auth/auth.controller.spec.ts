@@ -3,6 +3,7 @@ import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
+import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
 
 describe("AuthController", () => {
   let controller: AuthController;
@@ -24,6 +25,12 @@ describe("AuthController", () => {
         },
         {
           provide: ConfigService,
+          useValue: {
+            get: jest.fn(() => "mockSecret"),
+          },
+        },
+        {
+          provide: PostgresService,
           useValue: {
             get: jest.fn(() => "mockSecret"),
           },

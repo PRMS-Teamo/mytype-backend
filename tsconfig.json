@@ -9,7 +9,7 @@
     "target": "ES2023",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./",
+    "baseUrl": ".",
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": true,
@@ -33,12 +33,12 @@
     "src/**/*",
     "src/types/**/*",
     "generated/postgres-client",
-    "generated/mongo-client"
+    "generated/mongo-client",
+    "prisma/**/*"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "prisma",
     "databases.init/mongo/init.js",
     "docs",
     "logs"

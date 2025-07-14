@@ -26,7 +26,9 @@ describe("AuthService", () => {
         },
         {
           provide: PostgresService,
-          useValue: {},
+          useValue: {
+            get: jest.fn(() => "mockSecret"),
+          },
         },
       ],
     }).compile();

@@ -1,6 +1,6 @@
-import { Module } from '@nestjs/common';
-import { BumpsService } from './bumps.service';
-import { BumpsController } from './bumps.controller';
+import { Module } from "@nestjs/common";
+import { BumpsService } from "./bumps.service";
+import { BumpsController } from "./bumps.controller";
 
 @Module({
   controllers: [BumpsController],

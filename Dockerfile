@@ -46,6 +46,10 @@ RUN echo '#!/bin/bash' > /app/start.sh && \
     echo 'fi' >> /app/start.sh && \
     echo '' >> /app/start.sh && \
     echo 'echo "Starting application..."' >> /app/start.sh && \
+    echo '' >> /app/start.sh && \
+    echo 'echo "Running database seed..."' >> /app/start.sh && \
+    echo 'npm run seed' >> /app/start.sh && \
+    echo '' >> /app/start.sh && \
     echo 'npm run start:dev' >> /app/start.sh && \
     chmod +x /app/start.sh
 
