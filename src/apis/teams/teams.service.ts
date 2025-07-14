@@ -4,6 +4,8 @@ import { UsersService } from "@/apis/users/users.service";
 import { NOTFOUND_POSITION, NOTFOUND_TEAM } from "@/constants/errorMessage";
 import { Team } from "./entities/team.entity";
 import { recruit_status } from "@postgres-client";
+import { GetTeamResDto } from "./dto/get.team.res.dto";
+import { GetTeamsResDto } from "./dto/get.teams.res.dto";
 
 @Injectable()
 export class TeamsService {
@@ -18,6 +20,89 @@ export class TeamsService {
         ...data,
       },
     });
+  }
+
+  async getTeams(): Promise<GetTeamsResDto[]> {
+    const teams = await this.postgresService.teams.findMany({
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        user_id: true,
+        is_public: true,
+        recruit_status: true,
+        proceed_type: true,
+        img: true,
+        team_positions: {
+          select: {
+            position_stacks: {
+              select: {
+                stacks: {
+                  select: {
+                    id: true,
+                    name: true,
+                    img_url: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return GetTeamsResDto.fromArray(teams);
+  }
+
+  async getTeam(teamId: string) {
+    const team = await this.postgresService.teams.findUnique({
+      where: { id: teamId },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        user_id: true,
+        is_public: true,
+        recruit_status: true,
+        proceed_type: true,
+        img: true,
+        team_positions: {
+          select: {
+            id: true,
+            count: true,
+            recruit_status: true,
+            positions: { select: { id: true, name: true } },
+            position_stacks: {
+              select: {
+                stacks: {
+                  select: {
+                    id: true,
+                    name: true,
+                    img_url: true,
+                  },
+                },
+              },
+            },
+            team_users: {
+              select: {
+                is_owner: true,
+                message: true,
+                member_status: true,
+                users: {
+                  select: {
+                    id: true,
+                    nickname: true,
+                    img_url: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!team) return null;
+    return new GetTeamResDto(team);
   }
 
   async createTeamMemberTransaction(
@@ -241,8 +326,8 @@ export class TeamsService {
           }
 
           const createdTeamResult = {
-            ...team,
             teamId: createdTeam.id,
+            ...team,
           };
 
           return {
@@ -257,135 +342,143 @@ export class TeamsService {
     return result;
   }
 
-  async updateTeam(userId: string, teamId: string, dto: any) {
-    const { stacks, need, new_owner, ...restTeamInfo } = dto;
+  // async upsertTeam(userId: string, teamId: string, team: Team) {
+  //   const {
+  //     teamName,
+  //     content,
+  //     isPublic,
+  //     recruitStatus,
+  //     proceedType,
+  //     imgUrl,
+  //     positions,
+  //   } = team;
 
-    return await this.postgresService.$transaction(async (tx) => {
-      if (Object.keys(restTeamInfo).length > 0) {
-        await tx.teams.update({
-          where: { id: teamId, user_id: userId },
-          data: {
-            ...restTeamInfo,
-            updated_at: new Date(),
-          },
-        });
-      }
+  //   return await this.postgresService.$transaction(async (tx) => {
+  //     if (Object.keys(team).length > 0) {
+  //       await tx.teams.update({
+  //         where: { id: teamId, user_id: userId },
+  //         data: {
+  //           ...team,
+  //           updated_at: new Date(),
+  //         },
+  //       });
+  //     }
 
-      if (stacks && need) {
-        const prevPositions = await tx.team_positions.findMany({
-          where: { team_id: teamId },
-          include: { position_stacks: true },
-        });
+  //     if (stacks && need) {
+  //       const prevPositions = await tx.team_positions.findMany({
+  //         where: { team_id: teamId },
+  //         include: { position_stacks: true },
+  //       });
 
-        const incomingPositionIds = Object.keys(stacks);
+  //       const incomingPositionIds = Object.keys(stacks);
 
-        const toDelete = prevPositions.filter(
-          (pos) => !incomingPositionIds.includes(pos.position_id),
-        );
+  //       const toDelete = prevPositions.filter(
+  //         (pos) => !incomingPositionIds.includes(pos.position_id),
+  //       );
 
-        for (const pos of toDelete) {
-          await tx.position_stacks.deleteMany({
-            where: { team_position_id: pos.id },
-          });
-          await tx.team_users.deleteMany({
-            where: { team_position_id: pos.id },
-          });
-          await tx.team_positions.delete({ where: { id: pos.id } });
-        }
+  //       for (const pos of toDelete) {
+  //         await tx.position_stacks.deleteMany({
+  //           where: { team_position_id: pos.id },
+  //         });
+  //         await tx.team_users.deleteMany({
+  //           where: { team_position_id: pos.id },
+  //         });
+  //         await tx.team_positions.delete({ where: { id: pos.id } });
+  //       }
 
-        for (const positionId of incomingPositionIds) {
-          const stackList = stacks[positionId];
-          const prev = prevPositions.find((p) => p.position_id === positionId);
+  //       for (const positionId of incomingPositionIds) {
+  //         const stackList = stacks[positionId];
+  //         const prev = prevPositions.find((p) => p.position_id === positionId);
 
-          if (prev) {
-            if (prev.count !== need[positionId]) {
-              await tx.team_positions.update({
-                where: { id: prev.id },
-                data: { count: need[positionId], updated_at: new Date() },
-              });
-            }
+  //         if (prev) {
+  //           if (prev.count !== need[positionId]) {
+  //             await tx.team_positions.update({
+  //               where: { id: prev.id },
+  //               data: { count: need[positionId], updated_at: new Date() },
+  //             });
+  //           }
 
-            const oldStackIds = prev.position_stacks.map((s) => s.stack_id);
-            const toAdd = stackList.filter((s) => !oldStackIds.includes(s));
-            const toRemove = oldStackIds.filter((s) => !stackList.includes(s));
+  //           const oldStackIds = prev.position_stacks.map((s) => s.stack_id);
+  //           const toAdd = stackList.filter((s) => !oldStackIds.includes(s));
+  //           const toRemove = oldStackIds.filter((s) => !stackList.includes(s));
 
-            if (toAdd.length > 0) {
-              await tx.position_stacks.createMany({
-                data: toAdd.map((stack_id) => ({
-                  team_position_id: prev.id,
-                  stack_id,
-                })),
-              });
-            }
+  //           if (toAdd.length > 0) {
+  //             await tx.position_stacks.createMany({
+  //               data: toAdd.map((stack_id) => ({
+  //                 team_position_id: prev.id,
+  //                 stack_id,
+  //               })),
+  //             });
+  //           }
 
-            if (toRemove.length > 0) {
-              await tx.position_stacks.deleteMany({
-                where: {
-                  team_position_id: prev.id,
-                  stack_id: { in: toRemove },
-                },
-              });
-            }
-          } else {
-            const newTeamPosition = await tx.team_positions.create({
-              data: {
-                team_id: teamId,
-                position_id: positionId,
-                count: need[positionId],
-                status: true,
-              },
-            });
+  //           if (toRemove.length > 0) {
+  //             await tx.position_stacks.deleteMany({
+  //               where: {
+  //                 team_position_id: prev.id,
+  //                 stack_id: { in: toRemove },
+  //               },
+  //             });
+  //           }
+  //         } else {
+  //           const newTeamPosition = await tx.team_positions.create({
+  //             data: {
+  //               team_id: teamId,
+  //               position_id: positionId,
+  //               count: need[positionId],
+  //               status: true,
+  //             },
+  //           });
 
-            await tx.position_stacks.createMany({
-              data: stackList.map((stack_id) => ({
-                team_position_id: newTeamPosition.id,
-                stack_id,
-              })),
-            });
-          }
-        }
-      }
+  //           await tx.position_stacks.createMany({
+  //             data: stackList.map((stack_id) => ({
+  //               team_position_id: newTeamPosition.id,
+  //               stack_id,
+  //             })),
+  //           });
+  //         }
+  //       }
+  //     }
 
-      if (new_owner) {
-        const newOwnerPosition = await tx.team_positions.findFirst({
-          where: { team_id: teamId, position_id: new_owner },
-        });
+  //     if (new_owner) {
+  //       const newOwnerPosition = await tx.team_positions.findFirst({
+  //         where: { team_id: teamId, position_id: new_owner },
+  //       });
 
-        if (!newOwnerPosition) {
-          throw new NotFoundException({ NOTFOUND_POSITION });
-        }
+  //       if (!newOwnerPosition) {
+  //         throw new NotFoundException({ NOTFOUND_POSITION });
+  //       }
 
-        const current = await tx.team_users.findFirst({
-          where: { user_id: userId, is_owner: true },
-        });
+  //       const current = await tx.team_users.findFirst({
+  //         where: { user_id: userId, is_owner: true },
+  //       });
 
-        if (current) {
-          await tx.team_users.update({
-            where: {
-              user_id_team_position_id: {
-                user_id: userId,
-                team_position_id: current.team_position_id,
-              },
-            },
-            data: {
-              team_position_id: newOwnerPosition.id,
-              updated_at: new Date(),
-            },
-          });
-        } else {
-          await tx.team_users.create({
-            data: {
-              user_id: userId,
-              team_position_id: newOwnerPosition.id,
-              is_owner: true,
-              member_status: "ON_BOARD",
-            },
-          });
-        }
-      }
-      return { message: "팀 정보가 수정되었습니다." };
-    });
-  }
+  //       if (current) {
+  //         await tx.team_users.update({
+  //           where: {
+  //             user_id_team_position_id: {
+  //               user_id: userId,
+  //               team_position_id: current.team_position_id,
+  //             },
+  //           },
+  //           data: {
+  //             team_position_id: newOwnerPosition.id,
+  //             updated_at: new Date(),
+  //           },
+  //         });
+  //       } else {
+  //         await tx.team_users.create({
+  //           data: {
+  //             user_id: userId,
+  //             team_position_id: newOwnerPosition.id,
+  //             is_owner: true,
+  //             member_status: "ON_BOARD",
+  //           },
+  //         });
+  //       }
+  //     }
+  //     return { message: "팀 정보가 수정되었습니다." };
+  //   });
+  // }
 
   async addTeamMember(teamPositionId: string, newMemberId: string) {
     console.log(teamPositionId, newMemberId);

@@ -6,7 +6,7 @@ import {
   Req,
   Res,
   Param,
-  Patch,
+  // Patch,
   UnauthorizedException,
   Get,
   Delete,
@@ -39,23 +39,34 @@ export class TeamsController {
     return res.status(201).send(createdTeam);
   }
 
-  @Patch(":id")
-  @UseGuards(JwtAuthGuard)
-  async patchTeam(
-    @Param("id") id: string,
-    @Body() updateTeamDto: Team,
-    @Req() req: Request,
-    @Res() res: Response,
-  ) {
-    const user = req.user as AuthenticatedUser;
-    const userId = user.id;
-    const isOwner = await this.usersService.checkOwner(userId);
-    if (!isOwner) {
-      throw new UnauthorizedException({ USER_NOT_OWNER });
-    }
-    await this.teamsService.updateTeam(userId, id, updateTeamDto);
-    return res.status(201).send({ message: "팀 정보 업데이트 성공" });
+  @Get()
+  async getTeams(@Res() res: Response) {
+    const teams = await this.teamsService.getTeams();
+    return res.status(200).send(teams);
   }
+
+  @Get(":teamId")
+  @UseGuards(JwtAuthGuard)
+  async getTeam(@Param("teamId") teamId: string, @Res() res: Response) {
+    const team = await this.teamsService.getTeam(teamId);
+    return res.status(200).json(team);
+  }
+  // @Patch(":teamId")
+  // @UseGuards(JwtAuthGuard)
+  // async patchTeam(
+  //   @Param("teamId") teamId: string,
+  //   @Body() updateTeamDto: Team,
+  //   @User() user: AuthenticatedUser,
+  //   @Res() res: Response,
+  // ) {
+  //   const userId = user.id;
+  //   const isOwner = await this.usersService.checkOwner(userId);
+  //   if (!isOwner) {
+  //     throw new UnauthorizedException({ USER_NOT_OWNER });
+  //   }
+  //   await this.teamsService.upsertTeam(userId, teamId, updateTeamDto);
+  //   return res.status(201).send({ message: "팀 정보 업데이트 성공" });
+  // }
 
   @Get(":teamId/members")
   @UseGuards(JwtAuthGuard)
