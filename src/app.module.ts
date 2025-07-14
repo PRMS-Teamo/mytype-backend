@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
-import { AppController } from "./app.controller";
-import { AppService } from "./app.service";
+import { AppController } from "@/app.controller";
+import { AppService } from "@/app.service";
 import { APP_GUARD } from "@nestjs/core";
 import { UsersModule } from "@/apis/users/users.module";
 import { AuthModule } from "@/apis/auth/auth.module";
@@ -12,12 +12,13 @@ import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { ConfigModule } from "@nestjs/config";
 import { AnalysisModule } from "@/apis/analysis/analysis.module";
 import { InfrastructureModule } from "@/infrastructure/infrastructure.module";
-import { HealthModule } from "./apis/health/health.module";
-import { StacksModule } from "./apis/stacks/stacks.module";
-import { PositionsModule } from "./apis/positions/positions.module";
-import { BumpsModule } from "./apis/bumps/bumps.module";
+import { HealthModule } from "@/apis/health/health.module";
+import { StacksModule } from "@/apis/stacks/stacks.module";
+import { PositionsModule } from "@/apis/positions/positions.module";
+import { BumpsModule } from "@/apis/bumps/bumps.module";
 import { SchedulerModule } from "@/infrastructure/scheduler/scheduler.module";
-import { FilesModule } from "./infrastructure/storage/files/files.module";
+import { FilesModule } from "@/infrastructure/storage/files/files.module";
+import { ImagesModule } from "@/apis/images/images.module";
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { FilesModule } from "./infrastructure/storage/files/files.module";
     BumpsModule,
     SchedulerModule,
     FilesModule,
+    ImagesModule,
   ],
   controllers: [AppController],
   providers: [

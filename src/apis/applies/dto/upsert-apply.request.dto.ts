@@ -16,5 +16,5 @@ export class UpsertApplyRequestDto {
   })
   @IsOptional()
   @IsEnum(apply_status)
-  apply_status?: apply_status;
+  applyStatus?: apply_status;
 }

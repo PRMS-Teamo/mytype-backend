@@ -3,8 +3,7 @@ import { UpsertApplyRequestDto } from "./dto/upsert-apply.request.dto";
 import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
 import { UpsertApplyResponseDto } from "./dto/upsert-apply.response.dto";
 import { plainToInstance } from "class-transformer";
-import { action } from "@postgres-client";
-import { UpdateStatusDto } from "./dto/update-status.dto";
+import { action, apply_status } from "@postgres-client";
 import { TeamsService } from "@/apis/teams/teams.service";
 
 @Injectable()
@@ -20,33 +19,69 @@ export class AppliesService {
     upsertApplyDto: UpsertApplyRequestDto,
     userId: string,
     action: action,
-    teamPositionId: string,
+    positionId: string,
+    ownerId?: string,
   ) {
     try {
-      this.logger.log(
-        `Upserting apply record for user ${userId} and team ${teamPositionId}`,
-      );
-      const result = await this.postgresService.apply_history.upsert({
-        where: {
-          user_id_team_position_id: {
-            user_id: userId,
-            team_position_id: teamPositionId,
+      let result: any;
+      if (action === "INVITE") {
+        const ownersTeam = await this.postgresService.teams.findFirst({
+          where: { user_id: ownerId },
+        });
+        if (!ownersTeam) {
+          throw new Error("팀을 생성하신 경우에만 초대가 가능합니다.");
+        }
+        result = await this.postgresService.apply_history.upsert({
+          where: {
+            user_id_team_position_id: {
+              user_id: userId,
+              team_position_id: positionId,
+            },
           },
-        },
-        update: {
-          message: upsertApplyDto.message,
-          apply_status: upsertApplyDto.apply_status,
-          action: action,
-          updated_at: new Date(),
-        },
-        create: {
-          user_id: userId,
-          team_position_id: teamPositionId,
-          message: upsertApplyDto.message,
-          apply_status: upsertApplyDto.apply_status || "SUBMITTED",
-          action: action,
-        },
-      });
+          update: {
+            message: upsertApplyDto.message,
+            apply_status: upsertApplyDto.applyStatus,
+            action: action,
+            updated_at: new Date(),
+          },
+          create: {
+            user_id: userId,
+            team_position_id: positionId,
+            message: upsertApplyDto.message,
+            apply_status: upsertApplyDto.applyStatus,
+            action: action,
+          },
+        });
+      } else {
+        const teamPosition =
+          await this.postgresService.team_positions.findUnique({
+            where: { id: positionId },
+          });
+        if (!teamPosition) {
+          throw new Error("Team position not found");
+        }
+        result = await this.postgresService.apply_history.upsert({
+          where: {
+            user_id_team_position_id: {
+              user_id: userId,
+              team_position_id: positionId,
+            },
+          },
+          update: {
+            message: upsertApplyDto.message,
+            apply_status: upsertApplyDto.applyStatus,
+            action: action,
+            updated_at: new Date(),
+          },
+          create: {
+            user_id: userId,
+            team_position_id: positionId,
+            message: upsertApplyDto.message,
+            apply_status: upsertApplyDto.applyStatus || "SUBMITTED",
+            action: action,
+          },
+        });
+      }
 
       this.logger.log(
         `Successfully upserted apply record with status: ${result.apply_status}`,
@@ -74,11 +109,11 @@ export class AppliesService {
         },
       });
 
-      const teamPositionIds = teamPositions.map((tp) => tp.id);
-      if (teamPositionIds.length === 0) {
-        this.logger.warn(`No team position found for team ${teamId}`);
+      if (teamPositions.length === 0) {
+        return [];
       }
 
+      const teamPositionIds = teamPositions.map((tp) => tp.id);
       const result = await this.postgresService.apply_history.findMany({
         where: {
           team_position_id: { in: teamPositionIds },
@@ -94,14 +129,11 @@ export class AppliesService {
           reply: true,
           is_read: true,
         },
-        orderBy: {
-          action: "asc",
-          created_at: "desc",
-        },
+        orderBy: [{ action: "asc" }, { created_at: "desc" }],
       });
 
       if (!result || result.length === 0) {
-        throw new Error("Apply record not found");
+        return [];
       }
 
       return plainToInstance(UpsertApplyResponseDto, result.reverse());
@@ -135,41 +167,86 @@ export class AppliesService {
     }
   }
 
-  async updateStatus(userId: string, updateRequestDto: UpdateStatusDto) {
-    const {
-      teamId,
-      targetUserId,
-      apply_status,
-      reply = null,
-    } = updateRequestDto;
+  async updateStatus(
+    userId: string,
+    teamPositionId: string,
+    apply_status: apply_status,
+  ) {
     try {
       this.logger.log(
-        `Updating apply status for user ${targetUserId} and team ${teamId}`,
+        `Updating apply status for user ${userId} and team ${teamPositionId}`,
       );
 
-      const result = await this.postgresService.apply_history.update({
-        where: {
-          user_id_team_position_id: {
-            user_id: targetUserId,
-            team_position_id: teamId,
+      const appliedHistory = await this.postgresService.apply_history.findFirst(
+        {
+          where: {
+            user_id: userId,
+            team_position_id: teamPositionId,
           },
         },
-        data: {
-          apply_status: apply_status,
-          reply: reply || null,
-          updated_at: new Date(),
-        },
-      });
+      );
+
+      if (!appliedHistory) {
+        throw new Error("Apply record not found");
+      }
+
+      let result: any;
+
+      switch (apply_status) {
+        case "SUCCESS":
+          await this.teamsService.addTeamMember(teamPositionId, userId);
+          result = await this.postgresService.apply_history.update({
+            where: {
+              user_id_team_position_id: {
+                user_id: userId,
+                team_position_id: teamPositionId,
+              },
+            },
+            data: {
+              apply_status: apply_status,
+              updated_at: new Date(),
+            },
+          });
+          break;
+        case "REJECTED":
+          result = await this.postgresService.apply_history.update({
+            where: {
+              user_id_team_position_id: {
+                user_id: userId,
+                team_position_id: teamPositionId,
+              },
+            },
+            data: {
+              apply_status: apply_status,
+              updated_at: new Date(),
+            },
+          });
+          break;
+        case "CANCEL":
+          result = await this.postgresService.apply_history.update({
+            where: {
+              user_id_team_position_id: {
+                user_id: userId,
+                team_position_id: teamPositionId,
+              },
+            },
+            data: {
+              apply_status: apply_status,
+              updated_at: new Date(),
+            },
+          });
+          break;
+        default:
+          throw new Error("Invalid apply status");
+      }
+
+      if (!result) {
+        throw new Error("Apply record not found");
+      }
 
       this.logger.log(
         `Successfully updated apply record with status: ${result.apply_status}`,
       );
-
-      // TODO : 정상적으로 등록했다면, 이와 같은 과정도 진행해야함.
-      if (apply_status === "SUCCESS") {
-        // 팀 등록 로직이 진행되어야함.
-        await this.teamsService.addTeamMember(teamId, userId);
-      }
 
       return plainToInstance(UpsertApplyResponseDto, result);
     } catch (error) {

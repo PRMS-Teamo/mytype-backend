@@ -202,6 +202,14 @@ model chat_participants {
   users      users      @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_users_TO_chat_participants_1")
 }
 
+model images {
+  id           String   @id(map: "PK_IMAGES") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  url          String   @db.VarChar(500)
+  content_type String   @db.VarChar(50)
+  created_at   DateTime @default(now()) @db.Timestamp(6)
+  updated_at   DateTime @updatedAt @db.Timestamp(6) @default(now())
+}
+
 enum chat_room_type {
   DM
   TEAM

@@ -490,9 +490,17 @@ export class TeamsService {
         false,
         "ON_BOARD",
       );
-      await this.usersService.updateJoinStatusByUuid(newMemberId, true);
+      await this.usersService.updateJoinStatusByUuid(newMemberId, true, tx);
+      await tx.team_users.create({
+        data: {
+          user_id: newMemberId,
+          team_position_id: teamPositionId,
+          is_owner: false,
+          member_status: "ON_BOARD",
+        },
+      });
     });
-    return { message: "hello" };
+    return { message: "팀 멤버가 추가되었습니다." };
   }
 
   async deleteTeamMember(memberId: string) {
