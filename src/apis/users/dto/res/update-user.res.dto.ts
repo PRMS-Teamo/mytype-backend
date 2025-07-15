@@ -6,7 +6,7 @@ import { User } from "../../entities/user.entity";
  * 수정 후 최신 상태의 사용자 정보를 포함
  */
 export class UpdateUserResDto extends PickType(User, [
-  "userId",
+  "id",
   "nickname",
   "github",
   "profileImage",
