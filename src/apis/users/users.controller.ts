@@ -333,4 +333,22 @@ export class UsersController {
     const isOwner = await this.usersService.checkOwner(authenticatedUser.id);
     return { isOwner };
   }
+
+  @Get("me/:teamPositionId")
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: "내 팀 포지션 조회",
+    description: "로그인한 사용자의 팀 포지션을 조회합니다.",
+  })
+  @ApiParam({ name: "teamPositionId", description: "팀 포지션 ID" })
+  @ApiOkResponse({
+    description: "팀 포지션 조회 성공",
+  })
+  async getMyTeamMembersByTeamPositionId(
+    @UserDecorator() authenticatedUser: AuthenticatedUser,
+    @Param("teamPositionId") teamPositionId: string,
+  ) {
+    const teamPosition = await this.usersService.getTeamMembers(teamPositionId);
+    return teamPosition;
+  }
 }

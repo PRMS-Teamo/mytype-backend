@@ -137,6 +137,13 @@ export class User {
 
   @ApiProperty({
     example: "2024-01-15T10:30:00Z",
+    description: "마지막으로 끌어올리기 한 시간",
+    required: false,
+  })
+  bumpedAt?: string;
+
+  @ApiProperty({
+    example: "2024-01-15T10:30:00Z",
     description: "계정 생성일",
     required: false,
   })

@@ -14,6 +14,7 @@ export class GetTeamsResDto {
     stackName?: string;
     imgUrl?: string;
   }>;
+  bumpAt?: string;
 
   constructor(data: any) {
     this.teamId = data.id;
@@ -24,6 +25,7 @@ export class GetTeamsResDto {
     this.recruitStatus = data.recruit_status;
     this.proceedType = data.proceed_type;
     this.imgUrl = data.img || undefined;
+    this.bumpAt = data.bumped_at || undefined;
 
     // 안전하게 flatten + null 체크 + 중복 제거(Optional)
     const allStacks: any[] = [];

@@ -26,8 +26,6 @@ export interface AuthenticatedUser {
   join_status?: boolean | null;
   /** 프로필 공개 여부 */
   is_public?: boolean | null;
-  /** 광고 허용 여부 */
-  advertising?: boolean | null;
   /** 자기소개 */
   description?: string | null;
   /** 진행 방식 */

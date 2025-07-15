@@ -143,6 +143,7 @@ export class UsersService {
         create_at: true,
         updated_at: true,
       },
+      orderBy: [{ bumped_at: "desc" }],
     });
 
     return users.map((user) => ({
@@ -235,6 +236,7 @@ export class UsersService {
         });
 
         // 새 스택 추가
+        console.log("🔍 userStacks:", userStacks);
         if (userStacks.length > 0) {
           await tx.user_stacks.createMany({
             data: mapStackIdsToUserStacks(userStacks, userId),
@@ -343,5 +345,49 @@ export class UsersService {
     });
 
     return !!team;
+  }
+
+  async getTeamMembers(teamPositionId: string) {
+    const teamPosition = await this.postgresService.team_positions.findFirst({
+      where: { id: teamPositionId },
+      select: {
+        teams: {
+          select: {
+            team_positions: {
+              select: {
+                positions: {
+                  select: {
+                    name: true,
+                  },
+                },
+                team_users: {
+                  select: {
+                    is_owner: true,
+                    users: {
+                      select: {
+                        id: true,
+                        name: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // 평탄화된 형태로 매핑 (SQL의 형태에 맞게)
+    const members = teamPosition?.teams.team_positions.flatMap((tp) =>
+      tp.team_users.map((tu) => ({
+        userId: tu.users.id,
+        userName: tu.users.name,
+        positionName: tp.positions.name,
+        isOwner: tu.is_owner,
+      })),
+    );
+
+    return members;
   }
 }

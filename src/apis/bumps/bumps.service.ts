@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
-import { user_bumps } from "@postgres-client";
+import { team_bumps, user_bumps } from "@postgres-client";
 
 @Injectable()
 export class BumpsService {
@@ -30,6 +30,36 @@ export class BumpsService {
       },
       create: {
         user_id: userId,
+        bump_count: 1,
+        next_available_at: this.getNextAvailableTime(),
+      },
+    });
+  }
+
+  async upsertTeamBump(teamId: string): Promise<team_bumps> {
+    const teamBumps = await this.postgresService.team_bumps.findFirst({
+      where: {
+        team_id: teamId,
+      },
+    });
+
+    if (teamBumps && teamBumps.bump_count >= teamBumps.bump_limit) {
+      console.log("Bump limit exceeded");
+      throw new BadRequestException("Bump limit exceeded");
+    }
+
+    return this.postgresService.team_bumps.upsert({
+      where: {
+        team_id: teamId,
+      },
+      update: {
+        bump_count: {
+          increment: 1,
+        },
+        updated_at: new Date(),
+      },
+      create: {
+        team_id: teamId,
         bump_count: 1,
         next_available_at: this.getNextAvailableTime(),
       },

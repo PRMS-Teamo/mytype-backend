@@ -33,6 +33,7 @@ export class TeamsService {
         recruit_status: true,
         proceed_type: true,
         img: true,
+        bumped_at: true,
         team_positions: {
           select: {
             position_stacks: {
@@ -49,6 +50,7 @@ export class TeamsService {
           },
         },
       },
+      orderBy: [{ bumped_at: "desc" }],
     });
 
     return GetTeamsResDto.fromArray(teams);
