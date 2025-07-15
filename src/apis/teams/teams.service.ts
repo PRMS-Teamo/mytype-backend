@@ -344,7 +344,7 @@ export class TeamsService {
     return result;
   }
 
-  // async upsertTeam(userId: string, teamId: string, team: Team) {
+  // async patchTeam(userId: string, teamId: string, updateTeamDto: any) {
   //   const {
   //     teamName,
   //     content,
@@ -352,130 +352,173 @@ export class TeamsService {
   //     recruitStatus,
   //     proceedType,
   //     imgUrl,
-  //     positions,
-  //   } = team;
+  //     teamPositions,
+  //   } = updateTeamDto;
 
   //   return await this.postgresService.$transaction(async (tx) => {
-  //     if (Object.keys(team).length > 0) {
-  //       await tx.teams.update({
-  //         where: { id: teamId, user_id: userId },
-  //         data: {
-  //           ...team,
-  //           updated_at: new Date(),
+  //     // 1. 팀 정보 업데이트
+  //     await tx.teams.update({
+  //       where: { id: teamId, user_id: userId },
+  //       data: {
+  //         title: teamName,
+  //         content,
+  //         is_public: isPublic,
+  //         recruit_status: recruitStatus,
+  //         proceed_type: proceedType,
+  //         img: imgUrl,
+  //         updated_at: new Date(),
+  //       },
+  //     });
+
+  //     // 2. 기존 포지션 조회
+  //     const prevPositions = await tx.team_positions.findMany({
+  //       where: { team_id: teamId },
+  //       include: {
+  //         positions: {
+  //           select: {
+  //             id: true,
+  //             name: true,
+  //           },
   //         },
-  //       });
-  //     }
-
-  //     if (stacks && need) {
-  //       const prevPositions = await tx.team_positions.findMany({
-  //         where: { team_id: teamId },
-  //         include: { position_stacks: true },
-  //       });
-
-  //       const incomingPositionIds = Object.keys(stacks);
-
-  //       const toDelete = prevPositions.filter(
-  //         (pos) => !incomingPositionIds.includes(pos.position_id),
-  //       );
-
-  //       for (const pos of toDelete) {
-  //         await tx.position_stacks.deleteMany({
-  //           where: { team_position_id: pos.id },
-  //         });
-  //         await tx.team_users.deleteMany({
-  //           where: { team_position_id: pos.id },
-  //         });
-  //         await tx.team_positions.delete({ where: { id: pos.id } });
-  //       }
-
-  //       for (const positionId of incomingPositionIds) {
-  //         const stackList = stacks[positionId];
-  //         const prev = prevPositions.find((p) => p.position_id === positionId);
-
-  //         if (prev) {
-  //           if (prev.count !== need[positionId]) {
-  //             await tx.team_positions.update({
-  //               where: { id: prev.id },
-  //               data: { count: need[positionId], updated_at: new Date() },
-  //             });
-  //           }
-
-  //           const oldStackIds = prev.position_stacks.map((s) => s.stack_id);
-  //           const toAdd = stackList.filter((s) => !oldStackIds.includes(s));
-  //           const toRemove = oldStackIds.filter((s) => !stackList.includes(s));
-
-  //           if (toAdd.length > 0) {
-  //             await tx.position_stacks.createMany({
-  //               data: toAdd.map((stack_id) => ({
-  //                 team_position_id: prev.id,
-  //                 stack_id,
-  //               })),
-  //             });
-  //           }
-
-  //           if (toRemove.length > 0) {
-  //             await tx.position_stacks.deleteMany({
-  //               where: {
-  //                 team_position_id: prev.id,
-  //                 stack_id: { in: toRemove },
+  //         position_stacks: {
+  //           select: {
+  //             stack_id: true,
+  //           },
+  //         },
+  //         team_users: {
+  //           select: {
+  //             user_id: true,
+  //             is_owner: true,
+  //             member_status: true,
+  //             users: {
+  //               select: {
+  //                 id: true,
   //               },
-  //             });
-  //           }
-  //         } else {
-  //           const newTeamPosition = await tx.team_positions.create({
-  //             data: {
-  //               team_id: teamId,
-  //               position_id: positionId,
-  //               count: need[positionId],
-  //               status: true,
-  //             },
-  //           });
-
-  //           await tx.position_stacks.createMany({
-  //             data: stackList.map((stack_id) => ({
-  //               team_position_id: newTeamPosition.id,
-  //               stack_id,
-  //             })),
-  //           });
-  //         }
-  //       }
-  //     }
-
-  //     if (new_owner) {
-  //       const newOwnerPosition = await tx.team_positions.findFirst({
-  //         where: { team_id: teamId, position_id: new_owner },
-  //       });
-
-  //       if (!newOwnerPosition) {
-  //         throw new NotFoundException({ NOTFOUND_POSITION });
-  //       }
-
-  //       const current = await tx.team_users.findFirst({
-  //         where: { user_id: userId, is_owner: true },
-  //       });
-
-  //       if (current) {
-  //         await tx.team_users.update({
-  //           where: {
-  //             user_id_team_position_id: {
-  //               user_id: userId,
-  //               team_position_id: current.team_position_id,
   //             },
   //           },
+  //         },
+  //       },
+  //     });
+  //     const incomingPositionIds = teamPositions.map((p) => p.position_id);
+
+  //     // 3. 삭제할 포지션 처리
+  //     const toDelete = prevPositions.filter(
+  //       (pos) => !incomingPositionIds.includes(pos.id),
+  //     );
+  //     for (const pos of toDelete) {
+  //       await tx.position_stacks.deleteMany({
+  //         where: { team_position_id: pos.id },
+  //       });
+  //       await tx.team_users.deleteMany({ where: { team_position_id: pos.id } });
+  //       await tx.team_positions.delete({ where: { id: pos.id } });
+  //     }
+
+  //     // 4. 추가/업데이트 포지션 처리
+  //     for (const pos of teamPositions) {
+  //       const teamPositionId = pos.positionId;
+  //       let dbPosition = prevPositions.find((p) => p.id === teamPositionId);
+  //       if (dbPosition) {
+  //         // 업데이트
+  //         await tx.team_positions.update({
+  //           where: { id: teamPositionId },
   //           data: {
-  //             team_position_id: newOwnerPosition.id,
+  //             count: pos.count,
+  //             recruit_status: pos.recruitStatus,
   //             updated_at: new Date(),
   //           },
   //         });
   //       } else {
-  //         await tx.team_users.create({
+  //         // 생성
+  //         const created = await tx.team_positions.create({
   //           data: {
-  //             user_id: userId,
-  //             team_position_id: newOwnerPosition.id,
-  //             is_owner: true,
-  //             member_status: "ON_BOARD",
+  //             id: teamPositionId,
+  //             team_id: teamId,
+  //             position_id: pos.positionId,
+  //             count: pos.count,
+  //             recruit_status: pos.recruitStatus,
+  //             status: true,
   //           },
   //         });
+  //         dbPosition = created;
+  //       }
+
+  //       // 5. 포지션별 스택 동기화
+  //       const prevStackIds = dbPosition?.position_stacks.map((s) => s.stack_id);
+  //       if (!prevStackIds) {
+  //         throw new Error("포지션 스택을 찾을 수 없습니다");
+  //       }
+  //       const incomingStackIds = pos.positionStacks.map((s) => s.stackId);
+  //       const toAdd = incomingStackIds.filter(
+  //         (id) => !prevStackIds.includes(id),
+  //       );
+  //       const toRemove = prevStackIds.filter(
+  //         (id) => !incomingStackIds.includes(id),
+  //       );
+  //       if (toAdd.length > 0) {
+  //         await tx.position_stacks.createMany({
+  //           data: toAdd.map((stack_id) => ({
+  //             team_position_id: teamPositionId,
+  //             stack_id,
+  //           })),
+  //         });
+  //       }
+  //       if (toRemove.length > 0) {
+  //         await tx.position_stacks.deleteMany({
+  //           where: {
+  //             team_position_id: teamPositionId,
+  //             stack_id: { in: toRemove },
+  //           },
+  //         });
+  //       }
+
+  //       // 6. 포지션별 유저 동기화
+  //       const prevUsers = dbPosition?.team_users;
+  //       if (!prevUsers) {
+  //         throw new Error("포지션 유저를 찾을 수 없습니다");
+  //       }
+  //       const incomingUsers = pos.teamUsers || [];
+  //       const prevUserIds = prevUsers.map((u) => u.user_id);
+  //       const incomingUserIds = incomingUsers.map((u) => u.id);
+  //       // 추가
+  //       for (const user of incomingUsers) {
+  //         if (!prevUserIds.includes(user.id)) {
+  //           await tx.team_users.create({
+  //             data: {
+  //               user_id: user.id,
+  //               team_position_id: teamPositionId,
+  //               is_owner: user.isOwner,
+  //               member_status: user.memberStatus,
+  //             },
+  //           });
+  //         } else {
+  //           // 업데이트
+  //           await tx.team_users.update({
+  //             where: {
+  //               user_id_team_position_id: {
+  //                 user_id: user.id,
+  //                 team_position_id: teamPositionId,
+  //               },
+  //             },
+  //             data: {
+  //               is_owner: user.isOwner,
+  //               member_status: user.memberStatus,
+  //               updated_at: new Date(),
+  //             },
+  //           });
+  //         }
+  //       }
+  //       // 삭제
+  //       for (const prevUser of prevUsers) {
+  //         if (!incomingUserIds.includes(prevUser.user_id)) {
+  //           await tx.team_users.delete({
+  //             where: {
+  //               user_id_team_position_id: {
+  //                 user_id: prevUser.user_id,
+  //                 team_position_id: teamPositionId,
+  //               },
+  //             },
+  //           });
+  //         }
   //       }
   //     }
   //     return { message: "팀 정보가 수정되었습니다." };

@@ -468,9 +468,17 @@ export class AuthService {
 
   // 전체 로그아웃 (로컬 + 카카오) - DB에서 토큰 조회
   async fullLogout(userId: string): Promise<void> {
+    console.log("++++++++++++++++++++++++++++++fullLogout", userId);
+    if (!userId) {
+      throw new BadRequestException("사용자 ID가 없습니다.");
+    }
     // 1. DB에서 카카오 토큰 조회
     const kakaoTokens = await this.getKakaoTokens(userId);
-
+    console.log("++++++++++++++++++++++++++++++kakaoTokens", kakaoTokens);
+    console.log(
+      "++++++++++++++++++++++++++++++kakaoTokens.accessToken",
+      kakaoTokens?.accessToken,
+    );
     if (kakaoTokens?.accessToken) {
       // 2. 카카오 서버에서 로그아웃
       await this.logoutFromKakao(kakaoTokens.accessToken);
@@ -483,6 +491,8 @@ export class AuthService {
           refresh_token: null,
         },
       });
+    } else {
+      throw new BadRequestException("카카오 토큰이 없습니다.");
     }
 
     // 4. 로컬 refresh token 제거

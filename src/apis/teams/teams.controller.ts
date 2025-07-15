@@ -51,6 +51,7 @@ export class TeamsController {
     const team = await this.teamsService.getTeam(teamId);
     return res.status(200).json(team);
   }
+
   // @Patch(":teamId")
   // @UseGuards(JwtAuthGuard)
   // async patchTeam(
