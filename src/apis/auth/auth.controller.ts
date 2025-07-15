@@ -161,12 +161,14 @@ export class AuthController {
   async fullLogout(
     @UserDecorator() user: AuthenticatedUser,
     @Res({ passthrough: true }) res: Response,
-    @Body("kakaoAccessToken") kakaoAccessToken?: string,
+    @Body("kakaoAccessToken") kakaoAccessToken?: string, // 하위 호환성 유지
   ) {
     if (kakaoAccessToken) {
-      await this.authService.fullLogout(kakaoAccessToken, user.id);
+      // 기존 방식: 클라이언트에서 토큰을 받는 경우
+      await this.authService.fullLogoutWithToken(kakaoAccessToken, user.id);
     } else {
-      await this.authService.removeRefreshToken(user.id);
+      // 새로운 방식: DB에서 토큰을 조회하는 경우
+      await this.authService.fullLogout(user.id);
     }
     res.clearCookie("refreshToken");
     return { message: "완전히 로그아웃되었습니다." };

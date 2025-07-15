@@ -37,11 +37,8 @@ export class KakaoStrategy extends PassportStrategy(Strategy, "kakao") {
   ): void {
     try {
       console.log("+++++++++++++카카오 OAuth 콜백 성공!");
-      console.log("+++++++++++++Access Token 길이:", accessToken?.length || 0);
-      console.log(
-        "+++++++++++++Refresh Token 길이:",
-        refreshToken?.length || 0,
-      );
+      console.log("+++++++++++++Access Token:", accessToken);
+      console.log("+++++++++++++Refresh Token:", refreshToken);
       console.log("+++++++++++++Profile ID:", profile.id);
 
       if (!profile.id) {

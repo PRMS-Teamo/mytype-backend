@@ -18,6 +18,15 @@ export class BumpsService {
       throw new BadRequestException("Bump limit exceeded");
     }
 
+    await this.postgresService.users.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        bumped_at: new Date(),
+      },
+    });
+
     return this.postgresService.user_bumps.upsert({
       where: {
         user_id: userId,
@@ -47,6 +56,15 @@ export class BumpsService {
       console.log("Bump limit exceeded");
       throw new BadRequestException("Bump limit exceeded");
     }
+
+    await this.postgresService.teams.update({
+      where: {
+        id: teamId,
+      },
+      data: {
+        bumped_at: new Date(),
+      },
+    });
 
     return this.postgresService.team_bumps.upsert({
       where: {

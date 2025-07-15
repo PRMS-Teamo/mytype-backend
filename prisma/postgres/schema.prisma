@@ -154,7 +154,7 @@ model users {
 model user_bumps {
   user_id String @db.Uuid
   bump_count Int @default(0)
-  bump_limit Int @default(10)
+  bump_limit Int @default(1)
   next_available_at DateTime?
   created_at DateTime? @default(now()) @db.Timestamp(6)
   updated_at DateTime? @updatedAt @db.Timestamp(6) @default(now())
@@ -166,7 +166,7 @@ model user_bumps {
 model team_bumps {
   team_id String @db.Uuid
   bump_count Int @default(0)
-  bump_limit Int @default(10)
+  bump_limit Int @default(1)
   next_available_at DateTime?
   created_at DateTime? @default(now()) @db.Timestamp(6)
   updated_at DateTime? @updatedAt @db.Timestamp(6) @default(now())
@@ -180,6 +180,8 @@ model user_auths {
   user_id      String       @db.Uuid
   auth_id      String       @db.Uuid
   external_id  String       @db.VarChar(100)
+  access_token String? @db.VarChar(500)  
+  refresh_token String? @db.VarChar(500) 
   created_at   DateTime?    @default(now()) @db.Timestamp(6)
   updated_at   DateTime?    @updatedAt @db.Timestamp(6) @default(now())
   auth_methods auth_methods @relation(fields: [auth_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_auth_methods_TO_user_auths_1")

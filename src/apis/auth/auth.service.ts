@@ -143,6 +143,10 @@ export class AuthService {
     externalId: string;
     name: string;
     email?: string;
+    _rawData?: {
+      accessToken?: string;
+      refreshToken?: string;
+    };
   }) {
     const userAuth = await this.postgresService.user_auths.findFirst({
       where: { external_id: userProfile.externalId },
@@ -160,6 +164,27 @@ export class AuthService {
     if (userAuth) {
       user = userAuth.users;
       status = "EXISTING";
+
+      // 기존 사용자의 카카오 토큰 업데이트
+      if (
+        userProfile._rawData?.accessToken ||
+        userProfile._rawData?.refreshToken
+      ) {
+        await this.postgresService.user_auths.update({
+          where: {
+            user_id_auth_id: {
+              user_id: userAuth.user_id,
+              auth_id: userAuth.auth_id,
+            },
+          },
+          data: {
+            access_token:
+              userProfile._rawData?.accessToken || userAuth.access_token,
+            refresh_token:
+              userProfile._rawData?.refreshToken || userAuth.refresh_token,
+          },
+        });
+      }
     } else {
       user = await this.createNewUserFromSocialProfile(userProfile);
       status = "NEW";
@@ -195,6 +220,10 @@ export class AuthService {
     externalId: string;
     name: string;
     email?: string;
+    _rawData?: {
+      accessToken?: string;
+      refreshToken?: string;
+    };
   }) {
     // usersService.createUser를 사용하여 테스트 로그인과 동일한 방식으로 사용자 생성
     const newUser = await this.usersService.createUser({
@@ -222,12 +251,14 @@ export class AuthService {
       );
     }
 
-    // 사용자 인증 정보 생성
+    // 사용자 인증 정보 생성 (카카오 토큰 포함)
     await this.postgresService.user_auths.create({
       data: {
         user_id: newUser.id,
         auth_id: authMethod.id,
         external_id: userProfile.externalId,
+        access_token: userProfile._rawData?.accessToken || null,
+        refresh_token: userProfile._rawData?.refreshToken || null,
       },
     });
 
@@ -415,12 +446,67 @@ export class AuthService {
     }
   }
 
-  // 전체 로그아웃 (로컬 + 카카오)
-  async fullLogout(accessToken: string, userId: string): Promise<void> {
+  // DB에서 카카오 토큰 조회
+  async getKakaoTokens(
+    userId: string,
+  ): Promise<{ accessToken?: string; refreshToken?: string } | null> {
+    const userAuth = await this.postgresService.user_auths.findFirst({
+      where: { user_id: userId },
+      select: {
+        access_token: true,
+        refresh_token: true,
+      },
+    });
+
+    if (!userAuth) return null;
+
+    return {
+      accessToken: userAuth.access_token || undefined,
+      refreshToken: userAuth.refresh_token || undefined,
+    };
+  }
+
+  // 전체 로그아웃 (로컬 + 카카오) - DB에서 토큰 조회
+  async fullLogout(userId: string): Promise<void> {
+    // 1. DB에서 카카오 토큰 조회
+    const kakaoTokens = await this.getKakaoTokens(userId);
+
+    if (kakaoTokens?.accessToken) {
+      // 2. 카카오 서버에서 로그아웃
+      await this.logoutFromKakao(kakaoTokens.accessToken);
+
+      // 3. DB에서 카카오 토큰 제거
+      await this.postgresService.user_auths.updateMany({
+        where: { user_id: userId },
+        data: {
+          access_token: null,
+          refresh_token: null,
+        },
+      });
+    }
+
+    // 4. 로컬 refresh token 제거
+    await this.removeRefreshToken(userId);
+  }
+
+  // 기존 메서드 (클라이언트에서 토큰을 받는 방식) - 하위 호환성 유지
+  async fullLogoutWithToken(
+    accessToken: string,
+    userId: string,
+  ): Promise<void> {
     // 1. 카카오 서버에서 로그아웃
     await this.logoutFromKakao(accessToken);
 
-    // 2. 로컬 refresh token 제거
+    // 2. DB에서 카카오 토큰 제거
+    await this.postgresService.user_auths.updateMany({
+      where: { user_id: userId },
+      data: {
+        access_token: null,
+        refresh_token: null,
+      },
+    });
+
+    // 3. 로컬 refresh token 제거
     await this.removeRefreshToken(userId);
   }
 }
