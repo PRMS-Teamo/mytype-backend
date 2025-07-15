@@ -6,7 +6,7 @@ import {
   Req,
   Res,
   Param,
-  // Patch,
+  Patch,
   UnauthorizedException,
   Get,
   Delete,
@@ -19,6 +19,8 @@ import { UsersService } from "@/apis/users/users.service";
 import { TEAM_DIFFERENCE, USER_NOT_OWNER } from "@/constants/errorMessage";
 import { Team } from "./entities/team.entity";
 import { User } from "../auth/decorators/user.decorator";
+import { GetTeamResDto } from "./dto/get.team.res.dto";
+import { User as UserDecorator } from "@/apis/auth/decorators/user.decorator";
 
 @Controller("teams")
 export class TeamsController {
@@ -52,22 +54,26 @@ export class TeamsController {
     return res.status(200).json(team);
   }
 
-  // @Patch(":teamId")
-  // @UseGuards(JwtAuthGuard)
-  // async patchTeam(
-  //   @Param("teamId") teamId: string,
-  //   @Body() updateTeamDto: Team,
-  //   @User() user: AuthenticatedUser,
-  //   @Res() res: Response,
-  // ) {
-  //   const userId = user.id;
-  //   const isOwner = await this.usersService.checkOwner(userId);
-  //   if (!isOwner) {
-  //     throw new UnauthorizedException({ USER_NOT_OWNER });
-  //   }
-  //   await this.teamsService.upsertTeam(userId, teamId, updateTeamDto);
-  //   return res.status(201).send({ message: "팀 정보 업데이트 성공" });
-  // }
+  @Patch(":teamId")
+  @UseGuards(JwtAuthGuard)
+  async patchTeam(
+    @Param("teamId") teamId: string,
+    @UserDecorator() user: AuthenticatedUser,
+    @Body() updateTeamDto: GetTeamResDto,
+    @Res() res: Response,
+  ) {
+    const userId = user.id;
+    const isOwner = await this.usersService.checkOwner(userId);
+    if (!isOwner) {
+      throw new UnauthorizedException({ USER_NOT_OWNER });
+    }
+    const updatedTeam = await this.teamsService.patchTeam(
+      userId,
+      teamId,
+      updateTeamDto,
+    );
+    return res.status(201).send(updatedTeam);
+  }
 
   @Get(":teamId/members")
   @UseGuards(JwtAuthGuard)

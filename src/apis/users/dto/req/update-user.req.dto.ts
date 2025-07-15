@@ -15,7 +15,7 @@ import { User } from "../../entities/user.entity";
  */
 export class UpdateUserReqDto extends PartialType(
   OmitType(User, [
-    "id",
+    "userId",
     "isJoined", // 가입 상태는 시스템에서 관리
     "createdAt",
     "updatedAt",

@@ -1,11 +1,21 @@
 import { Injectable } from "@nestjs/common";
 import { CreateChatDto } from "./dto/create-chat.dto";
 import { UpdateChatDto } from "./dto/update-chat.dto";
+import { MongoService } from "../../../infrastructure/database/mongo/mongo.service";
 
 @Injectable()
 export class ChatsService {
-  create(createChatDto: CreateChatDto) {
-    return "This action adds a new chat";
+  constructor(private readonly mongoService: MongoService) {}
+
+  async create(createChatDto: CreateChatDto) {
+    return await this.mongoService.chatMessage.create({
+      data: {
+        roomId: createChatDto.roomId,
+        senderId: createChatDto.senderId,
+        text: createChatDto.message,
+        sentAt: new Date(),
+      },
+    });
   }
 
   findAll() {
@@ -22,5 +32,21 @@ export class ChatsService {
 
   remove(id: number) {
     return `This action removes a #${id} chat`;
+  }
+
+  async getMessages(
+    roomId: string,
+    beforeTimestamp?: Date,
+    limit: number = 50,
+  ) {
+    const query: any = { roomId };
+    if (beforeTimestamp) {
+      query.sentAt = { $lt: beforeTimestamp };
+    }
+    return await this.mongoService.chatMessage.findMany({
+      where: query,
+      orderBy: { sentAt: "desc" },
+      take: limit,
+    });
   }
 }

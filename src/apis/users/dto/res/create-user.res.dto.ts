@@ -6,7 +6,7 @@ import { User } from "../../entities/user.entity";
  * 민감한 정보는 제외하고 기본적인 정보만 포함
  */
 export class CreateUserResDto extends PickType(User, [
-  "id",
+  "userId",
   "nickname",
   "email",
   "github",

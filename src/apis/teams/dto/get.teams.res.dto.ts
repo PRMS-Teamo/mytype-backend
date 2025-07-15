@@ -2,13 +2,15 @@ import { proceed_type, recruit_status } from "@postgres-client";
 
 export class GetTeamsResDto {
   teamId: string;
-  teamName: string;
+  title: string;
   content: string;
   userId: string;
   isPublic: boolean;
   recruitStatus: recruit_status;
   proceedType: proceed_type;
+  location?: string;
   imgUrl?: string;
+  endDate?: string;
   teamStacks?: Array<{
     stackId: string;
     stackName?: string;
@@ -18,13 +20,15 @@ export class GetTeamsResDto {
 
   constructor(data: any) {
     this.teamId = data.id;
-    this.teamName = data.title;
+    this.title = data.title;
     this.content = data.content;
     this.userId = data.user_id;
     this.isPublic = data.is_public;
     this.recruitStatus = data.recruit_status;
     this.proceedType = data.proceed_type;
+    this.location = data.location || undefined;
     this.imgUrl = data.img || undefined;
+    this.endDate = data.end_date || undefined;
     this.bumpAt = data.bumped_at || undefined;
 
     // 안전하게 flatten + null 체크 + 중복 제거(Optional)

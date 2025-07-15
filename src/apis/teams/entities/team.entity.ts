@@ -48,7 +48,7 @@ export class TeamPosition {
   ) {
     this.positionId = teamPosition.id || "";
     this.positionName = position?.name || "";
-    this.count = teamPosition.count || 0; // 0은 모집 중
+    this.count = teamPosition.count || 0;
     this.positionStacks = stacks;
     this.users = users;
     this.recruitStatus = teamPosition.recruit_status || "CLOSE";
@@ -64,9 +64,10 @@ export class TeamPosition {
 export class Team {
   constructor(team: teams, teamPositions: TeamPosition[]) {
     this.teamId = team.id || "";
-    this.teamName = team.title || "";
+    this.title = team.title || "";
     this.content = team.content || "";
     this.userId = team.user_id || "";
+    this.endDate = team.end_date ? team.end_date.toISOString() : "";
     this.isPublic = team.is_public || false;
     this.recruitStatus = team.recruit_status || "OPEN";
     this.proceedType = team.proceed_type || "ONLINE";
@@ -74,12 +75,13 @@ export class Team {
     this.positions = teamPositions;
   }
   teamId?: string;
-  teamName?: string;
+  title?: string;
   content?: string;
   userId?: string;
   isPublic?: boolean;
   recruitStatus?: recruit_status;
   proceedType?: proceed_type;
   imgUrl?: string;
+  endDate?: string;
   positions?: TeamPosition[];
 }

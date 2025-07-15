@@ -14,7 +14,7 @@ import { User } from "../../entities/user.entity";
  * 시스템에서 자동 생성되는 필드들은 제외
  */
 export class CreateUserReqDto extends OmitType(User, [
-  "id",
+  "userId",
   "isJoined",
   "createdAt",
   "updatedAt",

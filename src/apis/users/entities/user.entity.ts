@@ -8,7 +8,7 @@ import { AuthenticatedUser } from "@/apis/auth/types/authenticated-user.interfac
 export class User {
   constructor(user: AuthenticatedUser) {
     // AuthenticatedUser -> User 매핑 (클라이언트 친화적 속성명으로 변환)
-    this.id = user.id;
+    this.userId = user.id;
     this.nickname = user.nickname || "";
     this.email = user.email || "";
     this.github = user.github_id || ""; // github_id -> github (클라이언트 친화적)
@@ -41,7 +41,7 @@ export class User {
     example: "38bf2516-7ee3-40f4-b390-7075e55baf8e",
     description: "사용자 고유 ID",
   })
-  id: string;
+  userId: string;
 
   @ApiProperty({
     example: "니크네이므",

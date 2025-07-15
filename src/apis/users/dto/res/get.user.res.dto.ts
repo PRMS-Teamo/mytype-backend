@@ -19,7 +19,7 @@ export class GetUserResDto {
     example: "38bf2516-7ee3-40f4-b390-7075e55baf8e",
     description: "사용자 고유 ID",
   })
-  id: string;
+  userId: string;
 
   @ApiProperty({
     example: "니크네이므",
@@ -146,7 +146,7 @@ export class GetUserResDto {
   beginner?: boolean;
 
   constructor(user: User) {
-    this.id = user.id;
+    this.userId = user.userId;
     this.nickname = user.nickname;
     this.email = user.email;
     this.github = user.github;

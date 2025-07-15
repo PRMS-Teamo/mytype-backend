@@ -1,14 +1,15 @@
-import { proceed_type, recruit_status } from "@postgres-client";
+import { member_status, proceed_type, recruit_status } from "@postgres-client";
 
 export class GetTeamResDto {
   teamId: string;
-  teamName: string;
-  content: string;
-  userId: string;
-  isPublic: boolean;
-  recruitStatus: recruit_status;
-  proceedType: proceed_type;
+  title?: string;
+  content?: string;
+  userId?: string;
+  isPublic?: boolean;
+  recruitStatus?: recruit_status;
+  proceedType?: proceed_type;
   imgUrl?: string;
+  endDate?: string;
   teamPositions?: Array<{
     teamPositionId: string;
     count: number;
@@ -25,26 +26,25 @@ export class GetTeamResDto {
       };
     }>;
     teamUsers?: Array<{
-      isOwner: boolean;
+      userId: string;
+      nickname?: string;
+      imgUrl?: string;
+      memberStatus?: member_status;
+      isOwner?: boolean;
       message?: string;
-      memberStatus: string;
-      users?: {
-        userId: string;
-        nickname?: string;
-        imgUrl?: string;
-      };
     }>;
   }>;
 
   constructor(data: any) {
     this.teamId = data.id;
-    this.teamName = data.title;
+    this.title = data.title;
     this.content = data.content;
     this.userId = data.user_id;
     this.isPublic = data.is_public;
     this.recruitStatus = data.recruit_status;
     this.proceedType = data.proceed_type;
     this.imgUrl = data.img || undefined;
+    this.endDate = data.end_date || undefined;
 
     this.teamPositions = data.team_positions?.map((tp) => ({
       teamPositionId: tp.id,
