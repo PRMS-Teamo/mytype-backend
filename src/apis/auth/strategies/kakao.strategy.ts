@@ -8,25 +8,24 @@ import { SocialUserProfile } from "../types/social-user-profile.interface";
 export class KakaoStrategy extends PassportStrategy(Strategy, "kakao") {
   constructor(private configService: ConfigService) {
     const callbackUrl = `${configService.get("REDIRECT_URL")}/auth/kakao/callback`;
-    const isTestMode = configService.get("NODE_ENV") === "development";
 
     console.log("+++++++++++++Kakao Strategy Configuration:");
     console.log("+++++++++++++Client ID:", configService.get("KAKAO_API_KEY"));
     console.log("+++++++++++++Callback URL:", callbackUrl);
     console.log("+++++++++++++OAuth 2.0 흐름 적용");
-    console.log("+++++++++++++테스트 모드 여부:", isTestMode);
+    console.log("+++++++++++++항상 prompt=login 적용");
     console.log("+++++++++++++");
 
     super({
       clientID: configService.get("KAKAO_API_KEY") as string,
       clientSecret: configService.get("KAKAO_CLIENT_SECRET") || "",
       callbackURL: callbackUrl,
-      ...(isTestMode && {
-        authorizationParams: {
-          prompt: "login",
-        },
-      }),
     });
+  }
+
+  // 항상 prompt=login을 추가하여 카카오 인증 모달이 뜨도록 함
+  authorizationParams() {
+    return { prompt: "login" };
   }
 
   validate(
