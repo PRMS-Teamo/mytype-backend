@@ -29,6 +29,11 @@ export class PositionService {
 
   async getAllPositions(): Promise<GetPositionDto[]> {
     const positions = await this.postgres.positions.findMany({
+      where: {
+        name: {
+          not: "팀 생성자",
+        },
+      },
       select: {
         id: true,
         name: true,
