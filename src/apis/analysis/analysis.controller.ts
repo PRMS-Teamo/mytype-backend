@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from "@nestjs/common";
+import { Controller, Get, Query, UseGuards } from "@nestjs/common";
 import { AnalysisService } from "./analysis.service";
 import { JwtAuthGuard } from "@/apis/auth/guard/jwt-auth.guard";
 
@@ -8,7 +8,14 @@ export class AnalysisController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  getSupplyDemand() {
-    return this.analysisService.getSupplyDemand();
+  getSupplyDemand(
+    @Query("page") page: string = "1",
+    @Query("limit") limit: string = "20",
+  ) {
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
+    const start = (pageNum - 1) * limitNum;
+    const end = start + limitNum;
+    return this.analysisService.getSupplyDemand(start, end);
   }
 }

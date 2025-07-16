@@ -13,13 +13,19 @@ export class StacksService {
     private readonly positionService: PositionService,
   ) {}
 
-  async getAllStacksWithMapping(): Promise<StacksResponse> {
+  async getAllStacksWithMapping(
+    start: number,
+    end: number,
+  ): Promise<StacksResponse> {
+    const pageSize = end - start;
     const stacks = await this.postgresService.stacks.findMany({
       select: {
         id: true,
         name: true,
         img_url: true,
       },
+      skip: start,
+      take: pageSize,
     });
     return mapToStacksResponse(stacks);
   }

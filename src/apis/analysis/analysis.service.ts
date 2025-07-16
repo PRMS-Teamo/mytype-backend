@@ -5,7 +5,8 @@ import { PostgresService } from "@/infrastructure/database/postgres/postgres.ser
 export class AnalysisService {
   constructor(private readonly postgres: PostgresService) {}
 
-  async getSupplyDemand() {
+  async getSupplyDemand(start: number, end: number) {
+    const pageSize = end - start;
     const result = await this.postgres.stacks.findMany({
       select: {
         id: true,
@@ -31,6 +32,8 @@ export class AnalysisService {
           },
         },
       },
+      skip: start,
+      take: pageSize,
     });
 
     const mappedResult = result.map((stack) => ({

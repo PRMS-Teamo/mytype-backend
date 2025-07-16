@@ -195,18 +195,15 @@ export class AuthService {
     const camelCaseUser = mapDbFormatToGetDto(transformedUser);
 
     // userId가 undefined인 경우 처리
-    if (!camelCaseUser.userId) {
+    if (!camelCaseUser.id) {
       throw new BadRequestException("사용자 ID를 찾을 수 없습니다.");
     }
 
     const tokens = this.generateTokens({
-      userId: camelCaseUser.userId,
+      userId: camelCaseUser.id,
       name: camelCaseUser.name || "사용자",
     });
-    await this.setCurrentRefreshToken(
-      tokens.refreshToken,
-      camelCaseUser.userId,
-    );
+    await this.setCurrentRefreshToken(tokens.refreshToken, camelCaseUser.id);
 
     return {
       tokens,

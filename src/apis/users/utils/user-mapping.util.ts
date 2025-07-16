@@ -2,9 +2,6 @@ import { AuthenticatedUser } from "@/apis/auth/types/authenticated-user.interfac
 import { User } from "../entities/user.entity";
 import { CreateUserReqDto } from "../dto/req/create-user.req.dto";
 import { UpdateUserReqDto } from "../dto/req/update-user.req.dto";
-import { CreateUserResDto } from "../dto/res/create-user.res.dto";
-import { GetUserResDto } from "../dto/res/get.user.res.dto";
-import { UpdateUserResDto } from "../dto/res/update-user.res.dto";
 
 /**
  * AuthenticatedUser -> User 엔티티 변환
@@ -12,36 +9,6 @@ import { UpdateUserResDto } from "../dto/res/update-user.res.dto";
  */
 export function mapToUserEntity(authenticatedUser: AuthenticatedUser): User {
   return new User(authenticatedUser);
-}
-
-/**
- * GetUserResDto -> User 엔티티 변환
- * GetUserResDto를 User 엔티티로 변환
- */
-export function mapGetUserResDtoToUserEntity(
-  getUserResDto: GetUserResDto,
-): User {
-  return new User({
-    id: getUserResDto.id,
-    nickname: getUserResDto.nickname,
-    email: getUserResDto.email,
-    github_id: getUserResDto.github,
-    img_url: getUserResDto.profileImage,
-    address: getUserResDto.location,
-    join_status: getUserResDto.isJoined,
-    is_public: getUserResDto.isPublic,
-    position_id: getUserResDto.positionId,
-    description: getUserResDto.description,
-    proceed_type: getUserResDto.proceedType,
-    role: getUserResDto.role,
-    name: getUserResDto.name,
-    beginner: getUserResDto.beginner,
-    user_stacks:
-      getUserResDto.userStacks?.map((stack) => ({ stack_id: stack.stackId })) ||
-      [],
-    create_at: getUserResDto.createdAt,
-    updated_at: getUserResDto.updatedAt,
-  } as AuthenticatedUser);
 }
 
 /**
@@ -59,7 +26,7 @@ export function mapUserToDbFormat(user: Partial<User>) {
     position_id: user.positionId, // positionId -> position_id
     description: user.description, // description -> description
     proceed_type: user.proceedType, // proceedType -> proceed_type
-    // stackIds는 별도 처리 (user_stacks 테이블)
+    user_stacks: user.userStacks, // userStacks -> user_stacks
   };
 }
 
@@ -86,105 +53,42 @@ export function mapCreateDtoToDbFormat(dto: CreateUserReqDto) {
   };
 }
 
-export function mapDbFormatToCreateDto(dto: CreateUserResDto) {
-  return {
-    userId: dto.id,
-    name: dto.name,
-    role: "USER",
-    nickname: dto.nickname,
-    github: dto.github,
-    profileImage: dto.profileImage,
-    location: dto.location,
-    isPublic: dto.isPublic,
-    positionId: dto.positionId,
-    description: dto.description,
-    proceedType: dto.proceedType,
-    userStacks: dto.userStacks,
-  };
-}
-
-export function mapDbFormatToGetDto(dto: GetUserResDto) {
-  return {
-    userId: dto.id,
-    name: dto.name,
-    role: "USER",
-    nickname: dto.nickname,
-    github: dto.github,
-    profileImage: dto.profileImage,
-    location: dto.location,
-    isPublic: dto.isPublic,
-    positionId: dto.positionId,
-    description: dto.description,
-    proceedType: dto.proceedType,
-    userStacks: dto.userStacks,
-  };
-}
-
-export function mapDbFormatToUpdateDto(dto: UpdateUserResDto) {
-  return {
-    userId: dto.id,
-    name: dto.name,
-    role: "USER",
-    nickname: dto.nickname,
-    github: dto.github,
-    profileImage: dto.profileImage,
-    location: dto.location,
-    isPublic: dto.isPublic,
-    positionId: dto.positionId,
-    description: dto.description,
-    proceedType: dto.proceedType,
-    userStacks: dto.userStacks,
-  };
-}
-
 /**
  * UpdateUserReqDto -> 데이터베이스 형식 변환
  */
 export function mapUpdateDtoToDbFormat(dto: UpdateUserReqDto) {
-  console.log("🔍 mapUpdateDtoToDbFormat input:", dto); // 디버깅 로그 추가
-
   const mapped: Record<string, any> = {};
 
   if (dto.nickname !== undefined) {
     mapped.nickname = dto.nickname;
-    console.log("🔍 Setting nickname:", dto.nickname);
   }
   if (dto.github !== undefined) {
     mapped.github_id = dto.github; // github -> github_id
-    console.log("🔍 Setting github_id:", dto.github);
   }
   if (dto.imgId !== undefined) {
     mapped.img_id = dto.imgId && dto.imgId.trim() !== "" ? dto.imgId : null; // imgId -> img_id
-    console.log("🔍 Setting img_id:", mapped.img_id);
   }
   if (dto.profileImage !== undefined) {
     mapped.img_url = dto.profileImage; // profileImage -> img_url
-    console.log("🔍 Setting img_url:", dto.profileImage);
   }
   if (dto.location !== undefined) {
     mapped.address = dto.location; // location -> address
-    console.log("🔍 Setting address:", dto.location);
   }
   if (dto.isPublic !== undefined) {
     mapped.is_public = dto.isPublic; // isPublic -> is_public
-    console.log("🔍 Setting is_public:", dto.isPublic);
   }
   if (dto.positionId !== undefined) {
     mapped.position_id =
       dto.positionId && dto.positionId.trim() !== "" ? dto.positionId : null;
-    console.log("🔍 Setting position_id:", mapped.position_id);
   }
   if (dto.description !== undefined) {
     mapped.description = dto.description; // description -> description
-    console.log("🔍 Setting description:", dto.description);
   }
   if (dto.proceedType !== undefined) {
     mapped.proceed_type = dto.proceedType; // proceedType -> proceed_type
-    console.log("🔍 Setting proceed_type:", dto.proceedType);
   }
   if (dto.name !== undefined) {
     mapped.name = dto.name;
-    console.log("🔍 Setting name:", dto.name);
   }
 
   // 항상 업데이트 시간 갱신
@@ -230,7 +134,7 @@ export const USER_FIELD_MAPPING = {
     isPublic: "is_public",
     isJoined: "join_status",
     positionId: "position_id",
-    stackIds: "user_stacks",
+    userStacks: "user_stacks",
   },
   // DB -> User 엔티티 매핑
   toEntity: {
@@ -240,6 +144,10 @@ export const USER_FIELD_MAPPING = {
     is_public: "isPublic",
     join_status: "isJoined",
     position_id: "positionId",
-    user_stacks: "stackIds",
+    user_stacks: "userStacks",
   },
 } as const;
+
+export function mapDbFormatToGetDto(user: AuthenticatedUser) {
+  return new User(user);
+}

@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards } from "@nestjs/common";
+import { Controller, Get, Param, Query, UseGuards } from "@nestjs/common";
 import { StacksService } from "./stacks.service";
 import { JwtAuthGuard } from "@/apis/auth/guard/jwt-auth.guard";
 import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
@@ -32,9 +32,15 @@ export class StacksController {
       },
     },
   })
-  async findAll(): Promise<StacksResponse> {
-    // 서비스에서 이미 { stacks: [...] } 구조로 리턴하므로 중복 래핑 방지
-    return await this.stacksService.getAllStacksWithMapping();
+  async findAll(
+    @Query("page") page: string = "1",
+    @Query("limit") limit: string = "20",
+  ): Promise<StacksResponse> {
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
+    const start = (pageNum - 1) * limitNum;
+    const end = start + limitNum;
+    return await this.stacksService.getAllStacksWithMapping(start, end);
   }
 
   @Get(":name")

@@ -1,4 +1,4 @@
-import { ApiProperty, PickType } from "@nestjs/swagger";
+import { PickType } from "@nestjs/swagger";
 import { User } from "../../entities/user.entity";
 
 /**
@@ -25,10 +25,4 @@ export class UpdateUserResDto extends PickType(User, [
     super();
     Object.assign(this, user);
   }
-
-  @ApiProperty({
-    example: "사용자 정보가 성공적으로 수정되었습니다.",
-    description: "수정 결과 메시지",
-  })
-  message: string = "사용자 정보가 성공적으로 수정되었습니다.";
 }

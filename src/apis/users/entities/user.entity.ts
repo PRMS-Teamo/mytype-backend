@@ -9,33 +9,29 @@ export class User {
   constructor(user: AuthenticatedUser) {
     // AuthenticatedUser -> User 매핑 (클라이언트 친화적 속성명으로 변환)
     this.id = user.id;
-    this.nickname = user.nickname || "";
-    this.email = user.email || "";
-    this.github = user.github_id || undefined; // github_id -> github (클라이언트 친화적)
-    this.imgId = user.img_id || ""; // img_id -> imgId
-    this.profileImage = user.img_url || ""; // img_url -> profileImage
-    this.location = user.address || ""; // address -> location
-    this.isJoined = user.join_status || false; // join_status -> isJoined
-    this.isPublic = user.is_public || false; // is_public -> isPublic
-    this.positionId = user.position_id || undefined; // position_id -> positionId
+    this.nickname = user.nickname ?? undefined;
+    this.email = user.email ?? undefined;
+    this.github = user.github_id ?? undefined; // github_id -> github (클라이언트 친화적)
+    this.imgId = user.img_id ?? undefined; // img_id -> imgId
+    this.profileImage = user.img_url ?? undefined; // img_url -> profileImage
+    this.location = user.address ?? undefined; // address -> location
+    this.isJoined = user.join_status ?? false; // join_status -> isJoined
+    this.isPublic = user.is_public ?? false; // is_public -> isPublic
+    this.positionId = user.position_id ?? undefined; // position_id -> positionId
 
     // 추가 속성들
-    this.description = user.description || "";
-    this.proceedType = user.proceed_type || "ONLINE"; // proceed_type -> proceedType
-    this.role = user.role || "USER"; // role
-    this.name = user.name || ""; // name
-    this.beginner = user.beginner || false; // beginner -> beginner
+    this.description = user.description ?? undefined;
+    this.proceedType = user.proceed_type ?? "ONLINE"; // proceed_type -> proceedType
+    this.role = user.role ?? "USER"; // role
+    this.name = user.name ?? undefined; // name
+    this.beginner = user.beginner ?? false; // beginner -> beginner
 
     // user_stacks는 AuthenticatedUser에서 제공
-    if ("user_stacks" in user && user.user_stacks) {
-      this.userStacks = user.user_stacks.map((stack) => stack.stack_id);
-    } else {
-      this.userStacks = [];
-    }
+    this.userStacks = user.user_stacks;
 
     // 시간 정보 (있으면 사용, 없으면 현재 시간)
-    this.createdAt = user.create_at || new Date().toISOString();
-    this.updatedAt = user.updated_at || new Date().toISOString();
+    this.createdAt = user.create_at ?? new Date().toISOString();
+    this.updatedAt = user.updated_at ?? new Date().toISOString();
   }
 
   @ApiProperty({
@@ -141,7 +137,13 @@ export class User {
     description: "사용자 스택 ID 배열",
     required: false,
   })
-  userStacks?: string[];
+  userStacks?:
+    | Array<{
+        stack_id: string;
+        stack_name: string | null;
+        stack_img: string | null;
+      }>
+    | [];
 
   @ApiProperty({
     example: "2024-01-15T10:30:00Z",

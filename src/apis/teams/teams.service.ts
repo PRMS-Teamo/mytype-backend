@@ -23,7 +23,8 @@ export class TeamsService {
     });
   }
 
-  async getTeams(): Promise<GetTeamsResDto[]> {
+  async getTeams(start: number, end: number): Promise<GetTeamsResDto[]> {
+    const pageSize = end - start;
     const teams = await this.postgresService.teams.findMany({
       where: { is_public: true, recruit_status: "OPEN" },
       select: {
@@ -53,6 +54,8 @@ export class TeamsService {
           },
         },
       },
+      skip: start,
+      take: pageSize,
       orderBy: [{ bumped_at: "desc" }],
     });
 
@@ -130,6 +133,16 @@ export class TeamsService {
   }
 
   async createTeam(userId: string, team: Team) {
+    const teamCheck = await this.postgresService.teams.findFirst({
+      where: {
+        user_id: userId,
+      },
+    });
+    if (teamCheck) {
+      return {
+        message: "팀은 1 개만 생성할 수 있습니다.",
+      };
+    }
     const createdResult = await this.postgresService.$transaction(
       async (tx: PostgresService) => {
         try {

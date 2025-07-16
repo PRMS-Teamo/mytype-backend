@@ -244,7 +244,7 @@ export class AuthController {
     const testUser = await this.authService.createOrGetTestUser(userProfile);
 
     const tokenPayload = {
-      userId: testUser.userId,
+      userId: testUser.id,
       name: testUser.name || "사용자",
     };
     const tokens = this.authService.generateTokens(tokenPayload);
@@ -252,7 +252,7 @@ export class AuthController {
     // 실제 소셜 로그인과 동일하게 refreshToken을 DB에 저장
     await this.authService.setCurrentRefreshToken(
       tokens.refreshToken,
-      testUser.userId,
+      testUser.id,
     );
 
     // 실제 소셜 로그인과 동일하게 refreshToken을 쿠키에 저장

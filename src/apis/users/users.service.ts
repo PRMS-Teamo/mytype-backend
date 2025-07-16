@@ -163,22 +163,22 @@ export class UsersService {
 
     return usersWithRealUrls.map((user) => ({
       id: user.id,
-      position_id: user.position_id,
-      nickname: user.nickname,
-      github_id: user.github_id,
-      img_id: user.img_id,
-      img_url: user.img_url,
-      address: user.address,
-      join_status: user.join_status,
-      is_public: user.is_public,
-      description: user.description,
-      proceed_type: user.proceed_type,
-      role: user.role,
-      name: user.name,
-      beginner: user.beginner,
-      user_stacks: [], // 목록 조회에서는 스택 정보 제외
-      create_at: user.create_at?.toISOString(),
-      updated_at: user.updated_at?.toISOString(),
+      positionId: user.position_id,
+      nickname: user.nickname ?? undefined,
+      github: user.github_id ?? undefined,
+      imgId: user.img_id ?? undefined,
+      profileImage: user.img_url ?? undefined,
+      location: user.address ?? undefined,
+      isJoined: user.join_status ?? undefined,
+      isPublic: user.is_public ?? undefined,
+      description: user.description ?? undefined,
+      proceedType: user.proceed_type ?? undefined,
+      role: user.role ?? undefined,
+      name: user.name ?? undefined,
+      beginner: user.beginner ?? undefined,
+      userStacks: [], // 목록 조회에서는 스택 정보 제외
+      createdAt: user.create_at?.toISOString(),
+      updatedAt: user.updated_at?.toISOString(),
     }));
   }
 
@@ -261,7 +261,7 @@ export class UsersService {
           });
         }
       }
-
+      console.log("🔍 mappedData:", mappedData);
       // 사용자 정보 업데이트 (스택 제외)
       if (Object.keys(mappedData).length > 0) {
         await tx.users.update({

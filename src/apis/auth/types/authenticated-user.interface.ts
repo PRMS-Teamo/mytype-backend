@@ -9,35 +9,41 @@ export interface AuthenticatedUser {
   /** 데이터베이스 사용자 ID */
   id: string;
   /** 포지션 ID */
-  position_id?: string | null;
+  position_id?: string | undefined;
   /** 이름 */
-  name?: string | null;
+  name?: string | undefined;
   /** 이메일 */
-  email?: string | null;
+  email?: string | undefined;
   /** 닉네임 */
-  nickname?: string | null;
+  nickname?: string | undefined;
   /** GitHub ID */
-  github_id?: string | null;
+  github_id?: string | undefined;
   /** 이미지 ID */
-  img_id?: string | null;
+  img_id?: string | undefined;
   /** 프로필 이미지 URL */
-  img_url?: string | null;
+  img_url?: string | undefined;
   /** 주소 */
-  address?: string | null;
+  address?: string | undefined;
   /** 가입 상태 */
-  join_status?: boolean | null;
+  join_status?: boolean | undefined;
   /** 프로필 공개 여부 */
-  is_public?: boolean | null;
+  is_public?: boolean | undefined;
   /** 자기소개 */
-  description?: string | null;
+  description?: string | undefined;
   /** 진행 방식 */
-  proceed_type?: string | null;
+  proceed_type?: string | undefined;
   /** 사용자 스택 정보 */
-  user_stacks?: Array<{ stack_id: string }>;
+  user_stacks?:
+    | Array<{
+        stack_id: string;
+        stack_name: string | null;
+        stack_img: string | null;
+      }>
+    | [];
   /** 역할 */
-  role?: string | null;
+  role?: string | undefined;
   /** 초보자 여부 */
-  beginner?: boolean | null;
+  beginner?: boolean | undefined;
   /** 기타 사용자 정보 */
   [key: string]: any;
 }
@@ -49,7 +55,7 @@ export interface AuthenticatedUser {
 export interface SocialUserProfile {
   provider: string;
   externalId: string;
-  name: string;
+  name?: string;
   email?: string;
   _rawData?: {
     accessToken?: string;

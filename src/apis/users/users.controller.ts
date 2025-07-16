@@ -22,10 +22,7 @@ import { JwtAuthGuard } from "@/apis/auth/guard/jwt-auth.guard";
 import { AuthenticatedUser } from "@/apis/auth/types/authenticated-user.interface";
 import { User as UserDecorator } from "@/apis/auth/decorators/user.decorator";
 import { User } from "./entities/user.entity";
-import {
-  mapToUserEntity,
-  mapGetUserResDtoToUserEntity,
-} from "./utils/user-mapping.util";
+import { mapToUserEntity } from "./utils/user-mapping.util";
 
 // Request DTOs
 import { CreateUserReqDto } from "./dto/req/create-user.req.dto";
@@ -65,8 +62,7 @@ export class UsersController {
     const userInfo = await this.usersService.findUserByUserId(
       authenticatedUser.id,
     );
-    const userEntity = mapToUserEntity(userInfo);
-    return new GetUserResDto(userEntity);
+    return userInfo;
   }
 
   /**
@@ -85,21 +81,19 @@ export class UsersController {
   })
   async getUserById(@Param("id") id: string): Promise<GetUserResDto> {
     const userInfo = await this.usersService.findUserByUserId(id);
-    const userEntity = mapToUserEntity(userInfo);
-    console.log("🔍 User entity:", userEntity);
     // 비공개 프로필인 경우 제한된 정보만 반환
-    if (!userEntity.isPublic) {
+    if (!userInfo.isPublic) {
       const limitedUser = new User({
         ...userInfo,
-        github_id: null,
-        address: null,
-        description: "비공개 프로필입니다.",
+        github_id: undefined,
+        address: undefined,
+        description: "=========비공개 프로필입니다.=========",
         user_stacks: [],
       } as AuthenticatedUser);
       return new GetUserResDto(limitedUser);
     }
 
-    return new GetUserResDto(userEntity);
+    return userInfo;
   }
 
   /**
@@ -135,8 +129,7 @@ export class UsersController {
     const end = start + limitNum;
 
     const users = await this.usersService.findUsers(start, end);
-    const userEntities = users.map((user) => mapToUserEntity(user));
-    const usersDto = userEntities.map((user) => new GetUsersResDto(user));
+    const usersDto = users.map((user) => new GetUsersResDto(user));
 
     return new GetUsersResponseDto(usersDto);
   }
@@ -202,23 +195,13 @@ export class UsersController {
   async updateMyInfo(
     @UserDecorator() authenticatedUser: AuthenticatedUser,
     @Body() updateUserDto: UpdateUserReqDto,
-  ): Promise<UpdateUserResDto> {
-    await this.usersService.updateUserInfoByUserId(
+  ) {
+    const updatedUser = await this.usersService.updateUserInfoByUserId(
       authenticatedUser.id,
       updateUserDto,
     );
 
-    // 수정된 정보 조회
-    const updatedUser = await this.usersService.findUserByUserId(
-      authenticatedUser.id,
-    );
-    console.log("🔍 Updated user from DB:", updatedUser); // 디버깅 로그 추가
-
-    // GetUserResDto를 User 엔티티로 변환
-    const userEntity = mapGetUserResDtoToUserEntity(updatedUser);
-    console.log("🔍 User entity after mapping:", userEntity); // 디버깅 로그 추가
-
-    return new UpdateUserResDto(userEntity);
+    return updatedUser;
   }
 
   /**
@@ -239,13 +222,12 @@ export class UsersController {
   async updateUserById(
     @Param("id") id: string,
     @Body() updateUserDto: UpdateUserReqDto,
-  ): Promise<UpdateUserResDto> {
-    await this.usersService.updateUserInfoByUserId(id, updateUserDto);
-
-    // 수정된 정보 조회
-    const updatedUser = await this.usersService.findUserByUserId(id);
-    const userEntity = mapToUserEntity(updatedUser);
-    return new UpdateUserResDto(userEntity);
+  ) {
+    const updatedUser = await this.usersService.updateUserInfoByUserId(
+      id,
+      updateUserDto,
+    );
+    return updatedUser;
   }
 
   /**

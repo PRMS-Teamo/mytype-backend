@@ -10,6 +10,7 @@ import {
   UnauthorizedException,
   Get,
   Delete,
+  Query,
 } from "@nestjs/common";
 import { TeamsService } from "./teams.service";
 import { JwtAuthGuard } from "@/apis/auth/guard/jwt-auth.guard";
@@ -43,8 +44,16 @@ export class TeamsController {
   }
 
   @Get()
-  async getTeams(@Res() res: Response) {
-    const teams = await this.teamsService.getTeams();
+  async getTeams(
+    @Query("page") page: string = "1",
+    @Query("limit") limit: string = "20",
+    @Res() res: Response,
+  ) {
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
+    const start = (pageNum - 1) * limitNum;
+    const end = start + limitNum;
+    const teams = await this.teamsService.getTeams(start, end);
     return res.status(200).send(teams);
   }
 
