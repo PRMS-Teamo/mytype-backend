@@ -10,14 +10,16 @@ export class ImagesService {
   ) {}
 
   async findAll() {
-    const urls: { url: string }[] = await this.postgresService.images.findMany({
-      select: {
-        url: true,
-      },
-      orderBy: {
-        created_at: "desc",
-      },
-    });
+    const urls: { id: string; url: string }[] =
+      await this.postgresService.images.findMany({
+        select: {
+          id: true,
+          url: true,
+        },
+        orderBy: {
+          created_at: "desc",
+        },
+      });
     if (!urls.length) {
       throw new NotFoundException("이미지가 존재하지 않습니다.");
     }
