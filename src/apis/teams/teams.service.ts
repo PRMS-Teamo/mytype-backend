@@ -25,6 +25,7 @@ export class TeamsService {
 
   async getTeams(): Promise<GetTeamsResDto[]> {
     const teams = await this.postgresService.teams.findMany({
+      where: { is_public: true, recruit_status: "OPEN" },
       select: {
         id: true,
         title: true,
