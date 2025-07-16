@@ -9,6 +9,25 @@ export class ImagesService {
     private readonly s3Service: S3Service,
   ) {}
 
+  async findImageByImageId(imageId: string) {
+    if (!imageId || imageId.trim() === "") {
+      return null;
+    }
+
+    const image = await this.postgresService.images.findFirst({
+      where: {
+        id: imageId,
+      },
+      select: {
+        url: true,
+      },
+    });
+    if (!image) {
+      throw new NotFoundException("이미지가 존재하지 않습니다.");
+    }
+    return this.s3Service.getFileUrl(image.url);
+  }
+
   async findAll() {
     const urls: { id: string; url: string }[] =
       await this.postgresService.images.findMany({

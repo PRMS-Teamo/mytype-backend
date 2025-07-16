@@ -10,6 +10,7 @@ export class CreateUserResDto extends PickType(User, [
   "nickname",
   "email",
   "github",
+  "imgId",
   "profileImage",
   "location",
   "isPublic",

@@ -11,12 +11,13 @@ export class User {
     this.id = user.id;
     this.nickname = user.nickname || "";
     this.email = user.email || "";
-    this.github = user.github_id || ""; // github_id -> github (클라이언트 친화적)
+    this.github = user.github_id || undefined; // github_id -> github (클라이언트 친화적)
+    this.imgId = user.img_id || ""; // img_id -> imgId
     this.profileImage = user.img_url || ""; // img_url -> profileImage
     this.location = user.address || ""; // address -> location
     this.isJoined = user.join_status || false; // join_status -> isJoined
     this.isPublic = user.is_public || false; // is_public -> isPublic
-    this.positionId = user.position_id || ""; // position_id -> positionId
+    this.positionId = user.position_id || undefined; // position_id -> positionId
 
     // 추가 속성들
     this.description = user.description || "";
@@ -65,6 +66,13 @@ export class User {
   github?: string;
 
   @ApiProperty({
+    example: "38bf2516-7ee3-40f4-b390-7075e55baf8e",
+    description: "이미지 ID",
+    required: false,
+  })
+  imgId?: string | undefined;
+
+  @ApiProperty({
     example: "https://example.com/profile.jpg",
     description: "프로필 이미지 URL",
     required: false,
@@ -97,7 +105,7 @@ export class User {
     description: "포지션 ID",
     required: false,
   })
-  positionId?: string;
+  positionId?: string | undefined;
 
   @ApiProperty({
     example: "안녕하세요. 풀스택 개발자입니다.",

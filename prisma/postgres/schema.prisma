@@ -138,6 +138,7 @@ model users {
   email             String?             @db.VarChar(100)
   hashed_refresh_token                 String?             @db.VarChar(200)
   github_id         String?             @db.VarChar(200)
+  img_id            String?             @db.Uuid
   img_url           String?             @db.VarChar(200)
   address           String?             @db.VarChar(100)
   beginner          Boolean?            @default(false)
@@ -156,6 +157,7 @@ model users {
   is_public         Boolean?
   chat_participants chat_participants[]
   user_bumps       user_bumps[]
+  images           images?             @relation(fields: [img_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_images_TO_users_1")
 }
 
 model user_bumps {
@@ -233,6 +235,7 @@ model images {
   content_type String   @db.VarChar(50)
   created_at   DateTime @default(now()) @db.Timestamp(6)
   updated_at   DateTime @updatedAt @db.Timestamp(6) @default(now())
+  users        users[]
 }
 
 enum chat_room_type {

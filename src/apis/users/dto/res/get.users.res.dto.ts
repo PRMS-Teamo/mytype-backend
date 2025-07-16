@@ -9,6 +9,7 @@ export class GetUsersResDto extends PickType(User, [
   "id",
   "nickname",
   "github",
+  "imgId",
   "profileImage",
   "location",
   "description",

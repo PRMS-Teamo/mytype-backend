@@ -153,6 +153,10 @@ export function mapUpdateDtoToDbFormat(dto: UpdateUserReqDto) {
     mapped.github_id = dto.github; // github -> github_id
     console.log("🔍 Setting github_id:", dto.github);
   }
+  if (dto.imgId !== undefined) {
+    mapped.img_id = dto.imgId && dto.imgId.trim() !== "" ? dto.imgId : null; // imgId -> img_id
+    console.log("🔍 Setting img_id:", mapped.img_id);
+  }
   if (dto.profileImage !== undefined) {
     mapped.img_url = dto.profileImage; // profileImage -> img_url
     console.log("🔍 Setting img_url:", dto.profileImage);
@@ -166,8 +170,9 @@ export function mapUpdateDtoToDbFormat(dto: UpdateUserReqDto) {
     console.log("🔍 Setting is_public:", dto.isPublic);
   }
   if (dto.positionId !== undefined) {
-    mapped.position_id = dto.positionId; // positionId -> position_id
-    console.log("🔍 Setting position_id:", dto.positionId);
+    mapped.position_id =
+      dto.positionId && dto.positionId.trim() !== "" ? dto.positionId : null;
+    console.log("🔍 Setting position_id:", mapped.position_id);
   }
   if (dto.description !== undefined) {
     mapped.description = dto.description; // description -> description

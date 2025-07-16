@@ -18,6 +18,8 @@ export interface AuthenticatedUser {
   nickname?: string | null;
   /** GitHub ID */
   github_id?: string | null;
+  /** 이미지 ID */
+  img_id?: string | null;
   /** 프로필 이미지 URL */
   img_url?: string | null;
   /** 주소 */

@@ -43,6 +43,13 @@ export class GetUserResDto {
   github?: string;
 
   @ApiProperty({
+    example: "38bf2516-7ee3-40f4-b390-7075e55baf8e",
+    description: "이미지 ID",
+    required: false,
+  })
+  imgId?: string;
+
+  @ApiProperty({
     example: "https://example.com/profile.jpg",
     description: "프로필 이미지 URL",
     required: false,
@@ -150,6 +157,7 @@ export class GetUserResDto {
     this.nickname = user.nickname;
     this.email = user.email;
     this.github = user.github;
+    this.imgId = user.imgId;
     this.profileImage = user.profileImage;
     this.location = user.location;
     this.isJoined = user.isJoined;

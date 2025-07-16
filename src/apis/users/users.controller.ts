@@ -86,7 +86,7 @@ export class UsersController {
   async getUserById(@Param("id") id: string): Promise<GetUserResDto> {
     const userInfo = await this.usersService.findUserByUserId(id);
     const userEntity = mapToUserEntity(userInfo);
-
+    console.log("🔍 User entity:", userEntity);
     // 비공개 프로필인 경우 제한된 정보만 반환
     if (!userEntity.isPublic) {
       const limitedUser = new User({
@@ -346,9 +346,10 @@ export class UsersController {
   })
   async getMyTeamMembersByTeamPositionId(
     @UserDecorator() authenticatedUser: AuthenticatedUser,
-    @Param("teamPositionId") teamPositionId: string,
   ) {
-    const teamPosition = await this.usersService.getTeamMembers(teamPositionId);
+    const teamPosition = await this.usersService.getTeamMembers(
+      authenticatedUser.id,
+    );
     return teamPosition;
   }
 }

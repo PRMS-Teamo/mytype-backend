@@ -9,6 +9,7 @@ export class UpdateUserResDto extends PickType(User, [
   "id",
   "nickname",
   "github",
+  "imgId",
   "profileImage",
   "location",
   "isPublic",

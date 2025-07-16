@@ -18,12 +18,14 @@ import {
   S3Service,
 } from "@/infrastructure/storage/files/s3/s3.service";
 import { ContentType } from "../shared/types/content.type";
+import { ImagesService } from "../images/images.service";
 
 @Injectable()
 export class UsersService {
   constructor(
     private postgresService: PostgresService,
     private s3Service: S3Service,
+    private imagesService: ImagesService,
   ) {}
 
   /**
@@ -58,6 +60,7 @@ export class UsersService {
         position_id: true,
         nickname: true,
         github_id: true,
+        img_id: true,
         img_url: true,
         address: true,
         join_status: true,
@@ -93,6 +96,7 @@ export class UsersService {
       positionId: user.position_id ?? undefined,
       nickname: user.nickname ?? undefined,
       github: user.github_id ?? undefined,
+      imgId: user.img_id ?? undefined,
       profileImage: user.img_url ?? undefined,
       location: user.address ?? undefined,
       isJoined: user.join_status ?? undefined,
@@ -131,6 +135,7 @@ export class UsersService {
         position_id: true,
         nickname: true,
         github_id: true,
+        img_id: true,
         img_url: true,
         address: true,
         join_status: true,
@@ -146,11 +151,22 @@ export class UsersService {
       orderBy: [{ bumped_at: "desc" }],
     });
 
-    return users.map((user) => ({
+    const realUrls = await Promise.all(
+      users.map((user) =>
+        this.imagesService.findImageByImageId(user.img_id ?? ""),
+      ),
+    );
+    const usersWithRealUrls = users.map((user, index) => ({
+      ...user,
+      img_url: realUrls[index] ?? user.img_url,
+    }));
+
+    return usersWithRealUrls.map((user) => ({
       id: user.id,
       position_id: user.position_id,
       nickname: user.nickname,
       github_id: user.github_id,
+      img_id: user.img_id,
       img_url: user.img_url,
       address: user.address,
       join_status: user.join_status,
@@ -192,7 +208,14 @@ export class UsersService {
     });
 
     // 생성된 사용자 정보 조회하여 반환
-    return this.findUserByUserId(newUser.id);
+    const createdUser = await this.findUserByUserId(newUser.id);
+    const realUrl = await this.imagesService.findImageByImageId(
+      createdUser.imgId ?? "",
+    );
+    return {
+      ...createdUser,
+      profileImage: realUrl ?? createdUser.profileImage,
+    };
   }
 
   async generatePresignedUrl(
@@ -215,15 +238,11 @@ export class UsersService {
   async updateUserInfoByUserId(
     userId: string,
     userInfo: UpdateUserReqDto,
-  ): Promise<{ message: string }> {
+  ): Promise<GetUserResDto> {
     // 사용자 존재 확인
     await this.findUserByUserId(userId);
 
-    console.log("🔍 Original userInfo:", userInfo); // 디버깅 로그 추가
-
     const { userStacks, ...mappedData } = mapUpdateDtoToDbFormat(userInfo);
-
-    console.log("🔍 Mapped data:", mappedData); // 디버깅 로그 추가
 
     await this.postgresService.$transaction(async (tx) => {
       // 스택 정보 업데이트 (제공된 경우)
@@ -236,7 +255,6 @@ export class UsersService {
         });
 
         // 새 스택 추가
-        console.log("🔍 userStacks:", userStacks);
         if (userStacks.length > 0) {
           await tx.user_stacks.createMany({
             data: mapStackIdsToUserStacks(userStacks, userId),
@@ -255,7 +273,7 @@ export class UsersService {
       }
     });
 
-    return { message: "User information updated successfully" };
+    return this.findUserByUserId(userId);
   }
 
   /**
@@ -347,26 +365,32 @@ export class UsersService {
     return !!team;
   }
 
-  async getTeamMembers(teamPositionId: string) {
-    const teamPosition = await this.postgresService.team_positions.findFirst({
-      where: { id: teamPositionId },
+  async getTeamMembers(userId: string) {
+    const teamMembers = await this.postgresService.team_users.findFirst({
+      where: { user_id: userId },
       select: {
-        teams: {
+        team_positions: {
           select: {
-            team_positions: {
+            teams: {
               select: {
-                positions: {
+                team_positions: {
                   select: {
-                    name: true,
-                  },
-                },
-                team_users: {
-                  select: {
-                    is_owner: true,
-                    users: {
+                    positions: {
                       select: {
-                        id: true,
                         name: true,
+                      },
+                    },
+                    team_users: {
+                      select: {
+                        is_owner: true,
+                        users: {
+                          select: {
+                            id: true,
+                            name: true,
+                            img_id: true,
+                            img_url: true,
+                          },
+                        },
                       },
                     },
                   },
@@ -378,16 +402,8 @@ export class UsersService {
       },
     });
 
-    // 평탄화된 형태로 매핑 (SQL의 형태에 맞게)
-    const members = teamPosition?.teams.team_positions.flatMap((tp) =>
-      tp.team_users.map((tu) => ({
-        userId: tu.users.id,
-        userName: tu.users.name,
-        positionName: tp.positions.name,
-        isOwner: tu.is_owner,
-      })),
-    );
+    if (!teamMembers) return [];
 
-    return members;
+    return teamMembers;
   }
 }

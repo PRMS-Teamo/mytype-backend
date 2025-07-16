@@ -50,6 +50,15 @@ export class UpdateUserReqDto extends PartialType(
   github?: string;
 
   @ApiProperty({
+    example: "new_img_id",
+    description: "사용자 이미지 ID",
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  imgId?: string | undefined;
+
+  @ApiProperty({
     example: "https://example.com/newprofile.jpg",
     description: "프로필 이미지 URL",
     required: false,
@@ -83,7 +92,7 @@ export class UpdateUserReqDto extends PartialType(
   })
   @IsOptional()
   @IsString()
-  positionId?: string;
+  positionId?: string | undefined;
 
   @ApiProperty({
     example: "새로운 자기소개입니다.",
