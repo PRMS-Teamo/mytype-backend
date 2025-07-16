@@ -334,11 +334,7 @@ export class TeamsService {
             });
           }
 
-          const createdTeamResult = {
-            teamId: createdTeam.id,
-            ...team,
-          };
-
+          const createdTeamResult = this.getTeam(createdTeam.id);
           return {
             createdTeamResult,
           };
