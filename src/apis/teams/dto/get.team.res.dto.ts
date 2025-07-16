@@ -69,13 +69,9 @@ export class GetTeamResDto {
         isOwner: tu.is_owner,
         message: tu.message || undefined,
         memberStatus: tu.member_status,
-        users: tu.users
-          ? {
-              userId: tu.users.id,
-              nickname: tu.users.nickname || undefined,
-              imgUrl: tu.users.img_url || undefined,
-            }
-          : undefined,
+        userId: tu.users.id,
+        nickname: tu.users.nickname || undefined,
+        imgUrl: tu.users.img_url || undefined,
       })),
     }));
   }

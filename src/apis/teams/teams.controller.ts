@@ -19,8 +19,9 @@ import { UsersService } from "@/apis/users/users.service";
 import { TEAM_DIFFERENCE, USER_NOT_OWNER } from "@/constants/errorMessage";
 import { Team } from "./entities/team.entity";
 import { User } from "../auth/decorators/user.decorator";
-import { GetTeamResDto } from "./dto/get.team.res.dto";
+import { GetTeamResDto } from "./dto/get-team-res.dto";
 import { User as UserDecorator } from "@/apis/auth/decorators/user.decorator";
+import { ApiOkResponse } from "@nestjs/swagger";
 
 @Controller("teams")
 export class TeamsController {
@@ -49,6 +50,7 @@ export class TeamsController {
 
   @Get(":teamId")
   @UseGuards(JwtAuthGuard)
+  @ApiOkResponse({ type: GetTeamResDto })
   async getTeam(@Param("teamId") teamId: string, @Res() res: Response) {
     const team = await this.teamsService.getTeam(teamId);
     return res.status(200).json(team);

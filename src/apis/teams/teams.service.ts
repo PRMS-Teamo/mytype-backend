@@ -4,8 +4,9 @@ import { UsersService } from "@/apis/users/users.service";
 import { NOTFOUND_POSITION, NOTFOUND_TEAM } from "@/constants/errorMessage";
 import { Team } from "./entities/team.entity";
 import { member_status, recruit_status } from "@postgres-client";
-import { GetTeamResDto } from "./dto/get.team.res.dto";
+import { GetTeamResDto } from "./dto/get-team-res.dto";
 import { GetTeamsResDto } from "./dto/get.teams.res.dto";
+import { teamMapper } from "./util/team-mapper";
 
 @Injectable()
 export class TeamsService {
@@ -106,7 +107,8 @@ export class TeamsService {
       },
     });
     if (!team) return null;
-    return new GetTeamResDto(team);
+
+    return teamMapper(team);
   }
 
   async createTeamMemberTransaction(
@@ -401,6 +403,7 @@ export class TeamsService {
         const updatedTeam = await tx.teams.update({
           where: { id: teamId, user_id: userId },
           data: {
+            id: teamId,
             title: title || team.title,
             content: content || team.content,
             is_public: isPublic !== undefined ? isPublic : team.is_public,
@@ -611,7 +614,8 @@ export class TeamsService {
         if (!updatedTeamData) {
           throw new NotFoundException({ NOTFOUND_TEAM });
         }
-        return new GetTeamResDto(updatedTeamData);
+        // 매핑 후 DTO로 감싸서 반환
+        return teamMapper(updatedTeamData) as unknown as GetTeamResDto;
       },
     );
   }
