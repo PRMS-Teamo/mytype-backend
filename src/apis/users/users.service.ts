@@ -308,12 +308,15 @@ export class UsersService {
   ): Promise<boolean> {
     const client = tx ?? this.postgresService;
 
+    const isPublic = status ? false : true;
+
     const updateResult = await client.users.update({
       where: {
         id: uuid,
       },
       data: {
         join_status: status,
+        is_public: isPublic,
         updated_at: new Date(),
       },
     });

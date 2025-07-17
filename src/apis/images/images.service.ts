@@ -25,7 +25,7 @@ export class ImagesService {
     if (!image) {
       throw new NotFoundException("이미지가 존재하지 않습니다.");
     }
-    return this.s3Service.getFileUrl(image.url);
+    return await this.s3Service.getFileUrl(image.url);
   }
 
   async findAll() {
@@ -43,7 +43,7 @@ export class ImagesService {
       throw new NotFoundException("이미지가 존재하지 않습니다.");
     }
     for (const url of urls) {
-      url.url = this.s3Service.getFileUrl(url.url);
+      url.url = (await this.s3Service.getFileUrl(url.url)) || "";
     }
     return urls;
   }

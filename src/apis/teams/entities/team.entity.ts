@@ -5,10 +5,7 @@ import {
   team_positions,
   teams,
   positions,
-  users,
 } from "@postgres-client";
-import { team_users } from "@postgres-client";
-import { member_status } from "@postgres-client";
 
 export class TeamStack {
   constructor(stack: stacks) {
@@ -19,24 +16,6 @@ export class TeamStack {
   stackId: string;
   stackName: string;
   imgUrl: string;
-  status?: boolean;
-}
-
-export class TeamUser {
-  constructor(teamUser: team_users, user: users) {
-    this.userId = teamUser.user_id || "";
-    this.nickname = user.nickname || "";
-    this.isOwner = teamUser.is_owner || false;
-    this.message = teamUser.message || "";
-    this.profileImg = user.img_url || "";
-    this.memberStatus = teamUser.member_status || "ON_BOARD";
-  }
-  userId: string;
-  nickname: string;
-  isOwner: boolean;
-  message: string;
-  profileImg: string;
-  memberStatus: member_status;
 }
 
 export class TeamPosition {
@@ -44,20 +23,17 @@ export class TeamPosition {
     teamPosition: team_positions,
     position?: positions,
     stacks?: TeamStack[],
-    users?: TeamUser[],
   ) {
-    this.positionId = teamPosition.id || "";
+    this.positionId = position?.id || "";
     this.positionName = position?.name || "";
     this.count = teamPosition.count || 0;
     this.positionStacks = stacks;
-    this.users = users;
     this.recruitStatus = teamPosition.recruit_status || "CLOSE";
   }
   positionId?: string;
   positionName?: string;
   count?: number;
   positionStacks?: TeamStack[];
-  users?: TeamUser[];
   recruitStatus?: recruit_status;
 }
 
@@ -72,7 +48,7 @@ export class Team {
     this.recruitStatus = team.recruit_status || "OPEN";
     this.proceedType = team.proceed_type || "ONLINE";
     this.imgUrl = team.img || "";
-    this.positions = teamPositions;
+    this.teamPositions = teamPositions;
   }
   teamId?: string;
   title?: string;
@@ -83,5 +59,5 @@ export class Team {
   proceedType?: proceed_type;
   imgUrl?: string;
   endDate?: string;
-  positions?: TeamPosition[];
+  teamPositions?: TeamPosition[];
 }

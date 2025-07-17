@@ -41,16 +41,20 @@ export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
       join_status: user.isJoined || false,
       user_stacks:
         user.userStacks?.map((stack) => ({
-          stack_id: stack.stackId,
+          stack_id: stack.stackId || undefined,
+          stack_name: stack.stackName || undefined,
+          stack_img: stack.stackImg || undefined,
         })) || [],
       is_public: user.isPublic || false,
       position_id: user.positionId || undefined,
       img_url: user.profileImage || undefined,
       address: user.location || undefined,
       github_id: user.github || undefined,
+      img_id: user.imgId || undefined,
+      name: user.name || undefined,
       description: user.description || undefined,
       proceed_type: user.proceedType || undefined,
-    };
+    } as AuthenticatedUser;
 
     return authenticatedUser;
   }

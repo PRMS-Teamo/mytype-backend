@@ -65,7 +65,7 @@ export class UpdateUserReqDto extends PartialType(
   })
   @IsOptional()
   @IsString()
-  profileImage?: string;
+  profileImage?: string | undefined;
 
   @ApiProperty({
     example: "부산광역시 해운대구",
@@ -130,5 +130,9 @@ export class UpdateUserReqDto extends PartialType(
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  userStacks?: string[];
+  userStacks?: {
+    stackId: string;
+    stackName: string;
+    stackImg: string;
+  }[];
 }

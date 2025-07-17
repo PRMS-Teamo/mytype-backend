@@ -1,6 +1,6 @@
-export function teamMapper(
-  team: Record<string, unknown>,
-): Record<string, unknown> {
+import { UnifiedTeamDto } from "../dto/unified-team.dto";
+
+export function teamMapper(team: any): UnifiedTeamDto {
   return {
     teamId: team.id,
     userId: team.user_id,
@@ -11,41 +11,16 @@ export function teamMapper(
     proceedType: team.proceed_type,
     imgUrl: team.img,
     endDate: team.end_date,
-    teamPositions:
-      (team.team_positions as Array<Record<string, unknown>> | undefined)?.map(
-        (tp) => ({
-          users:
-            (tp.team_users as Array<Record<string, unknown>> | undefined)?.map(
-              (tu) => ({
-                isOwner: tu?.is_owner,
-                message: tu?.message,
-                memberStatus: tu?.member_status,
-                userId: (tu?.users as Record<string, unknown> | undefined)?.id,
-                nickname: (tu?.users as Record<string, unknown> | undefined)
-                  ?.nickname,
-                imgUrl: (tu?.users as Record<string, unknown> | undefined)
-                  ?.img_url,
-              }),
-            ) ?? [],
-          positionStacks:
-            (
-              tp.position_stacks as Array<Record<string, unknown>> | undefined
-            )?.map((ps) => ({
-              stackId: (ps?.stacks as Record<string, unknown> | undefined)?.id,
-              stackName: (ps?.stacks as Record<string, unknown> | undefined)
-                ?.name,
-              imgUrl: (ps?.stacks as Record<string, unknown> | undefined)
-                ?.img_url,
-            })) ?? [],
-          teamPositionId: tp?.id,
-          recruitStatus: tp?.recruit_status,
-          positions: {
-            positionId: (tp?.positions as Record<string, unknown> | undefined)
-              ?.id,
-            positionName: (tp?.positions as Record<string, unknown> | undefined)
-              ?.name,
-          },
-        }),
-      ) ?? [],
+    positions: team.team_positions.map((tp) => ({
+      positionStacks: tp.position_stacks.map((ps) => ({
+        stackId: ps.stacks.id,
+        stackName: ps.stacks.name,
+        imgUrl: ps.stacks.img_url,
+      })),
+      recruitStatus: tp.recruit_status,
+      positionId: tp.positions.id,
+      positionName: tp.positions.name,
+      count: tp.count,
+    })),
   };
 }

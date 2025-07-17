@@ -42,11 +42,12 @@ export class AppliesController {
   @ApiResponse({ status: 400, description: "잘못된 요청" })
   @ApiResponse({ status: 401, description: "인증 실패" })
   @UseGuards(JwtAuthGuard)
-  @Post("teams/:teamPositionId/apply")
+  @Post("teams/:teamId/apply/:positionId")
   async applyToTeam(
     @Body() applyRequestDto: UpsertApplyRequestDto,
     @User() user: AuthenticatedUser,
-    @Param("teamPositionId") teamPositionId: string,
+    @Param("teamId") teamId: string,
+    @Param("positionId") positionId: string,
   ) {
     const userId = user.id;
     const userJoinStatus = await this.usersService.getJoinStatusByUuid(userId);
@@ -61,7 +62,8 @@ export class AppliesController {
       applyRequestDto,
       userId,
       "APPLY",
-      teamPositionId,
+      positionId,
+      teamId,
     );
   }
 

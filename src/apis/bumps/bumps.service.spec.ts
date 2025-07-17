@@ -7,7 +7,16 @@ describe("BumpsService", () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [BumpsService, PostgresService],
+      providers: [
+        BumpsService,
+        {
+          provide: PostgresService,
+          useValue: {
+            findMany: jest.fn(),
+            findFirst: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
     service = module.get<BumpsService>(BumpsService);

@@ -3,121 +3,96 @@ import {
   Post,
   Body,
   UseGuards,
-  Req,
-  Res,
   Param,
   Patch,
-  UnauthorizedException,
   Get,
   Delete,
   Query,
+  Res,
 } from "@nestjs/common";
 import { TeamsService } from "./teams.service";
 import { JwtAuthGuard } from "@/apis/auth/guard/jwt-auth.guard";
-import { Request, Response } from "express";
 import { AuthenticatedUser } from "@/apis/auth/types/authenticated-user.interface";
-import { UsersService } from "@/apis/users/users.service";
-import { TEAM_DIFFERENCE, USER_NOT_OWNER } from "@/constants/errorMessage";
-import { Team } from "./entities/team.entity";
-import { User } from "../auth/decorators/user.decorator";
-import { GetTeamResDto } from "./dto/get-team-res.dto";
-import { User as UserDecorator } from "@/apis/auth/decorators/user.decorator";
+import { User } from "@/apis/auth/decorators/user.decorator";
+import { UnifiedTeamDto } from "./dto/unified-team.dto";
 import { ApiOkResponse } from "@nestjs/swagger";
+import { Response } from "express";
 
 @Controller("teams")
 export class TeamsController {
-  constructor(
-    private readonly teamsService: TeamsService,
-    private readonly usersService: UsersService,
-  ) {}
+  constructor(private readonly teamsService: TeamsService) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
   async createTeam(
-    @Body() team: Team,
+    @Body() teamDto: UnifiedTeamDto,
     @User() user: AuthenticatedUser,
-    @Res() res: Response,
-  ) {
+  ): Promise<UnifiedTeamDto> {
     const userId = user.id;
-    const createdTeam = await this.teamsService.createTeam(userId, team);
-    return res.status(201).send(createdTeam);
+    return this.teamsService.createTeam(userId, teamDto);
   }
 
   @Get()
   async getTeams(
     @Query("page") page: string = "1",
     @Query("limit") limit: string = "20",
-    @Res() res: Response,
   ) {
     const pageNum = parseInt(page, 10);
     const limitNum = parseInt(limit, 10);
     const start = (pageNum - 1) * limitNum;
     const end = start + limitNum;
-    const teams = await this.teamsService.getTeams(start, end);
-    return res.status(200).send(teams);
+    return this.teamsService.getTeams(start, end);
+  }
+
+  @Get("me")
+  @UseGuards(JwtAuthGuard)
+  @ApiOkResponse({ type: UnifiedTeamDto })
+  async getMyTeam(@User() user: AuthenticatedUser): Promise<UnifiedTeamDto> {
+    const userId = user.id;
+    return this.teamsService.getTeamByUserId(userId);
   }
 
   @Get(":teamId")
   @UseGuards(JwtAuthGuard)
-  @ApiOkResponse({ type: GetTeamResDto })
-  async getTeam(@Param("teamId") teamId: string, @Res() res: Response) {
-    const team = await this.teamsService.getTeam(teamId);
-    return res.status(200).json(team);
+  @ApiOkResponse({ type: UnifiedTeamDto })
+  async getTeam(@Param("teamId") teamId: string): Promise<UnifiedTeamDto> {
+    return this.teamsService.getTeam(teamId);
   }
 
-  @Patch(":teamId")
+  @Patch("me")
   @UseGuards(JwtAuthGuard)
   async patchTeam(
-    @Param("teamId") teamId: string,
-    @UserDecorator() user: AuthenticatedUser,
-    @Body() updateTeamDto: GetTeamResDto,
-    @Res() res: Response,
-  ) {
+    @User() user: AuthenticatedUser,
+    @Body() updateTeamDto: UnifiedTeamDto,
+  ): Promise<UnifiedTeamDto> {
     const userId = user.id;
-    const isOwner = await this.usersService.checkOwner(userId);
-    if (!isOwner) {
-      throw new UnauthorizedException({ USER_NOT_OWNER });
-    }
-    const updatedTeam = await this.teamsService.patchTeam(
-      userId,
-      teamId,
-      updateTeamDto,
-    );
-    return res.status(201).send(updatedTeam);
+    console.log("===================patchTeam===================");
+    console.log("userId", userId);
+    console.log("updateTeamDto", updateTeamDto);
+    return this.teamsService.patchTeam(userId, updateTeamDto);
   }
 
-  @Get(":teamId/members")
+  @Get("me/members")
   @UseGuards(JwtAuthGuard)
-  async getMembers(
-    @Req() req: Request,
-    @Res() res: Response,
-    @Param("teamId") teamId: string,
-  ) {
-    const teamMembers = await this.teamsService.getTeamMembers(teamId);
-    return res.status(200).send(teamMembers);
+  async getMembers(@User() user: AuthenticatedUser) {
+    const userId = user.id;
+    console.log("===================getMembers===================");
+    console.log("userId", userId);
+    return this.teamsService.getTeamMembers(userId);
   }
 
-  @Delete(":teamId/members/:memberId")
+  @Delete("me/members/:memberId")
   @UseGuards(JwtAuthGuard)
   async removeMembers(
-    @Req() req: Request,
     @Res() res: Response,
-    @Param("teamId") teamId: string,
+    @User() user: AuthenticatedUser,
     @Param("memberId") memberId: string,
   ) {
-    const user = req.user as AuthenticatedUser;
     const userId = user.id;
-    // 예외1. 해당 팀의 오너인가
-    const teamOwnerId = await this.teamsService.getTeamOwnerIdByTeamId(teamId);
-    if (teamOwnerId !== userId) {
-      throw new UnauthorizedException({ USER_NOT_OWNER });
-    }
-    // 예외2. 해당 유저가 해당 팀 소속인가.
-    const userTeamId = await this.teamsService.getTeamIdByUserId(userId);
-    if (userTeamId !== teamId) {
-      throw new UnauthorizedException({ TEAM_DIFFERENCE });
-    }
-    const deleteMember = await this.teamsService.deleteTeamMember(memberId);
-    return deleteMember;
+    const deleteMember = await this.teamsService.deleteTeamMember(
+      userId,
+      memberId,
+    );
+    return res.status(200).send(deleteMember);
   }
 }

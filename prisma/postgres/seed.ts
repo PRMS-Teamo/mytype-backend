@@ -293,6 +293,136 @@ async function main() {
     ],
   });
 
+  await prisma.images.createMany({
+    data: [
+      {
+        url: "images/profileImages/adventure.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/bicycle.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/camping.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/christmas.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/cook.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/cook2.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/drink.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/fishing.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/game.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/gardening.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/halloween.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/image 32.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/lolipop.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/mad.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/magic.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/mith",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/music.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/nature.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/nurse.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/paint.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/party.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/picknick.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/reading.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/saddness.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/science.png",
+        content_type: "png",
+      },
+
+      {
+        url: "images/profileImages/shy.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/snowman.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/study.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/surprise.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/walk.png",
+        content_type: "png",
+      },
+      {
+        url: "images/profileImages/workout.png",
+        content_type: "png",
+      },
+    ],
+  });
+
   console.log("Seed completed successfully!");
 }
 

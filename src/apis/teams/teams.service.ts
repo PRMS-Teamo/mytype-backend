@@ -1,11 +1,12 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
+import {
+  PostgresService,
+  TxClient,
+} from "@/infrastructure/database/postgres/postgres.service";
 import { UsersService } from "@/apis/users/users.service";
 import { NOTFOUND_POSITION, NOTFOUND_TEAM } from "@/constants/errorMessage";
-import { Team } from "./entities/team.entity";
 import { member_status, recruit_status } from "@postgres-client";
-import { GetTeamResDto } from "./dto/get-team-res.dto";
-import { GetTeamsResDto } from "./dto/get.teams.res.dto";
+import { UnifiedTeamDto, TeamPositionDto } from "./dto/unified-team.dto";
 import { teamMapper } from "./util/team-mapper";
 
 @Injectable()
@@ -14,16 +15,12 @@ export class TeamsService {
     private postgresService: PostgresService,
     private readonly usersService: UsersService,
   ) {}
-  async createdTeamTransaction(tx: PostgresService, userId, data) {
-    return tx.teams.create({
-      data: {
-        user_id: userId,
-        ...data,
-      },
-    });
+  private isPostgresService(
+    tx: PostgresService | TxClient,
+  ): tx is PostgresService {
+    return typeof (tx as PostgresService).$transaction === "function";
   }
-
-  async getTeams(start: number, end: number): Promise<GetTeamsResDto[]> {
+  async getTeams(start: number, end: number) {
     const pageSize = end - start;
     const teams = await this.postgresService.teams.findMany({
       where: { is_public: true, recruit_status: "OPEN" },
@@ -40,6 +37,9 @@ export class TeamsService {
         bumped_at: true,
         team_positions: {
           select: {
+            count: true,
+            recruit_status: true,
+            positions: { select: { id: true, name: true } },
             position_stacks: {
               select: {
                 stacks: {
@@ -59,11 +59,41 @@ export class TeamsService {
       orderBy: [{ bumped_at: "desc" }],
     });
 
-    return GetTeamsResDto.fromArray(teams);
+    return teams.map((team) => {
+      const mappedTeam = teamMapper(team);
+      const allStacks = new Map<
+        string,
+        { id: string; name: string | null; imgUrl: string }
+      >();
+
+      team.team_positions.forEach((teamPosition) => {
+        teamPosition.position_stacks.forEach((positionStack) => {
+          const stack = positionStack.stacks;
+          if (stack && !allStacks.has(stack.id)) {
+            allStacks.set(stack.id, {
+              id: stack.id,
+              name: stack.name,
+              imgUrl: stack.img_url,
+            });
+          }
+        });
+      });
+
+      const uniqueStacks = Array.from(allStacks.values());
+      const { positions, ...rest } = mappedTeam;
+      console.log(positions);
+      return {
+        ...rest,
+        stacks: uniqueStacks,
+      };
+    });
   }
 
-  async getTeam(teamId: string) {
-    const team = await this.postgresService.teams.findUnique({
+  async getTeam(
+    teamId: string,
+    tx?: PostgresService | TxClient,
+  ): Promise<UnifiedTeamDto> {
+    const team = await (tx || this.postgresService).teams.findUnique({
       where: { id: teamId },
       select: {
         id: true,
@@ -92,15 +122,43 @@ export class TeamsService {
                 },
               },
             },
-            team_users: {
+          },
+        },
+      },
+    });
+    if (!team) throw new NotFoundException("Team not found");
+
+    return teamMapper(team);
+  }
+
+  async getTeamByUserId(
+    userId: string,
+    tx?: PostgresService | TxClient,
+  ): Promise<UnifiedTeamDto> {
+    const team = await (tx || this.postgresService).teams.findFirst({
+      where: { user_id: userId },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        user_id: true,
+        is_public: true,
+        recruit_status: true,
+        proceed_type: true,
+        img: true,
+        end_date: true,
+        team_positions: {
+          select: {
+            id: true,
+            count: true,
+            recruit_status: true,
+            positions: { select: { id: true, name: true } },
+            position_stacks: {
               select: {
-                is_owner: true,
-                message: true,
-                member_status: true,
-                users: {
+                stacks: {
                   select: {
                     id: true,
-                    nickname: true,
+                    name: true,
                     img_url: true,
                   },
                 },
@@ -110,42 +168,26 @@ export class TeamsService {
         },
       },
     });
-    if (!team) return null;
+    if (!team) throw new NotFoundException("Team not found");
 
     return teamMapper(team);
   }
 
-  async createTeamMemberTransaction(
-    tx: PostgresService,
-    userId,
-    teamPositionId,
-    isOwner,
-    memberStatus,
-  ) {
-    return tx.team_users.create({
-      data: {
-        user_id: userId,
-        team_position_id: teamPositionId,
-        is_owner: isOwner,
-        member_status: memberStatus,
-      },
-    });
-  }
-
-  async createTeam(userId: string, team: Team) {
+  async createTeam(
+    userId: string,
+    team: UnifiedTeamDto,
+  ): Promise<UnifiedTeamDto> {
     const teamCheck = await this.postgresService.teams.findFirst({
       where: {
         user_id: userId,
       },
     });
     if (teamCheck) {
-      return {
-        message: "팀은 1 개만 생성할 수 있습니다.",
-      };
+      throw new Error("하나의 팀만 생성할 수 있습니다.");
     }
-    const createdResult = await this.postgresService.$transaction(
-      async (tx: PostgresService) => {
-        try {
+    try {
+      const createdResult = await this.postgresService.$transaction(
+        async (tx: PostgresService) => {
           const {
             title,
             content,
@@ -157,7 +199,6 @@ export class TeamsService {
             endDate,
           } = team;
 
-          // 1. 팀 생성
           const createdTeam = await tx.teams.create({
             data: {
               user_id: userId,
@@ -170,202 +211,85 @@ export class TeamsService {
               end_date: endDate ? new Date(endDate) : undefined,
             },
           });
+          console.log("createdTeam", createdTeam);
 
-          if (!createdTeam) {
-            throw new Error("팀 생성 실패");
+          const teamCreatorPosition = await tx.positions.findFirst({
+            where: { name: "팀 생성자" },
+          });
+          console.log("teamCreatorPosition", teamCreatorPosition);
+          if (!teamCreatorPosition) {
+            throw new Error("팀 생성자 포지션을 찾을 수 없습니다.");
           }
 
-          // 2. 팀 포지션 생성 (한 번의 createMany 호출)
-          const teamPositionsData: {
-            team_id: string;
-            position_id: string;
-            count: number;
-            recruit_status: recruit_status;
-            status: boolean;
-          }[] = [];
-
-          // positions가 null/undefined인 경우 빈 배열로 처리
-          if (positions && positions.length > 0) {
-            // 각 포지션에 대해 실제 포지션 ID를 찾아서 매핑
-            for (const position of positions) {
-              if (position.positionName) {
-                const actualPosition = await tx.positions.findFirst({
-                  where: {
-                    name: position.positionName,
-                  },
-                });
-
-                if (!actualPosition) {
-                  throw new Error(
-                    `포지션 "${position.positionName}"을 찾을 수 없습니다`,
-                  );
-                }
-
-                teamPositionsData.push({
-                  team_id: createdTeam.id,
-                  position_id: actualPosition.id,
-                  count: position.count || 0,
-                  recruit_status: recruitStatus || "CLOSE",
-                  status: true,
-                });
-              }
-            }
-          }
-
-          // 팀 생성자 포지션 추가
-          const ownerTeamPosition = await tx.positions.findFirst({
-            where: {
-              name: "팀 생성자",
+          const allTeamPositions = [
+            ...positions,
+            {
+              positionId: teamCreatorPosition.id,
+              positionName: teamCreatorPosition.name,
+              count: 1,
+              recruitStatus: "CLOSE",
+              positionStacks: [],
             },
-          });
-          if (!ownerTeamPosition) {
-            throw new Error("팀 생성자 포지션을 찾을 수 없습니다");
-          }
-          teamPositionsData.push({
-            team_id: createdTeam.id,
-            position_id: ownerTeamPosition.id,
-            count: 1,
-            recruit_status: recruitStatus || "CLOSE",
-            status: true,
-          });
-
-          // team_positions를 생성하고 생성된 ID들을 가져오기 위해 개별 생성
-          const createdTeamPositions: {
-            id: string;
-            position_name: string;
-            position_stacks?: any[];
-          }[] = [];
-
-          // 먼저 모든 포지션 정보를 매핑
-          const positionNameToStacks = new Map();
-          if (positions && positions.length > 0) {
-            positions.forEach((position) => {
-              if (position.positionName) {
-                positionNameToStacks.set(
-                  position.positionName,
-                  position.positionStacks || [],
-                );
-              }
-            });
-          }
-
-          for (const positionData of teamPositionsData) {
+          ];
+          console.log("allTeamPositions", allTeamPositions);
+          for (const position of allTeamPositions) {
             const createdTeamPosition = await tx.team_positions.create({
-              data: positionData,
+              data: {
+                team_id: createdTeam.id,
+                position_id: position.positionId,
+                count: position.count,
+                recruit_status: position.recruitStatus as recruit_status,
+                status: true,
+              },
             });
-
-            // position_name을 찾기 위해 positions 테이블에서 조회
-            const actualPosition = await tx.positions.findFirst({
-              where: { id: positionData.position_id },
-            });
-
-            const positionName = actualPosition?.name || "";
-            const positionStacks = positionNameToStacks.get(positionName) || [];
-
-            createdTeamPositions.push({
-              id: createdTeamPosition.id,
-              position_name: positionName,
-              position_stacks: positionStacks,
-            });
-          }
-
-          // 3. 모든 position_stacks 데이터를 한 번에 생성
-          const allPositionStacks: {
-            team_position_id: string;
-            stack_id: string;
-          }[] = [];
-
-          createdTeamPositions.forEach((teamPosition) => {
-            if (
-              teamPosition.position_stacks &&
-              teamPosition.position_stacks.length > 0
-            ) {
-              teamPosition.position_stacks.forEach((stack) => {
-                if (stack.stackId) {
-                  allPositionStacks.push({
-                    team_position_id: teamPosition.id,
-                    stack_id: stack.stackId,
-                  });
-                }
+            console.log("createdTeamPosition", createdTeamPosition);
+            if (position.positionStacks && position.positionStacks.length > 0) {
+              await tx.position_stacks.createMany({
+                data: position.positionStacks.map((stack) => ({
+                  team_position_id: createdTeamPosition.id,
+                  stack_id: stack.stackId,
+                })),
               });
             }
+            console.log("position", position);
+            if (position.positionName === "팀 생성자") {
+              await tx.team_users.create({
+                data: {
+                  user_id: userId,
+                  team_position_id: createdTeamPosition.id,
+                  is_owner: true,
+                  member_status: "ON_BOARD",
+                },
+              });
+            }
+          }
+          console.log("===================팀 생성 종료===============");
+
+          await tx.users.update({
+            where: { id: userId },
+            data: {
+              join_status: true,
+              is_public: false,
+            },
           });
+          const result = await this.getTeamByUserId(userId, tx);
+          console.log("====================result\n", result);
+          return result;
+        },
+      );
 
-          if (allPositionStacks.length > 0) {
-            await tx.position_stacks.createMany({
-              data: allPositionStacks,
-            });
-          }
-          // 4. 팀 멤버 생성 (첫 번째 포지션을 팀 생성자 포지션으로 가정)
-
-          // 4. 모든 팀 멤버를 한 번에 생성 (기존 멤버 + 팀 생성자)
-          const allTeamMembers: {
-            user_id: string;
-            team_position_id: string;
-            is_owner: boolean;
-            member_status: "ON_BOARD";
-          }[] = [];
-
-          // 팀 생성자 포지션의 team_position_id 찾기
-          const ownerTeamPositionId = createdTeamPositions.find(
-            (tp) => tp.position_name === "팀 생성자",
-          )?.id;
-
-          if (!ownerTeamPositionId) {
-            throw new Error("팀 생성자 포지션을 찾을 수 없습니다");
-          }
-
-          // 기존 멤버들 추가
-          if (positions && positions.length > 0) {
-            positions.forEach((position) => {
-              if (position.users && position.users.length > 0) {
-                position.users.forEach((user) => {
-                  if (user.userId) {
-                    allTeamMembers.push({
-                      user_id: user.userId,
-                      team_position_id: ownerTeamPositionId,
-                      is_owner: false,
-                      member_status: "ON_BOARD" as const,
-                    });
-                  }
-                });
-              }
-            });
-          }
-
-          // 팀 생성자 추가
-          allTeamMembers.push({
-            user_id: userId,
-            team_position_id: ownerTeamPositionId,
-            is_owner: true,
-            member_status: "ON_BOARD" as const,
-          });
-
-          if (allTeamMembers.length > 0) {
-            await tx.team_users.createMany({
-              data: allTeamMembers,
-            });
-          }
-
-          const createdTeamResult = this.getTeam(createdTeam.id);
-          return {
-            createdTeamResult,
-          };
-        } catch (error) {
-          console.error("팀 생성 중 오류 발생:", error);
-          throw error;
-        }
-      },
-    );
-    const result = createdResult.createdTeamResult;
-    return result;
+      return createdResult;
+    } catch (error) {
+      console.log("===================팀 생성 실패===============");
+      console.log("error", error);
+      throw error;
+    }
   }
 
   async patchTeam(
     userId: string,
-    teamId: string,
-    updateTeamDto: any,
-  ): Promise<GetTeamResDto> {
+    updateTeamDto: UnifiedTeamDto,
+  ): Promise<UnifiedTeamDto> {
     const {
       title,
       content,
@@ -375,326 +299,237 @@ export class TeamsService {
       imgUrl,
       endDate,
       positions,
-    } = updateTeamDto as {
-      title?: string;
-      content?: string;
-      isPublic?: boolean;
-      recruitStatus?: recruit_status;
-      proceedType?: string;
-      imgUrl?: string;
-      endDate?: string;
-      positions?: Array<{
-        positionId: string;
-        positionName?: string;
-        count?: number;
-        recruitStatus?: recruit_status;
-        users?: Array<{
-          userId: string;
-          isOwner?: boolean;
-          memberStatus?: member_status;
-        }>;
-        positionStacks?: Array<{
-          stackId: string;
-          stackName?: string;
-          imgUrl?: string;
-        }>;
-      }>;
-    };
+    } = updateTeamDto;
 
     return await this.postgresService.$transaction(
       async (tx: PostgresService) => {
-        // 1. 팀 정보 업데이트
-        const team = await tx.teams.findFirst({
-          where: { id: teamId, user_id: userId },
-        });
+        const team = await this.getTeamByUserId(userId, tx);
+
         if (!team) {
           throw new NotFoundException({ NOTFOUND_TEAM });
         }
-        const updatedTeam = await tx.teams.update({
-          where: { id: teamId, user_id: userId },
+
+        const teamId = team.teamId;
+        const prevPositions = team.positions;
+        console.log("===================prevPositions===================");
+        console.log("teamId", teamId);
+        console.log("prevPositions", prevPositions);
+        console.log("title", title);
+        console.log("content", content);
+        console.log("isPublic", isPublic);
+        console.log("recruitStatus", recruitStatus);
+        console.log("proceedType", proceedType);
+        console.log("imgUrl", imgUrl);
+        console.log("endDate", endDate);
+
+        let incomingPositions: TeamPositionDto[] = [];
+        if (positions && positions.length > 0) {
+          incomingPositions = positions.map((p) => ({
+            positionId: p.positionId,
+            positionName: p.positionName,
+            count: p.count,
+            recruitStatus: p.recruitStatus,
+            positionStacks: p.positionStacks,
+          }));
+
+          const toDelete = prevPositions.filter(
+            (pos) =>
+              !incomingPositions.some(
+                (p) => p.positionId === pos.positionId && p.positionId !== "",
+              ),
+          );
+          if (toDelete.length > 0) {
+            for (const pos of toDelete) {
+              await this.deleteTeamPositions(teamId, [pos.positionId], tx);
+            }
+          }
+
+          const toCreate = incomingPositions.filter(
+            (pos) =>
+              !prevPositions.some((p) => p.positionId === pos.positionId),
+          );
+          console.log("===================toCreate===================");
+          if (toCreate.length > 0) {
+            console.log("===================toCreate===================");
+            console.log("toCreate", toCreate);
+            console.log("teamId", teamId);
+            console.log(
+              "=================================positionIDs",
+              toCreate.map((p) => p.positionId),
+            );
+            for (const pos of toCreate) {
+              // 2. team_positions에 추가
+              const createdTeamPosition = await tx.team_positions.create({
+                data: {
+                  team_id: teamId,
+                  position_id: pos.positionId,
+                  count: pos.count ?? 0,
+                  recruit_status: pos.recruitStatus ?? "OPEN",
+                  status: true,
+                },
+              });
+              // 3. position_stacks에 스택 추가
+              if (pos.positionStacks && pos.positionStacks.length > 0) {
+                await tx.position_stacks.createMany({
+                  data: pos.positionStacks.map((stack) => ({
+                    team_position_id: createdTeamPosition.id,
+                    stack_id: stack.stackId,
+                  })),
+                });
+              }
+            }
+          }
+          console.log("===================toUpdate===================");
+          console.log("teamId", teamId);
+          console.log("incomingPositions", incomingPositions);
+          console.log("prevPositions", prevPositions);
+
+          const toUpdatePositionStacks = incomingPositions.filter(
+            (incoming) => {
+              const prev = prevPositions.find(
+                (p) => p.positionId === incoming.positionId,
+              );
+
+              if (!prev) return false;
+
+              // 포지션 아이디 별 로 스택 아이디 집합 비교
+              // stackId 집합이 달라졌는지 확인
+              const incomingStackIds = new Set(
+                incoming.positionStacks.map((s) => s.stackId),
+              );
+              const prevStackIds = new Set(
+                prev.positionStacks.map((s) => s.stackId),
+              );
+              const stackChanged =
+                incomingStackIds.size !== prevStackIds.size ||
+                [...incomingStackIds].some((id) => !prevStackIds.has(id)) ||
+                [...prevStackIds].some((id) => !incomingStackIds.has(id)) ||
+                incoming.count !== prev.count ||
+                incoming.recruitStatus !== prev.recruitStatus;
+
+              if (stackChanged) {
+                return true;
+              }
+            },
+          );
+
+          if (toUpdatePositionStacks.length > 0) {
+            for (const pos of toUpdatePositionStacks) {
+              await this.updateTeamPositions(teamId, [pos], tx);
+            }
+          }
+        }
+
+        await tx.teams.update({
+          where: { id: teamId },
           data: {
-            id: teamId,
-            title: title || team.title,
-            content: content || team.content,
-            is_public: isPublic !== undefined ? isPublic : team.is_public,
-            recruit_status: recruitStatus || team.recruit_status,
-            proceed_type: (proceedType as any) || team.proceed_type,
-            img: imgUrl || team.img,
-            end_date: endDate ? new Date(endDate) : team.end_date,
+            title: title,
+            content: content,
+            is_public: isPublic,
+            recruit_status: recruitStatus,
+            proceed_type: proceedType,
+            img: imgUrl,
+            end_date: endDate
+              ? endDate
+              : new Date(new Date().setHours(23, 59, 59, 999)),
             updated_at: new Date(),
           },
-          include: {
-            team_positions: {
-              include: {
-                positions: true,
-                position_stacks: {
-                  include: {
-                    stacks: true,
-                  },
-                },
-                team_users: {
-                  include: {
-                    users: true,
-                  },
-                },
-              },
-            },
-          },
         });
-        if (!updatedTeam) {
-          throw new NotFoundException({ NOTFOUND_TEAM });
-        }
-        // 2. 기존 포지션 조회
-        const prevPositions = await tx.team_positions.findMany({
-          where: { team_id: teamId },
-          include: {
-            position_stacks: true,
-            team_users: true,
-          },
-        });
-
-        const incomingPositionIds = positions?.map((p) => p.positionId) || [];
-
-        // 3. 삭제할 포지션 처리
-        const toDelete = prevPositions.filter(
-          (pos) => !incomingPositionIds.includes(pos.position_id),
-        );
-        for (const pos of toDelete) {
-          // 먼저 관련 team_users 삭제
-          await tx.team_users.deleteMany({
-            where: { team_position_id: pos.id },
-          });
-          // 관련 position_stacks 삭제
-          await tx.position_stacks.deleteMany({
-            where: { team_position_id: pos.id },
-          });
-          // 그 후 team_positions 삭제
-          await tx.team_positions.delete({
-            where: { id: pos.id },
-          });
-        }
-
-        // 4. 추가/업데이트 포지션 처리
-        for (const pos of positions || []) {
-          const teamPositionId = pos.positionId;
-          let dbPosition = prevPositions.find(
-            (p) => p.position_id === teamPositionId,
-          );
-          if (dbPosition) {
-            // 업데이트
-            await tx.team_positions.update({
-              where: { id: dbPosition.id },
-              data: {
-                count: pos.count || dbPosition.count,
-                recruit_status: pos.recruitStatus || dbPosition.recruit_status,
-                updated_at: new Date(),
-              },
-            });
-          } else {
-            // 추가
-            const created = await tx.team_positions.create({
-              data: {
-                id: teamPositionId,
-                team_id: teamId,
-                position_id: pos.positionId,
-                count: pos.count || 0,
-                recruit_status: pos.recruitStatus || "OPEN",
-                status: true,
-              },
-            });
-            if (!created) {
-              throw new Error("Failed to create team position");
-            }
-            const dbPositionData = await tx.team_positions.findUnique({
-              where: { id: created.id },
-              include: {
-                positions: true,
-                position_stacks: true,
-                team_users: {
-                  include: {
-                    users: true,
-                  },
-                },
-              },
-            });
-            if (!dbPositionData) {
-              throw new Error("Failed to fetch full team position data");
-            }
-            dbPosition = dbPositionData;
-          }
-
-          // 5. 포지션별 스택 동기화
-          const prevStackIds =
-            dbPosition?.position_stacks.map((s) => s.stack_id) || [];
-          const incomingStackIds =
-            pos.positionStacks?.map((s) => s.stackId) || [];
-          const toAdd = incomingStackIds.filter(
-            (id) => !prevStackIds.includes(id),
-          );
-          const toRemove = prevStackIds.filter(
-            (id) => !incomingStackIds.includes(id),
-          );
-          if (toAdd.length > 0) {
-            await tx.position_stacks.createMany({
-              data: toAdd.map((stack_id) => ({
-                team_position_id: teamPositionId,
-                stack_id: stack_id,
-              })),
-            });
-          }
-          if (toRemove.length > 0) {
-            await tx.position_stacks.deleteMany({
-              where: {
-                team_position_id: teamPositionId,
-                stack_id: { in: toRemove },
-              },
-            });
-          }
-
-          // 6. 포지션별 유저 동기화
-          const prevUsers = dbPosition?.team_users || [];
-          const incomingUsers = pos.users || [];
-          const prevUserIds = prevUsers.map((u) => u.user_id);
-          const incomingUserIds = incomingUsers.map((u) => u.userId);
-          // 추가
-          for (const user of incomingUsers) {
-            if (!prevUserIds.includes(user.userId)) {
-              await tx.team_users.create({
-                data: {
-                  user_id: user.userId,
-                  team_position_id: teamPositionId,
-                  is_owner: user.isOwner || false,
-                  member_status:
-                    (user.memberStatus as member_status) || "ON_BOARD",
-                },
-              });
-            } else {
-              // 업데이트
-              await tx.team_users.update({
-                where: {
-                  user_id_team_position_id: {
-                    user_id: user.userId,
-                    team_position_id: teamPositionId,
-                  },
-                },
-                data: {
-                  is_owner: user.isOwner || false,
-                  member_status:
-                    (user.memberStatus as member_status) || "ON_BOARD",
-                  updated_at: new Date(),
-                },
-              });
-            }
-          }
-          // 삭제
-          for (const prevUser of prevUsers) {
-            if (!incomingUserIds.includes(prevUser.user_id)) {
-              await tx.team_users.delete({
-                where: {
-                  user_id_team_position_id: {
-                    user_id: prevUser.user_id,
-                    team_position_id: teamPositionId,
-                  },
-                },
-              });
-            }
-          }
-        }
-        // 업데이트된 팀 정보 조회
-        const updatedTeamData = await tx.teams.findUnique({
-          where: { id: teamId },
-          include: {
-            team_positions: {
-              include: {
-                positions: true,
-                position_stacks: {
-                  include: {
-                    stacks: true,
-                  },
-                },
-                team_users: {
-                  include: {
-                    users: true,
-                  },
-                },
-              },
-            },
-          },
-        });
-        if (!updatedTeamData) {
-          throw new NotFoundException({ NOTFOUND_TEAM });
-        }
-        // 매핑 후 DTO로 감싸서 반환
-        return teamMapper(updatedTeamData) as unknown as GetTeamResDto;
+        return this.getTeamByUserId(userId, tx);
       },
     );
   }
 
-  async addTeamMember(
-    teamPositionId: string,
-    newMemberId: string,
-  ): Promise<{ message: string }> {
-    console.log(teamPositionId, newMemberId);
-    await this.postgresService.$transaction(async (tx: PostgresService) => {
-      await this.createTeamMemberTransaction(
-        tx,
-        newMemberId,
-        teamPositionId,
-        false,
-        "ON_BOARD",
-      );
-      await this.usersService.updateJoinStatusByUuid(newMemberId, true, tx);
-      await tx.team_users.create({
-        data: {
-          user_id: newMemberId,
-          team_position_id: teamPositionId,
-          is_owner: false,
-          member_status: "ON_BOARD",
+  async getTeamMembers(userId: string) {
+    const teamPositionId = await this.getTeamPositionIdByUserId(userId);
+    const teamMembers = await this.postgresService.team_positions.findMany({
+      where: {
+        id: teamPositionId,
+      },
+      select: {
+        id: true,
+        positions: {
+          select: {
+            id: true,
+            name: true,
+          },
         },
-      });
+        team_users: {
+          where: {
+            users: {
+              join_status: true,
+            },
+          },
+          select: {
+            user_id: true,
+          },
+          include: {
+            users: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                img_id: true,
+                img_url: true,
+                github_id: true,
+                position_id: true,
+              },
+            },
+          },
+        },
+      },
     });
-    return { message: "팀 멤버가 추가되었습니다." };
+
+    console.log("teamMembers", teamMembers);
+
+    return teamMembers;
   }
 
-  async deleteTeamMember(
-    memberId: string,
-  ): Promise<{ user_id: string; team_position_id: string }> {
+  async deleteTeamMember(userId: string, memberId: string) {
     const deleteMemberTransaction = await this.postgresService.$transaction(
       async (tx: PostgresService) => {
-        await this.usersService.updateJoinStatusByUuid(memberId, false, tx);
-
-        const teamPositionId = await this.getTeamPositionIdByUserId(memberId);
-        const deleteMember = await tx.team_users.delete({
+        const deletingMember = await tx.team_users.findFirst({
           where: {
-            user_id_team_position_id: {
-              user_id: memberId,
-              team_position_id: teamPositionId,
+            user_id: memberId,
+          },
+          select: {
+            team_position_id: true,
+            users: {
+              select: {
+                id: true,
+              },
             },
           },
         });
-        return deleteMember;
+
+        if (!deletingMember) {
+          throw new NotFoundException({ NOTFOUND_TEAM });
+        }
+
+        const deletedResult = await tx.team_users.delete({
+          where: {
+            user_id_team_position_id: {
+              user_id: memberId,
+              team_position_id: deletingMember.team_position_id,
+            },
+          },
+        });
+
+        console.log("deletedResult", deletedResult);
+
+        await this.usersService.updateJoinStatusByUuid(memberId, false, tx);
+
+        return deletedResult;
       },
     );
     return deleteMemberTransaction;
   }
 
-  async getTeamPositionIds(teamId: string) {
-    const positions = await this.postgresService.team_positions.findMany({
-      where: {
-        team_id: teamId,
-      },
-      select: {
-        id: true,
-      },
-    });
-    if (!positions) {
-      throw new NotFoundException({ NOTFOUND_POSITION });
-    }
-    return positions.map((pos) => pos.id);
-  }
-
-  async getTeamPositionIdByUserId(userId: string) {
-    const result = await this.postgresService.team_users.findFirst({
+  async getTeamPositionIdByUserId(
+    userId: string,
+    tx?: PostgresService | TxClient,
+  ) {
+    const result = await (tx || this.postgresService).team_users.findFirst({
       where: {
         user_id: userId,
       },
@@ -708,42 +543,373 @@ export class TeamsService {
     return result.team_position_id;
   }
 
-  async getTeamIdByUserId(userId: string) {
-    const team = await this.postgresService.teams.findFirst({
-      where: {
-        user_id: userId,
+  async addTeamMember(
+    teamPositionId: string,
+    newMemberId: string,
+  ): Promise<{ message: string }> {
+    await this.postgresService.$transaction(async (tx: PostgresService) => {
+      await tx.team_users.create({
+        data: {
+          user_id: newMemberId,
+          team_position_id: teamPositionId,
+          is_owner: false,
+          member_status: "ON_BOARD",
+        },
+      });
+      await this.usersService.updateJoinStatusByUuid(newMemberId, true, tx);
+    });
+    return { message: "A new member has been added to the team." };
+  }
+
+  async createTeamUsers(
+    teamPositionId: string,
+    newMemberIds: string[],
+    tx?: PostgresService | TxClient,
+  ) {
+    if (tx && !this.isPostgresService(tx)) {
+      await tx.team_users.createMany({
+        data: newMemberIds.map((id) => ({
+          user_id: id,
+          team_position_id: teamPositionId,
+          is_owner: false,
+          member_status: "ON_BOARD" as member_status,
+        })),
+      });
+      return;
+    }
+
+    await (tx || this.postgresService).$transaction(
+      async (tx: PostgresService) => {
+        await tx.team_users.createMany({
+          data: newMemberIds.map((id) => ({
+            user_id: id,
+            team_position_id: teamPositionId,
+            is_owner: false,
+            member_status: "ON_BOARD" as member_status,
+          })),
+        });
       },
+    );
+  }
+
+  async deleteTeamUsers(
+    teamPositionId: string,
+    userIds: string[],
+    tx?: PostgresService | TxClient,
+  ) {
+    if (tx && !this.isPostgresService(tx)) {
+      await tx.team_users.deleteMany({
+        where: { team_position_id: teamPositionId, user_id: { in: userIds } },
+      });
+      return;
+    }
+    await (tx || this.postgresService).$transaction(
+      async (tx: PostgresService) => {
+        await tx.team_users.deleteMany({
+          where: {
+            team_position_id: teamPositionId,
+            user_id: { in: userIds },
+          },
+        });
+      },
+    );
+  }
+
+  async createPositionStacks(
+    teamPositionId: string,
+    stackIds: string[],
+    tx?: PostgresService | TxClient,
+  ) {
+    if (tx && !this.isPostgresService(tx)) {
+      await tx.position_stacks.createMany({
+        data: stackIds.map((stackId) => ({
+          team_position_id: teamPositionId,
+          stack_id: stackId,
+        })),
+      });
+      return;
+    }
+
+    await (tx || this.postgresService).$transaction(
+      async (tx: PostgresService) => {
+        await tx.position_stacks.createMany({
+          data: stackIds.map((stackId) => ({
+            team_position_id: teamPositionId,
+            stack_id: stackId,
+          })),
+        });
+      },
+    );
+  }
+
+  async deletePositionStacks(
+    teamPositionId: string,
+    stackIds: string[],
+    tx?: PostgresService | TxClient,
+  ) {
+    if (tx && !this.isPostgresService(tx)) {
+      await tx.position_stacks.deleteMany({
+        where: {
+          team_position_id: teamPositionId,
+          stack_id: { in: stackIds },
+        },
+      });
+      return;
+    }
+
+    await (tx || this.postgresService).$transaction(
+      async (tx: PostgresService) => {
+        await tx.position_stacks.deleteMany({
+          where: {
+            team_position_id: teamPositionId,
+            stack_id: { in: stackIds },
+          },
+        });
+      },
+    );
+  }
+
+  async deleteTeamPositions(
+    teamId: string,
+    positionIds: string[],
+    tx?: PostgresService | TxClient,
+  ) {
+    if (tx && !this.isPostgresService(tx)) {
+      const teamPositionIds = await tx.team_positions.findMany({
+        where: { team_id: teamId, position_id: { in: positionIds } },
+        select: { id: true },
+      });
+
+      const mappedTeamPositionIds = teamPositionIds.map((tp) => tp.id);
+
+      await tx.position_stacks.deleteMany({
+        where: { team_position_id: { in: mappedTeamPositionIds } },
+      });
+      await tx.team_users.deleteMany({
+        where: { team_position_id: { in: mappedTeamPositionIds } },
+      });
+      await tx.team_positions.deleteMany({
+        where: { team_id: teamId, position_id: { in: positionIds } },
+      });
+      return;
+    }
+
+    await (tx ?? this.postgresService).$transaction(
+      async (tx: PostgresService) => {
+        const teamPositionIds = await tx.team_positions.findMany({
+          where: { team_id: teamId, position_id: { in: positionIds } },
+          select: { id: true },
+        });
+
+        const mappedTeamPositionIds = teamPositionIds.map((tp) => tp.id);
+        await tx.position_stacks.deleteMany({
+          where: { team_position_id: { in: mappedTeamPositionIds } },
+        });
+        await tx.team_users.deleteMany({
+          where: { team_position_id: { in: mappedTeamPositionIds } },
+        });
+        await tx.team_positions.deleteMany({
+          where: { team_id: teamId, position_id: { in: positionIds } },
+        });
+      },
+    );
+  }
+
+  async createTeamPositions(
+    teamId: string,
+    teamPositions: TeamPositionDto[],
+    tx?: PostgresService | TxClient,
+  ) {
+    if (tx && !this.isPostgresService(tx)) {
+      if (teamPositions.length === 0) {
+        return;
+      }
+      await tx.team_positions.createMany({
+        data: teamPositions.map((position) => ({
+          team_id: teamId,
+          position_id: position.positionId,
+          count: position.count,
+          recruit_status: position.recruitStatus,
+          status: true,
+        })),
+      });
+
+      let stackIds: string[] = [];
+
+      for (const teamPosition of teamPositions) {
+        let prevStackId: string | null = null;
+
+        for (const stack of teamPosition.positionStacks) {
+          if (prevStackId !== stack.stackId) {
+            await this.createPositionStacks(
+              teamPosition.positionId,
+              stackIds,
+              tx,
+            );
+            stackIds = [];
+          }
+          prevStackId = stack.stackId;
+        }
+      }
+      return;
+    }
+
+    await (tx ?? this.postgresService).$transaction(
+      async (tx: PostgresService) => {
+        if (teamPositions.length === 0) {
+          return;
+        }
+        await tx.team_positions.createMany({
+          data: teamPositions.map((position) => ({
+            team_id: teamId,
+            position_id: position.positionId,
+            count: position.count,
+            recruit_status: position.recruitStatus,
+            status: true,
+          })),
+        });
+
+        let stackIds: string[] = [];
+
+        for (const teamPosition of teamPositions) {
+          let prevStackId: string | null = null;
+
+          for (const stack of teamPosition.positionStacks) {
+            if (prevStackId !== stack.stackId) {
+              await this.createPositionStacks(
+                teamPosition.positionId,
+                stackIds,
+                tx,
+              );
+              stackIds = [];
+            }
+            prevStackId = stack.stackId;
+          }
+        }
+
+        return;
+      },
+    );
+  }
+
+  async updateTeamPositions(
+    teamId: string,
+    positions: TeamPositionDto[],
+    tx?: PostgresService | TxClient,
+  ) {
+    if (tx && !this.isPostgresService(tx)) {
+      // 이미 트랜잭션 중이므로 그냥 진행
+      await this._updateTeamPositions(teamId, positions, tx);
+      return;
+    }
+
+    await (tx ?? this.postgresService).$transaction(async (trx) => {
+      await this._updateTeamPositions(teamId, positions, trx);
+    });
+  }
+
+  async getTeamPositionStacks(
+    teamPositionIds: string[],
+    tx?: PostgresService | TxClient,
+  ) {
+    if (tx && !this.isPostgresService(tx)) {
+      return await this._getTeamPositionStacks(teamPositionIds, tx);
+    }
+
+    return await (tx ?? this.postgresService).$transaction(
+      async (trx: TxClient) =>
+        this._getTeamPositionStacks(teamPositionIds, trx),
+    );
+  }
+
+  private async _updateTeamPositions(
+    teamId: string,
+    positions: TeamPositionDto[],
+    tx: TxClient,
+  ) {
+    const positionIdToTeamPositionIds = await tx.team_positions.findMany({
+      where: {
+        team_id: teamId,
+        position_id: { in: positions.map((p) => p.positionId) },
+      },
+      select: { id: true, position_id: true },
+    });
+    if (positionIdToTeamPositionIds.length !== positions.length) {
+      throw new NotFoundException("Team position not found");
+    }
+
+    const newTeamPositionsStacks = positions.map((p) => {
+      const teamPositionId = positionIdToTeamPositionIds.find(
+        (tp) => tp.position_id === p.positionId,
+      )?.id;
+      if (!teamPositionId) {
+        throw new NotFoundException("Team position not found");
+      }
+      return {
+        teamPositionId,
+        positionStacks: p.positionStacks,
+        count: p.count,
+        recruitStatus: p.recruitStatus,
+      };
+    });
+
+    const prevTeamPositionsStacks = await this.getTeamPositionStacks(
+      newTeamPositionsStacks.map((p) => p.teamPositionId),
+      tx,
+    );
+    // 서로 가지고 있는 teamPositionId 값이 같으므로, 각 경우마다 stackId 집합 비교
+    for (const newTeamPositionStacks of newTeamPositionsStacks) {
+      const { teamPositionId, positionStacks, count, recruitStatus } =
+        newTeamPositionStacks;
+
+      const oldStackIds = prevTeamPositionsStacks
+        .filter((p) => p.teamPositionId === teamPositionId)
+        .flatMap((p) => p.positionStacks.map((s) => s.stackId));
+
+      const newStackIds = positionStacks.map((s) => s.stackId);
+
+      const stacksToAdd = newStackIds.filter((id) => !oldStackIds.includes(id));
+      const stacksToRemove = oldStackIds.filter(
+        (id) => !newStackIds.includes(id),
+      );
+
+      if (stacksToAdd.length) {
+        await this.createPositionStacks(teamPositionId, stacksToAdd, tx);
+      }
+      if (stacksToRemove.length) {
+        await this.deletePositionStacks(teamPositionId, stacksToRemove, tx);
+      }
+      await tx.team_positions.update({
+        where: { id: teamPositionId },
+        data: {
+          count: count,
+          recruit_status: recruitStatus,
+        },
+      });
+    }
+  }
+
+  async _getTeamPositionStacks(teamPositionIds: string[], tx: TxClient) {
+    const teamPositions = await tx.position_stacks.findMany({
+      where: { team_position_id: { in: teamPositionIds } },
       select: {
-        id: true,
-      },
-    });
-    if (!team) {
-      throw new NotFoundException({ NOTFOUND_TEAM });
-    }
-    return team.id;
-  }
-
-  async getTeamOwnerIdByTeamId(teamId: string) {
-    const teamInfo = await this.postgresService.teams.findFirst({
-      where: {
-        id: teamId,
-      },
-    });
-    if (!teamInfo) {
-      throw new NotFoundException({ NOTFOUND_TEAM });
-    }
-    return teamInfo.user_id;
-  }
-
-  async getTeamMembers(teamId: string) {
-    const teamPositionIds = await this.getTeamPositionIds(teamId);
-    const teamMembers = await this.postgresService.team_users.findMany({
-      where: {
-        team_position_id: {
-          in: teamPositionIds,
+        stack_id: true,
+        team_position_id: true,
+        stacks: {
+          select: {
+            id: true,
+          },
         },
       },
     });
-    return teamMembers;
+
+    return teamPositions.map((tp) => ({
+      teamPositionId: tp.team_position_id,
+      positionStacks: [
+        {
+          stackId: tp.stacks.id,
+        },
+      ],
+    }));
   }
 }

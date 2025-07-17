@@ -118,5 +118,9 @@ export class CreateUserReqDto extends OmitType(User, [
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  userStacks?: string[];
+  userStacks?: {
+    stackId: string;
+    stackName: string;
+    stackImg: string;
+  }[];
 }

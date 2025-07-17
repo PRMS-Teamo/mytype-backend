@@ -19,23 +19,45 @@ export class AppliesService {
     upsertApplyDto: UpsertApplyRequestDto,
     userId: string,
     action: action,
-    positionId: string,
-    ownerId?: string,
+    positionId?: string,
+    applyId?: string,
   ) {
     try {
       let result: any;
       if (action === "INVITE") {
+        const ownerId = applyId;
         const ownersTeam = await this.postgresService.teams.findFirst({
           where: { user_id: ownerId },
+          select: {
+            id: true,
+          },
         });
         if (!ownersTeam) {
           throw new Error("팀을 생성하신 경우에만 초대가 가능합니다.");
         }
+        const teamId = ownersTeam.id;
+
+        const teamPosition =
+          await this.postgresService.team_positions.findFirst({
+            where: {
+              team_id: teamId,
+              positions: {
+                id: positionId,
+              },
+            },
+          });
+
+        if (!teamPosition) {
+          throw new Error("Team position not found");
+        }
+
+        const teamPositionId = teamPosition.id;
+
         result = await this.postgresService.apply_history.upsert({
           where: {
             user_id_team_position_id: {
               user_id: userId,
-              team_position_id: positionId,
+              team_position_id: teamPositionId,
             },
           },
           update: {
@@ -46,25 +68,40 @@ export class AppliesService {
           },
           create: {
             user_id: userId,
-            team_position_id: positionId,
+            team_position_id: teamPositionId,
             message: upsertApplyDto.message,
             apply_status: upsertApplyDto.applyStatus,
             action: action,
           },
         });
-      } else {
+      } else if (action === "APPLY") {
+        if (!positionId) {
+          throw new Error("Position ID is required");
+        }
+
+        const teamId = applyId;
         const teamPosition =
-          await this.postgresService.team_positions.findUnique({
-            where: { id: positionId },
+          await this.postgresService.team_positions.findFirst({
+            where: {
+              positions: {
+                id: positionId,
+              },
+              team_id: teamId,
+            },
+            select: {
+              id: true,
+            },
           });
+
         if (!teamPosition) {
           throw new Error("Team position not found");
         }
+        const teamPositionId = teamPosition.id;
         result = await this.postgresService.apply_history.upsert({
           where: {
             user_id_team_position_id: {
               user_id: userId,
-              team_position_id: positionId,
+              team_position_id: teamPositionId,
             },
           },
           update: {
@@ -75,12 +112,14 @@ export class AppliesService {
           },
           create: {
             user_id: userId,
-            team_position_id: positionId,
+            team_position_id: teamPositionId,
             message: upsertApplyDto.message,
             apply_status: upsertApplyDto.applyStatus || "SUBMITTED",
             action: action,
           },
         });
+      } else {
+        throw new Error("Invalid action");
       }
 
       this.logger.log(

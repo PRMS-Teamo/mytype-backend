@@ -4,6 +4,7 @@ import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
+  GetObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { v4 as uuidv4 } from "uuid";
@@ -115,11 +116,30 @@ export class S3Service {
   }
 
   /**
-   * 파일 키로부터 S3 URL을 생성합니다.
+   * 파일 키로부터 S3 Presigned URL을 생성합니다.
    * @param key 파일 키
-   * @returns S3 URL
+   * @returns S3 Presigned URL
    */
-  getFileUrl(key: string): string {
-    return `https://${this.bucketName}.s3.${this.region}.amazonaws.com/${key}`;
+  async getFileUrl(key: string, expiresInSec = 900): Promise<string | null> {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+      });
+
+      // Presigned URL 생성
+      const presignedUrl = await getSignedUrl(this.s3Client, command, {
+        expiresIn: expiresInSec, // 기본 15분
+      });
+
+      this.logger.log(`Generated presigned URL for file: ${key}`);
+      return presignedUrl;
+    } catch (error) {
+      this.logger.error(
+        `Failed to generate presigned URL for file: ${key}`,
+        error,
+      );
+      return null;
+    }
   }
 }
