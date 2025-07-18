@@ -53,15 +53,33 @@ export class UnifiedTeamDto {
   @ApiProperty()
   content: string;
   @ApiProperty()
-  isPublic: boolean;
+  isPublic?: boolean;
   @ApiProperty()
-  recruitStatus: recruit_status;
+  recruitStatus?: recruit_status;
   @ApiProperty()
-  proceedType: proceed_type;
+  proceedType?: proceed_type;
   @ApiProperty()
-  imgUrl: string;
+  startDate?: Date;
   @ApiProperty()
-  endDate: Date;
+  startTime?: Date;
+  @ApiProperty()
+  endTime?: Date;
+  @ApiProperty()
+  imgId?: string;
+  @ApiProperty()
+  endDate?: Date;
+  @ApiProperty()
+  location?: string;
+  @ApiProperty()
+  meetingLocation?: string;
+  @ApiProperty()
+  meetingLink?: string;
+  @ApiProperty()
+  bumpedAt?: Date;
+  @ApiProperty()
+  createdAt?: Date;
+  @ApiProperty()
+  updatedAt?: Date;
   @ApiProperty({ type: [TeamPositionDto] })
   positions: TeamPositionDto[];
 }

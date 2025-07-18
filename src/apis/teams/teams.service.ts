@@ -194,9 +194,15 @@ export class TeamsService {
             isPublic,
             recruitStatus,
             proceedType,
-            imgUrl,
+            imgId,
+            meetingLocation,
+            meetingLink,
             positions,
             endDate,
+            location,
+            startDate,
+            startTime,
+            endTime,
           } = team;
 
           const createdTeam = await tx.teams.create({
@@ -204,11 +210,17 @@ export class TeamsService {
               user_id: userId,
               title,
               content,
-              is_public: isPublic,
-              recruit_status: recruitStatus,
-              proceed_type: proceedType,
-              img: imgUrl,
+              is_public: isPublic ?? false,
+              recruit_status: recruitStatus ?? "OPEN",
+              proceed_type: proceedType ?? "ONLINE",
+              img: imgId ?? undefined,
               end_date: endDate ? new Date(endDate) : undefined,
+              location: location ? location : undefined,
+              start_date: startDate ? new Date(startDate) : undefined,
+              start_time: startTime ? new Date(startTime) : undefined,
+              end_time: endTime ? new Date(endTime) : undefined,
+              meeting_location: meetingLocation ? meetingLocation : undefined,
+              meeting_link: meetingLink ? meetingLink : undefined,
             },
           });
           console.log("createdTeam", createdTeam);
@@ -304,7 +316,7 @@ export class TeamsService {
       isPublic,
       recruitStatus,
       proceedType,
-      imgUrl,
+      imgId,
       endDate,
       positions,
     } = updateTeamDto;
@@ -327,7 +339,7 @@ export class TeamsService {
         console.log("isPublic", isPublic);
         console.log("recruitStatus", recruitStatus);
         console.log("proceedType", proceedType);
-        console.log("imgUrl", imgUrl);
+        console.log("imgId", imgId);
         console.log("endDate", endDate);
 
         let incomingPositions: TeamPositionDto[] = [];
@@ -436,7 +448,7 @@ export class TeamsService {
             is_public: isPublic,
             recruit_status: recruitStatus,
             proceed_type: proceedType,
-            img: imgUrl,
+            img: imgId,
             end_date: endDate
               ? endDate
               : new Date(new Date().setHours(23, 59, 59, 999)),
