@@ -63,7 +63,7 @@ export class TeamsService {
       const mappedTeam = teamMapper(team);
       const allStacks = new Map<
         string,
-        { id: string; name: string | null; imgUrl: string }
+        { stackId: string; stackName: string | null; stackImg: string }
       >();
 
       team.team_positions.forEach((teamPosition) => {
@@ -71,9 +71,9 @@ export class TeamsService {
           const stack = positionStack.stacks;
           if (stack && !allStacks.has(stack.id)) {
             allStacks.set(stack.id, {
-              id: stack.id,
-              name: stack.name,
-              imgUrl: stack.img_url,
+              stackId: stack.id,
+              stackName: stack.name,
+              stackImg: stack.img_url,
             });
           }
         });
