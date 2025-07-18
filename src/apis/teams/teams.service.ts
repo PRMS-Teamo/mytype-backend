@@ -449,38 +449,53 @@ export class TeamsService {
   }
 
   async getTeamMembers(userId: string) {
-    const teamPositionId = await this.getTeamPositionIdByUserId(userId);
-    const teamMembers = await this.postgresService.team_positions.findMany({
+    const findTeamId = await this.postgresService.team_users.findFirst({
       where: {
-        id: teamPositionId,
+        user_id: userId,
       },
       select: {
-        id: true,
-        positions: {
+        team_position_id: true,
+        team_positions: {
           select: {
-            id: true,
-            name: true,
+            team_id: true,
           },
         },
-        team_users: {
-          where: {
-            users: {
-              join_status: true,
-            },
-          },
+      },
+    });
+
+    const teamId = findTeamId?.team_positions.team_id;
+
+    if (!teamId) {
+      throw new NotFoundException({ NOTFOUND_TEAM });
+    }
+    const team = await this.postgresService.teams.findUnique({
+      where: { id: teamId },
+      select: {
+        id: true,
+        team_positions: {
           select: {
-            user_id: true,
-          },
-          include: {
-            users: {
+            id: true,
+            positions: { select: { id: true, name: true } },
+            team_users: {
               select: {
-                id: true,
-                name: true,
-                email: true,
-                img_id: true,
-                img_url: true,
-                github_id: true,
-                position_id: true,
+                users: {
+                  select: {
+                    id: true,
+                    name: true,
+                    img_id: true,
+                  },
+                },
+              },
+            },
+            position_stacks: {
+              select: {
+                stacks: {
+                  select: {
+                    id: true,
+                    name: true,
+                    img_url: true,
+                  },
+                },
               },
             },
           },
@@ -488,9 +503,29 @@ export class TeamsService {
       },
     });
 
-    console.log("teamMembers", teamMembers);
+    if (!team) {
+      throw new NotFoundException({ NOTFOUND_TEAM });
+    }
 
-    return teamMembers;
+    // 원하는 형태로 가공
+    const result = {
+      [team.id]: team.team_positions.map((pos) => ({
+        positionId: pos.positions.id,
+        positionName: pos.positions.name,
+        users: pos.team_users.map((tu) => ({
+          userId: tu.users.id,
+          userName: tu.users.name,
+          imgId: tu.users.img_id,
+        })),
+        stacks: pos.position_stacks.map((ps) => ({
+          stackId: ps.stacks.id,
+          stackName: ps.stacks.name,
+          stackImg: ps.stacks.img_url,
+        })),
+      })),
+    };
+
+    return result;
   }
 
   async finishTeam(userId: string) {

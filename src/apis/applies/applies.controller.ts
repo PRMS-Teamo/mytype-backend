@@ -51,7 +51,7 @@ export class AppliesController {
   ) {
     const userId = user.id;
     const userJoinStatus = await this.usersService.getJoinStatusByUuid(userId);
-    if (!userJoinStatus) {
+    if (userJoinStatus) {
       throw new UnauthorizedException({ USER_JOINED });
     }
     const userInfoStatus = await this.usersService.checkNullInfo(userId);

@@ -429,7 +429,6 @@ export class UsersService {
     const requiredFields = [
       "nickname",
       "github_id",
-      "img_url",
       "address",
       "position_id",
       "description",
