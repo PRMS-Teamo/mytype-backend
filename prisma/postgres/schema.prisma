@@ -59,7 +59,7 @@ model team_positions {
   position_id     String            @db.Uuid
   recruit_status  recruit_status?   @default(OPEN)
   count           Int?              @default(1)
-  status          Boolean
+  status          Boolean?          @default(true)
   created_at      DateTime?         @default(now()) @db.Timestamp(6)
   updated_at      DateTime?         @updatedAt @db.Timestamp(6) @default(now())
   teams           teams             @relation(fields: [team_id], references: [id])
@@ -139,7 +139,7 @@ model users {
   hashed_refresh_token                 String?             @db.VarChar(200)
   github_id         String?             @db.VarChar(200)
   img_id            String?             @db.Uuid
-  img_url           String?             @db.VarChar(200)
+  img_url           String?             @db.VarChar(500)
   address           String?             @db.VarChar(100)
   beginner          Boolean?            @default(false)
   join_status       Boolean?

@@ -14,6 +14,7 @@ export class UpdateUserResDto extends PickType(User, [
   "location",
   "isPublic",
   "positionId",
+  "role",
   "description",
   "proceedType",
   "name",

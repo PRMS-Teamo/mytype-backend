@@ -28,6 +28,21 @@ export class ImagesService {
     return await this.s3Service.getFileUrl(image.url);
   }
 
+  async findDefaultImage() {
+    const defaultImage = await this.postgresService.images.findFirst({
+      where: {
+        url: "images/profileImages/wink.png",
+      },
+      select: {
+        url: true,
+      },
+    });
+    if (!defaultImage) {
+      throw new NotFoundException("기본 이미지가 존재하지 않습니다.");
+    }
+    return await this.s3Service.getFileUrl(defaultImage.url);
+  }
+
   async findAll() {
     const urls: { id: string; url: string }[] =
       await this.postgresService.images.findMany({

@@ -129,6 +129,7 @@ export class UsersController {
     const end = start + limitNum;
 
     const users = await this.usersService.findUsers(start, end);
+    console.log("🔍 users:", users);
     const usersDto = users.map((user) => new GetUsersResDto(user));
 
     return new GetUsersResponseDto(usersDto);

@@ -54,7 +54,7 @@ export class GetUserResDto {
     description: "프로필 이미지 URL",
     required: false,
   })
-  profileImage?: string;
+  profileImage?: string | null;
 
   @ApiProperty({
     example: "서울특별시 강남구",
@@ -129,7 +129,12 @@ export class GetUserResDto {
     description: "사용자 스택 정보 배열 (상세 정보 포함)",
     required: false,
   })
-  userStacks?: UserStack[];
+  @ApiProperty({
+    example: "38bf2516-7ee3-40f4-b390-7075e55baf8e",
+    description: "포지션 ID",
+    required: false,
+  })
+  positionName?: string;
 
   @ApiProperty({
     example: "2024-01-15T10:30:00Z",
@@ -152,6 +157,14 @@ export class GetUserResDto {
   })
   beginner?: boolean;
 
+  userStacks?:
+    | Array<{
+        stackId: string;
+        stackName: string | null;
+        stackImg: string | null;
+      }>
+    | [];
+
   constructor(user: User) {
     this.id = user.id;
     this.nickname = user.nickname;
@@ -163,13 +176,22 @@ export class GetUserResDto {
     this.isJoined = user.isJoined;
     this.isPublic = user.isPublic;
     this.positionId = user.positionId;
+    this.role = user.role;
+    this.name = user.name;
+    this.createdAt = user.createdAt;
+    this.updatedAt = user.updatedAt;
+    this.beginner = user.beginner;
     this.description = user.description;
     this.proceedType = user.proceedType;
     this.role = user.role;
     this.name = user.name;
-    this.userStacks = []; // 기본값은 빈 배열, 실제 데이터는 서비스에서 설정
     this.createdAt = user.createdAt;
     this.updatedAt = user.updatedAt;
     this.beginner = user.beginner;
+    this.userStacks = user.userStacks as Array<{
+      stackId: string;
+      stackName: string | null;
+      stackImg: string | null;
+    }>;
   }
 }

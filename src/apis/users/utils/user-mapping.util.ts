@@ -2,6 +2,7 @@ import { AuthenticatedUser } from "@/apis/auth/types/authenticated-user.interfac
 import { User } from "../entities/user.entity";
 import { CreateUserReqDto } from "../dto/req/create-user.req.dto";
 import { UpdateUserReqDto } from "../dto/req/update-user.req.dto";
+import { GetUserResDto } from "../dto/res/get.user.res.dto";
 
 /**
  * AuthenticatedUser -> User 엔티티 변환
@@ -96,8 +97,15 @@ export function mapUpdateDtoToDbFormat(dto: UpdateUserReqDto) {
 
   // userStacks는 별도 처리를 위해 반환 객체에 포함
   const result = { ...mapped };
-  if (dto.userStacks !== undefined) {
-    (result as any).userStacks = dto.userStacks;
+  if (dto.userStacks && dto.userStacks.length > 0) {
+    if (typeof dto.userStacks[0] === "string") {
+      result.user_stacks = dto.userStacks as string[];
+    } else {
+      result.user_stacks = dto.userStacks.map(
+        (stack: { stackId: string; stackName: string; stackImg: string }) =>
+          stack.stackId,
+      );
+    }
   }
 
   return result;
@@ -148,6 +156,6 @@ export const USER_FIELD_MAPPING = {
   },
 } as const;
 
-export function mapDbFormatToGetDto(user: AuthenticatedUser) {
-  return new User(user);
+export function mapDbFormatToGetDto(user: GetUserResDto) {
+  return user;
 }

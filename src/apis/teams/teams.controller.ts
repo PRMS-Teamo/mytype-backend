@@ -72,6 +72,12 @@ export class TeamsController {
     return this.teamsService.patchTeam(userId, updateTeamDto);
   }
 
+  @Patch("complete")
+  @UseGuards(JwtAuthGuard)
+  async finishTeam(@User() user: AuthenticatedUser) {
+    const userId = user.id;
+    return this.teamsService.finishTeam(userId);
+  }
   @Get("me/members")
   @UseGuards(JwtAuthGuard)
   async getMembers(@User() user: AuthenticatedUser) {

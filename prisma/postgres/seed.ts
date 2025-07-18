@@ -420,6 +420,10 @@ async function main() {
         url: "images/profileImages/workout.png",
         content_type: "png",
       },
+      {
+        url: "images/profileImages/wink.png",
+        content_type: "png",
+      },
     ],
   });
 

@@ -15,7 +15,11 @@ export class GetUsersResDto extends PickType(User, [
   "description",
   "proceedType",
   "positionId",
+  "positionName",
+  "role",
+  "name",
   "beginner",
+  "userStacks",
 ] as const) {
   constructor(user: User) {
     super();

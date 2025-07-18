@@ -36,8 +36,8 @@ export interface AuthenticatedUser {
   user_stacks?:
     | Array<{
         stack_id: string;
-        stack_name: string | undefined;
-        stack_img: string | undefined;
+        stack_name: string | null;
+        stack_img: string | null;
       }>
     | [];
   /** 역할 */

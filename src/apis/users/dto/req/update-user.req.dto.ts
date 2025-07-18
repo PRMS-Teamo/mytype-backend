@@ -6,6 +6,7 @@ import {
   IsArray,
   IsEmail,
   IsEnum,
+  ValidateNested,
 } from "class-validator";
 import { User } from "../../entities/user.entity";
 
@@ -20,6 +21,7 @@ export class UpdateUserReqDto extends PartialType(
     "createdAt",
     "updatedAt",
     "role", // 역할은 관리자가 별도 관리
+    "userStacks", // userStacks는 별도로 정의
   ] as const),
 ) {
   @ApiProperty({
@@ -123,16 +125,22 @@ export class UpdateUserReqDto extends PartialType(
   name?: string;
 
   @ApiProperty({
-    example: ["newstack1-uuid", "newstack2-uuid"],
-    description: "사용자 스택 ID 배열",
+    example: [
+      { stackId: "newstack1-uuid", stackName: "React", stackImg: "react.png" },
+      "newstack2-uuid",
+    ],
+    description: "사용자 스택 정보 (객체 배열 또는 ID 문자열 배열)",
     required: false,
   })
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
-  userStacks?: {
-    stackId: string;
-    stackName: string;
-    stackImg: string;
-  }[];
+  @ValidateNested({ each: true })
+  userStacks?: (
+    | {
+        stackId: string;
+        stackName: string;
+        stackImg: string;
+      }
+    | string
+  )[];
 }

@@ -27,7 +27,10 @@ export class UsersService {
     private s3Service: S3Service,
     private imagesService: ImagesService,
   ) {}
-
+  async defaultProfileImage() {
+    const defaultProfileImage = await this.imagesService.findDefaultImage();
+    return defaultProfileImage;
+  }
   /**
    * 외부 ID로 사용자 조회 (소셜 로그인용)
    */
@@ -85,19 +88,32 @@ export class UsersService {
         name: true,
       },
     });
-
+    console.log("🔍 user:", JSON.stringify(user, null, 2));
     if (!user) {
       throw new NotFoundException("User not found");
     }
 
+    let positionName: string | undefined;
+    if (user.position_id) {
+      const position = await this.postgresService.positions.findUnique({
+        where: {
+          id: user.position_id,
+        },
+        select: {
+          name: true,
+        },
+      });
+      positionName = position?.name ?? undefined;
+    }
     // Prisma 결과를 AuthenticatedUser 형태로 변환
     const getUserResDto: GetUserResDto = {
       id: user.id,
       positionId: user.position_id ?? undefined,
+      positionName: positionName ?? undefined,
       nickname: user.nickname ?? undefined,
       github: user.github_id ?? undefined,
       imgId: user.img_id ?? undefined,
-      profileImage: user.img_url ?? undefined,
+      profileImage: user.img_url ?? null,
       location: user.address ?? undefined,
       isJoined: user.join_status ?? undefined,
       isPublic: user.is_public ?? undefined,
@@ -109,13 +125,20 @@ export class UsersService {
       userStacks:
         user.user_stacks?.map((stack) => ({
           stackId: stack.stacks.id,
-          stackName: stack.stacks.name,
-          stackImg: stack.stacks.img_url,
+          stackName: stack.stacks.name ?? "",
+          stackImg: stack.stacks.img_url ?? "",
         })) ?? [],
       createdAt: user.create_at?.toISOString(),
       updatedAt: user.updated_at?.toISOString(),
     };
-
+    console.log("🔍 getUserResDto:", getUserResDto.positionName);
+    if (!getUserResDto.imgId) {
+      getUserResDto.profileImage = await this.defaultProfileImage();
+    } else {
+      getUserResDto.profileImage = await this.imagesService.findImageByImageId(
+        getUserResDto.imgId,
+      );
+    }
     return getUserResDto;
   }
 
@@ -144,6 +167,17 @@ export class UsersService {
         proceed_type: true,
         role: true,
         name: true,
+        user_stacks: {
+          select: {
+            stacks: {
+              select: {
+                id: true,
+                name: true,
+                img_url: true,
+              },
+            },
+          },
+        },
         beginner: true,
         create_at: true,
         updated_at: true,
@@ -176,7 +210,12 @@ export class UsersService {
       role: user.role ?? undefined,
       name: user.name ?? undefined,
       beginner: user.beginner ?? undefined,
-      userStacks: [], // 목록 조회에서는 스택 정보 제외
+      userStacks:
+        user.user_stacks?.map((stack) => ({
+          stackId: stack.stacks.id,
+          stackName: stack.stacks.name ?? "",
+          stackImg: stack.stacks.img_url ?? "",
+        })) ?? [],
       createdAt: user.create_at?.toISOString(),
       updatedAt: user.updated_at?.toISOString(),
     }));
@@ -239,28 +278,80 @@ export class UsersService {
     userId: string,
     userInfo: UpdateUserReqDto,
   ): Promise<GetUserResDto> {
-    // 사용자 존재 확인
-    await this.findUserByUserId(userId);
-
-    const { userStacks, ...mappedData } = mapUpdateDtoToDbFormat(userInfo);
-
+    const { user_stacks, ...mappedData } = mapUpdateDtoToDbFormat(userInfo);
+    console.log("🔍 user_stacks:", user_stacks);
     await this.postgresService.$transaction(async (tx) => {
-      // 스택 정보 업데이트 (제공된 경우)
-      if (userStacks !== undefined) {
-        // 기존 스택 삭제
+      console.log("로직 진입!!!!!!!!!!!!!!");
+      if (user_stacks && user_stacks.length > 0) {
+        console.log("🔍 user_stacks:", user_stacks);
+        console.log("====================userInfo:", userInfo);
+        const newStackIds: string[] = user_stacks as string[];
+
+        console.log("🔍 newStackIds:", newStackIds);
+        const searchedStackIds = await tx.user_stacks.findMany({
+          where: {
+            user_id: userId,
+          },
+          select: {
+            stack_id: true,
+          },
+        });
+        console.log("🔍 searchedStackIds:", searchedStackIds);
+        if (!searchedStackIds || searchedStackIds.length === 0) {
+          await tx.user_stacks.createMany({
+            data: mapStackIdsToUserStacks(newStackIds, userId),
+          });
+          return;
+        } else {
+          const prevStackIds = searchedStackIds.map((stack) => stack.stack_id);
+
+          const stackIdsToDelete = prevStackIds.filter(
+            (id) => !newStackIds.includes(id),
+          );
+          if (stackIdsToDelete.length > 0) {
+            await tx.user_stacks.deleteMany({
+              where: {
+                user_id: userId,
+                stack_id: { in: stackIdsToDelete },
+              },
+            });
+          }
+
+          const stackIdsToAdd = newStackIds.filter(
+            (id) => !prevStackIds.includes(id),
+          );
+          console.log("🔍 stackIdsToAdd:", stackIdsToAdd);
+          if (stackIdsToAdd.length > 0) {
+            await tx.user_stacks.createMany({
+              data: mapStackIdsToUserStacks(stackIdsToAdd, userId),
+            });
+          }
+        }
+      } else {
+        console.log("🔍 user_stacks:", user_stacks);
+        console.log("🔍 mappedData:", mappedData);
+        console.log("====================userInfo:", userInfo);
         await tx.user_stacks.deleteMany({
           where: {
             user_id: userId,
           },
         });
-
-        // 새 스택 추가
-        if (userStacks.length > 0) {
-          await tx.user_stacks.createMany({
-            data: mapStackIdsToUserStacks(userStacks, userId),
-          });
-        }
       }
+      const userStacks = await tx.user_stacks.findMany({
+        where: {
+          user_id: userId,
+        },
+        select: {
+          stacks: {
+            select: {
+              id: true,
+              name: true,
+              img_url: true,
+            },
+          },
+        },
+      });
+      console.log("🔍 userStacks:", userStacks);
       console.log("🔍 mappedData:", mappedData);
       // 사용자 정보 업데이트 (스택 제외)
       if (Object.keys(mappedData).length > 0) {

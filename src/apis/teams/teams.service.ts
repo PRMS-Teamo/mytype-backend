@@ -261,6 +261,13 @@ export class TeamsService {
                   member_status: "ON_BOARD",
                 },
               });
+
+              await tx.users.update({
+                where: { id: userId },
+                data: {
+                  position_id: teamCreatorPosition.id,
+                },
+              });
             }
           }
           console.log("===================팀 생성 종료===============");
@@ -270,6 +277,7 @@ export class TeamsService {
             data: {
               join_status: true,
               is_public: false,
+              position_id: teamCreatorPosition.id,
             },
           });
           const result = await this.getTeamByUserId(userId, tx);
@@ -483,6 +491,91 @@ export class TeamsService {
     console.log("teamMembers", teamMembers);
 
     return teamMembers;
+  }
+
+  async finishTeam(userId: string) {
+    return await this.postgresService.$transaction(
+      async (tx: PostgresService) => {
+        if (!userId) {
+          throw new NotFoundException({ NOTFOUND_TEAM });
+        }
+        const team = await tx.teams.findFirst({
+          where: {
+            user_id: userId,
+          },
+          select: {
+            id: true,
+          },
+        });
+        if (!team?.id) {
+          throw new NotFoundException({ NOTFOUND_TEAM });
+        }
+        const teamId = team.id;
+        const teamPositions = await tx.team_positions.findMany({
+          where: {
+            team_id: teamId,
+          },
+          select: {
+            id: true,
+            team_users: {
+              where: {
+                users: {
+                  join_status: true,
+                },
+              },
+              select: {
+                user_id: true,
+                users: {
+                  select: {
+                    id: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+        if (teamPositions.length === 0) {
+          throw new NotFoundException({ NOTFOUND_POSITION });
+        }
+        for (const teamPosition of teamPositions) {
+          await tx.team_positions.update({
+            where: {
+              id: teamPosition.id,
+            },
+            data: {
+              status: false,
+              recruit_status: "CLOSE",
+            },
+          });
+          await tx.team_users.updateMany({
+            where: {
+              team_position_id: teamPosition.id,
+            },
+            data: {
+              member_status: "OFF_BOARD",
+            },
+          });
+          await tx.users.updateMany({
+            where: {
+              id: { in: teamPosition.team_users.map((user) => user.user_id) },
+            },
+            data: {
+              join_status: false,
+            },
+          });
+        }
+        await tx.teams.update({
+          where: {
+            id: teamId,
+          },
+          data: {
+            recruit_status: "CLOSE",
+          },
+        });
+
+        return { message: "팀 완료" };
+      },
+    );
   }
 
   async deleteTeamMember(userId: string, memberId: string) {
