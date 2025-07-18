@@ -210,7 +210,7 @@ export class TeamsService {
               user_id: userId,
               title,
               content,
-              is_public: isPublic ?? false,
+              is_public: isPublic ?? true,
               recruit_status: recruitStatus ?? "OPEN",
               proceed_type: proceedType ?? "ONLINE",
               img: imgId ?? undefined,
@@ -288,7 +288,7 @@ export class TeamsService {
             where: { id: userId },
             data: {
               join_status: true,
-              is_public: false,
+              is_public: true,
               position_id: teamCreatorPosition.id,
             },
           });
@@ -445,10 +445,10 @@ export class TeamsService {
           data: {
             title: title,
             content: content,
-            is_public: isPublic,
-            recruit_status: recruitStatus,
-            proceed_type: proceedType,
-            img: imgId,
+            is_public: isPublic ?? true,
+            recruit_status: recruitStatus ?? "OPEN",
+            proceed_type: proceedType ?? "ONLINE",
+            img: imgId ?? undefined,
             end_date: endDate
               ? endDate
               : new Date(new Date().setHours(23, 59, 59, 999)),
