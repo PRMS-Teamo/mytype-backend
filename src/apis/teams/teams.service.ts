@@ -277,21 +277,14 @@ export class TeamsService {
               await tx.users.update({
                 where: { id: userId },
                 data: {
-                  position_id: teamCreatorPosition.id,
+                  is_public: false,
+                  join_status: true,
                 },
               });
             }
           }
           console.log("===================팀 생성 종료===============");
 
-          await tx.users.update({
-            where: { id: userId },
-            data: {
-              join_status: true,
-              is_public: true,
-              position_id: teamCreatorPosition.id,
-            },
-          });
           const result = await this.getTeamByUserId(userId, tx);
           console.log("====================result\n", result);
           return result;
@@ -319,6 +312,11 @@ export class TeamsService {
       imgId,
       endDate,
       positions,
+      startDate,
+      startTime,
+      endTime,
+      meetingLocation,
+      meetingLink,
     } = updateTeamDto;
 
     return await this.postgresService.$transaction(
@@ -452,6 +450,11 @@ export class TeamsService {
             end_date: endDate
               ? endDate
               : new Date(new Date().setHours(23, 59, 59, 999)),
+            start_date: startDate ? new Date(startDate) : undefined,
+            start_time: startTime ? new Date(startTime) : undefined,
+            end_time: endTime ? new Date(endTime) : undefined,
+            meeting_location: meetingLocation ? meetingLocation : undefined,
+            meeting_link: meetingLink ? meetingLink : undefined,
             updated_at: new Date(),
           },
         });
