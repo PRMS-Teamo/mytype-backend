@@ -5,6 +5,7 @@ import { UpsertApplyResponseDto } from "./dto/upsert-apply.response.dto";
 import { plainToInstance } from "class-transformer";
 import { action, apply_status } from "@postgres-client";
 import { TeamsService } from "@/apis/teams/teams.service";
+import { mapApplyToResponseDto } from "./util/apply-mapper";
 
 @Injectable()
 export class AppliesService {
@@ -128,7 +129,7 @@ export class AppliesService {
       if (!result || !result.user_id || !result.team_position_id) {
         throw new Error("Apply record not found");
       }
-      return plainToInstance(UpsertApplyResponseDto, result);
+      return mapApplyToResponseDto(result);
     } catch (error) {
       this.logger.error(`Error in upsert apply: ${error.message}`, error.stack);
       throw error;
@@ -210,11 +211,19 @@ export class AppliesService {
     userId: string,
     teamPositionId: string,
     apply_status: apply_status,
+    ownerId: string,
   ) {
     try {
       this.logger.log(
         `Updating apply status for user ${userId} and team ${teamPositionId}`,
       );
+
+      let expectedAction: action;
+      if (ownerId === userId) {
+        expectedAction = "INVITE";
+      } else {
+        expectedAction = "APPLY";
+      }
 
       const appliedHistory = await this.postgresService.apply_history.findFirst(
         {
@@ -227,6 +236,9 @@ export class AppliesService {
 
       if (!appliedHistory) {
         throw new Error("Apply record not found");
+      }
+      if (appliedHistory.action !== expectedAction) {
+        throw new Error("잘못된 접근입니다.");
       }
 
       let result: any;
@@ -262,18 +274,25 @@ export class AppliesService {
           });
           break;
         case "CANCEL":
-          result = await this.postgresService.apply_history.update({
-            where: {
-              user_id_team_position_id: {
-                user_id: userId,
-                team_position_id: teamPositionId,
+          if (appliedHistory.apply_status === "SUBMITTED") {
+            result = await this.postgresService.apply_history.update({
+              where: {
+                user_id_team_position_id: {
+                  user_id: userId,
+                  team_position_id: teamPositionId,
+                },
               },
-            },
-            data: {
-              apply_status: apply_status,
-              updated_at: new Date(),
-            },
-          });
+              data: {
+                apply_status: apply_status,
+                updated_at: new Date(),
+              },
+            });
+          } else {
+            return {
+              message: "이미 지원/초대가 완료되어 취소할 수 없습니다.",
+            };
+          }
+
           break;
         default:
           throw new Error("Invalid apply status");
@@ -287,7 +306,7 @@ export class AppliesService {
         `Successfully updated apply record with status: ${result.apply_status}`,
       );
 
-      return plainToInstance(UpsertApplyResponseDto, result);
+      return mapApplyToResponseDto(result);
     } catch (error) {
       this.logger.error(`Error in update apply: ${error.message}`, error.stack);
       throw error;

@@ -180,6 +180,7 @@ export class TeamsService {
     const teamCheck = await this.postgresService.teams.findFirst({
       where: {
         user_id: userId,
+        recruit_status: "OPEN",
       },
     });
     if (teamCheck) {

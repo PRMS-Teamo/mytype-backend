@@ -19,6 +19,8 @@ import { BumpsModule } from "@/apis/bumps/bumps.module";
 import { SchedulerModule } from "@/infrastructure/scheduler/scheduler.module";
 import { FilesModule } from "@/infrastructure/storage/files/files.module";
 import { ImagesModule } from "@/apis/images/images.module";
+import { NotificationsModule } from './src/presentation/websockets/notifications/notifications.module';
+import { NotificationsModule } from './presentation/websockets/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -52,6 +54,7 @@ import { ImagesModule } from "@/apis/images/images.module";
     SchedulerModule,
     FilesModule,
     ImagesModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [

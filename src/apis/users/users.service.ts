@@ -424,25 +424,20 @@ export class UsersService {
    */
   async checkNullInfo(uuid: string): Promise<boolean> {
     const userInfo = await this.findUserByUserId(uuid);
-
-    // 필수 필드들이 모두 채워져 있는지 확인
-    const requiredFields = [
-      "nickname",
-      "github_id",
-      "address",
-      "position_id",
-      "description",
-    ];
-
-    const isValid = requiredFields.every((field) => {
-      const value = userInfo[field as keyof AuthenticatedUser];
-      return value !== null && value !== undefined && value !== "";
-    });
+    console.log("🔍 userInfo:", userInfo);
+    console.log(
+      `부족한 정보: 
+      \n 닉네임: ${userInfo.nickname}, 
+      \n 깃허브: ${userInfo.github}, 
+      \n 위치: ${userInfo.location}, 
+      \n 포지션: ${userInfo.positionId}, 
+      \n 자기소개: ${userInfo.description}`,
+    );
 
     // 스택도 하나 이상 있어야 함
     const hasStacks = Boolean(userInfo.userStacks?.length);
 
-    return isValid && hasStacks;
+    return hasStacks;
   }
 
   /**

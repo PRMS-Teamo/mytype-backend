@@ -67,6 +67,8 @@ export class UnifiedTeamDto {
   @ApiProperty()
   imgId?: string;
   @ApiProperty()
+  imgUrl?: string;
+  @ApiProperty()
   endDate?: Date;
   @ApiProperty()
   location?: string;

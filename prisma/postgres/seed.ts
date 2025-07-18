@@ -290,6 +290,72 @@ async function main() {
           "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/express/express-original.svg",
         category_id: categoryMap.Libraries,
       },
+      {
+        name: "Flask",
+        img_url:
+          "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/flask/flask-original.svg",
+        category_id: categoryMap.Libraries,
+      },
+      {
+        name: "Django",
+        img_url:
+          "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/django/django-original.svg",
+        category_id: categoryMap.Libraries,
+      },
+      {
+        name: "Flutter",
+        img_url:
+          "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/flutter/flutter-original.svg",
+        category_id: categoryMap.Libraries,
+      },
+      {
+        name: "Dart",
+        img_url:
+          "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/dart/dart-original.svg",
+        category_id: categoryMap.Libraries,
+      },
+      {
+        name: "Kotlin",
+        img_url:
+          "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/kotlin/kotlin-original.svg",
+        category_id: categoryMap.Languages,
+      },
+      {
+        name: "Swift",
+        img_url:
+          "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/swift/swift-original.svg",
+        category_id: categoryMap.Languages,
+      },
+      {
+        name: "Go",
+        img_url:
+          "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/go/go-original.svg",
+        category_id: categoryMap.Languages,
+      },
+      {
+        name: "Ruby",
+        img_url:
+          "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/ruby/ruby-original.svg",
+        category_id: categoryMap.Languages,
+      },
+      {
+        name: "PHP",
+        img_url:
+          "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/php/php-original.svg",
+        category_id: categoryMap.Languages,
+      },
+      {
+        name: "Rust",
+        img_url:
+          "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/rust/rust-original.svg",
+        category_id: categoryMap.Languages,
+      },
+      {
+        name: "Scala",
+        img_url:
+          "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/scala/scala-original.svg",
+        category_id: categoryMap.Languages,
+      },
     ],
   });
 

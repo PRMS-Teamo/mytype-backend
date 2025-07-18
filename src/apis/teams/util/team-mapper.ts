@@ -9,7 +9,8 @@ export function teamMapper(team: any): UnifiedTeamDto {
     isPublic: team.is_public,
     recruitStatus: team.recruit_status,
     proceedType: team.proceed_type,
-    imgUrl: team.img,
+    imgId: team.img_id,
+    imgUrl: team.img_url,
     endDate: team.end_date,
     positions: team.team_positions.map((tp) => ({
       positionStacks: tp.position_stacks.map((ps) => ({

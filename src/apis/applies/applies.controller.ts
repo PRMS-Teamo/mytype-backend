@@ -133,12 +133,14 @@ export class AppliesController {
     @Body() updateRequestDto: UpdateStatusDto,
     @Param("teamPositionId") teamPositionId: string,
     @Param("userId") userId: string,
+    @User() owner: AuthenticatedUser,
   ) {
     const { apply_status } = updateRequestDto;
     return this.appliesService.updateStatus(
       userId,
       teamPositionId,
       apply_status,
+      owner.id,
     );
   }
 }
