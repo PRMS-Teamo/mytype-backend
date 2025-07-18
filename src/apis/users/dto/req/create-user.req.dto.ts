@@ -3,7 +3,6 @@ import {
   IsString,
   IsBoolean,
   IsOptional,
-  IsArray,
   IsEmail,
   IsEnum,
 } from "class-validator";
@@ -109,18 +108,4 @@ export class CreateUserReqDto extends OmitType(User, [
   @IsOptional()
   @IsString()
   name?: string;
-
-  @ApiProperty({
-    example: ["stack1-uuid", "stack2-uuid"],
-    description: "사용자 스택 ID 배열",
-    required: false,
-  })
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  userStacks?: {
-    stackId: string;
-    stackName: string;
-    stackImg: string;
-  }[];
 }

@@ -18,7 +18,7 @@ export class User {
     this.isJoined = user.join_status ?? false; // join_status -> isJoined
     this.isPublic = user.is_public ?? false; // is_public -> isPublic
     this.positionId = user.position_id ?? undefined; // position_id -> positionId
-
+    this.positionName = user.position_name ?? undefined; // position_name -> positionName
     // 추가 속성들
     this.description = user.description ?? undefined;
     this.proceedType = user.proceed_type ?? "ONLINE"; // proceed_type -> proceedType
@@ -172,4 +172,11 @@ export class User {
     required: false,
   })
   beginner?: boolean;
+
+  @ApiProperty({
+    example: "풀스택 개발자",
+    description: "포지션 이름",
+    required: false,
+  })
+  positionName?: string;
 }
