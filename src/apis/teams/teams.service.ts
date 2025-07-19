@@ -731,6 +731,8 @@ export class TeamsService {
               member_status: "OFF_BOARD",
             },
           });
+
+          await this.usersService.updateJoinStatusByUuid(memberId, false, tx);
           return { message: "팀 멤버가 팀에서 제외되었습니다." };
         },
       );

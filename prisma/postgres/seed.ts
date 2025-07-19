@@ -95,7 +95,7 @@ async function main() {
       {
         name: "axios",
         img_url:
-          "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/axios/axios-original.svg",
+          "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/axios/axios-plain.svg",
         category_id: categoryMap.Libraries,
       },
       {
@@ -149,7 +149,7 @@ async function main() {
       {
         name: "Tailwind CSS",
         img_url:
-          "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/tailwindcss/tailwindcss-plain.svg",
+          "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/tailwindcss/tailwindcss-plain-wordmark.svg",
         category_id: categoryMap.Frameworks,
       },
       {
@@ -233,7 +233,7 @@ async function main() {
       {
         name: "AWS",
         img_url:
-          "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/amazonwebservices/amazonwebservices-original.svg",
+          "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/amazonwebservices/amazonwebservices-original-wordmark.svg",
         category_id: categoryMap.Tools,
       },
       {
@@ -257,7 +257,7 @@ async function main() {
       {
         name: "Jira",
         img_url:
-          "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/jira/jira-original.svg",
+          "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/jira/jira-original-wordmark.svg",
         category_id: categoryMap.Tools,
       },
       {
@@ -299,7 +299,7 @@ async function main() {
       {
         name: "Django",
         img_url:
-          "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/django/django-original.svg",
+          "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/django/django-plain-wordmark.svg",
         category_id: categoryMap.Libraries,
       },
       {
@@ -403,10 +403,6 @@ async function main() {
       },
       {
         url: "images/profileImages/halloween.png",
-        content_type: "png",
-      },
-      {
-        url: "images/profileImages/image 32.png",
         content_type: "png",
       },
       {
