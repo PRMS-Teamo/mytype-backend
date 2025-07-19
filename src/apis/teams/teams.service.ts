@@ -35,6 +35,8 @@ export class TeamsService {
         img: true,
         end_date: true,
         bumped_at: true,
+        created_at: true,
+        updated_at: true,
         team_positions: {
           select: {
             count: true,
@@ -49,6 +51,14 @@ export class TeamsService {
                     img_url: true,
                   },
                 },
+              },
+            },
+            team_users: {
+              where: {
+                member_status: "ON_BOARD",
+              },
+              select: {
+                user_id: true,
               },
             },
           },
@@ -80,10 +90,15 @@ export class TeamsService {
       });
 
       const uniqueStacks = Array.from(allStacks.values());
-      const { positions, ...rest } = mappedTeam;
-      console.log(positions);
+      const mappedTeamWithoutPositionStacks = {
+        ...mappedTeam,
+        positions: mappedTeam.positions.map((position) => ({
+          ...position,
+          positionStacks: [],
+        })),
+      };
       return {
-        ...rest,
+        ...mappedTeamWithoutPositionStacks,
         stacks: uniqueStacks,
       };
     });
