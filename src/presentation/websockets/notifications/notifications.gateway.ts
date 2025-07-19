@@ -1,34 +1,45 @@
-import { WebSocketGateway, SubscribeMessage, MessageBody } from '@nestjs/websockets';
-import { NotificationsService } from './notifications.service';
-import { CreateNotificationDto } from './dto/create-notification.dto';
-import { UpdateNotificationDto } from './dto/update-notification.dto';
+// src/presentation/websockets/notifications/notification.gateway.ts
+import {
+  WebSocketGateway,
+  WebSocketServer,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+} from "@nestjs/websockets";
+import { Server, Socket } from "socket.io";
 
-@WebSocketGateway()
-export class NotificationsGateway {
-  constructor(private readonly notificationsService: NotificationsService) {}
+@WebSocketGateway({ namespace: "/notifications", cors: true })
+export class NotificationsGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
+  @WebSocketServer()
+  server: Server;
 
-  @SubscribeMessage('createNotification')
-  create(@MessageBody() createNotificationDto: CreateNotificationDto) {
-    return this.notificationsService.create(createNotificationDto);
+  // 유저별 소켓ID 매핑 (간단 예시, 실제로는 Redis 등 외부 저장소 권장)
+  private userSocketMap = new Map<string, string>();
+
+  handleConnection(client: Socket) {
+    // 클라이언트가 연결될 때, 쿼리나 인증 토큰에서 userId 추출
+    const userId = client.handshake.query.userId as string;
+    if (userId) {
+      this.userSocketMap.set(userId, client.id);
+    }
   }
 
-  @SubscribeMessage('findAllNotifications')
-  findAll() {
-    return this.notificationsService.findAll();
+  handleDisconnect(client: Socket) {
+    // 연결 해제 시 소켓ID 제거
+    for (const [userId, socketId] of this.userSocketMap.entries()) {
+      if (socketId === client.id) {
+        this.userSocketMap.delete(userId);
+        break;
+      }
+    }
   }
 
-  @SubscribeMessage('findOneNotification')
-  findOne(@MessageBody() id: number) {
-    return this.notificationsService.findOne(id);
-  }
-
-  @SubscribeMessage('updateNotification')
-  update(@MessageBody() updateNotificationDto: UpdateNotificationDto) {
-    return this.notificationsService.update(updateNotificationDto.id, updateNotificationDto);
-  }
-
-  @SubscribeMessage('removeNotification')
-  remove(@MessageBody() id: number) {
-    return this.notificationsService.remove(id);
+  // 특정 유저에게 알림 전송
+  notifyUser(userId: string, payload: any) {
+    const socketId = this.userSocketMap.get(userId);
+    if (socketId) {
+      this.server.to(socketId).emit("notification", payload);
+    }
   }
 }

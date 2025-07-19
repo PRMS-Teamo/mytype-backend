@@ -105,6 +105,15 @@ export class TeamsService {
         proceed_type: true,
         img: true,
         end_date: true,
+        location: true,
+        start_date: true,
+        start_time: true,
+        end_time: true,
+        meeting_location: true,
+        meeting_link: true,
+        bumped_at: true,
+        created_at: true,
+        updated_at: true,
         team_positions: {
           select: {
             id: true,
@@ -120,6 +129,14 @@ export class TeamsService {
                     img_url: true,
                   },
                 },
+              },
+            },
+            team_users: {
+              where: {
+                member_status: "ON_BOARD",
+              },
+              select: {
+                user_id: true,
               },
             },
           },
@@ -147,6 +164,15 @@ export class TeamsService {
         proceed_type: true,
         img: true,
         end_date: true,
+        location: true,
+        start_date: true,
+        start_time: true,
+        end_time: true,
+        meeting_location: true,
+        meeting_link: true,
+        bumped_at: true,
+        created_at: true,
+        updated_at: true,
         team_positions: {
           select: {
             id: true,
@@ -162,6 +188,14 @@ export class TeamsService {
                     img_url: true,
                   },
                 },
+              },
+            },
+            team_users: {
+              where: {
+                member_status: "ON_BOARD",
+              },
+              select: {
+                user_id: true,
               },
             },
           },
