@@ -6,6 +6,7 @@ import { plainToInstance } from "class-transformer";
 import { action, apply_status } from "@postgres-client";
 import { TeamsService } from "@/apis/teams/teams.service";
 import { mapApplyToResponseDto } from "./util/apply-mapper";
+// import { NotificationsService } from "@/presentation/websockets/notifications/notifications.service";
 
 @Injectable()
 export class AppliesService {
@@ -14,6 +15,7 @@ export class AppliesService {
   constructor(
     private readonly postgresService: PostgresService,
     private readonly teamsService: TeamsService,
+    // private readonly notificationsService: NotificationsService,
   ) {}
 
   async upsert(
@@ -25,6 +27,8 @@ export class AppliesService {
   ) {
     try {
       let result: any;
+      let teamId: string;
+      let teamPositionId: string;
       if (action === "INVITE") {
         const ownerId = applyId;
         const ownersTeam = await this.postgresService.teams.findFirst({
@@ -36,7 +40,7 @@ export class AppliesService {
         if (!ownersTeam) {
           throw new Error("팀을 생성하신 경우에만 초대가 가능합니다.");
         }
-        const teamId = ownersTeam.id;
+        teamId = ownersTeam.id;
 
         const teamPosition =
           await this.postgresService.team_positions.findFirst({
@@ -52,7 +56,7 @@ export class AppliesService {
           throw new Error("Team position not found");
         }
 
-        const teamPositionId = teamPosition.id;
+        teamPositionId = teamPosition.id;
 
         result = await this.postgresService.apply_history.upsert({
           where: {
@@ -80,7 +84,7 @@ export class AppliesService {
           throw new Error("Position ID is required");
         }
 
-        const teamId = applyId;
+        teamId = applyId as string;
         const teamPosition =
           await this.postgresService.team_positions.findFirst({
             where: {
@@ -97,7 +101,7 @@ export class AppliesService {
         if (!teamPosition) {
           throw new Error("Team position not found");
         }
-        const teamPositionId = teamPosition.id;
+        teamPositionId = teamPosition.id;
         result = await this.postgresService.apply_history.upsert({
           where: {
             user_id_team_position_id: {
@@ -129,6 +133,41 @@ export class AppliesService {
       if (!result || !result.user_id || !result.team_position_id) {
         throw new Error("Apply record not found");
       }
+
+      // 알림 전송
+      // try {
+      //   if (action === "INVITE") {
+      //     // 초대받는 유저에게 알림
+      //     await this.notificationsService.createAndSendNotification({
+      //       userId: userId,
+      //       teamId: teamId,
+      //       teamPositionId: teamPositionId,
+      //       type: "INVITE_SENT",
+      //       content: "새로운 팀 초대가 도착했습니다.",
+      //     });
+      //   } else if (action === "APPLY") {
+      //     // 팀장에게 알림
+      //     const team = await this.postgresService.teams.findUnique({
+      //       where: { id: teamId },
+      //       select: { user_id: true },
+      //     });
+      //     if (team) {
+      //       await this.notificationsService.createAndSendNotification({
+      //         userId: team.user_id as string,
+      //         teamId: teamId,
+      //         teamPositionId: teamPositionId,
+      //         type: "APPLY_SUBMITTED",
+      //         content: "새로운 지원이 도착했습니다.",
+      //       });
+      //     }
+      //   }
+      // } catch (notificationError) {
+      //   this.logger.error(
+      //     `Failed to send notification: ${notificationError.message}`,
+      //   );
+      //   // 알림 실패는 전체 트랜잭션을 실패시키지 않음
+      // }
+
       return mapApplyToResponseDto(result);
     } catch (error) {
       this.logger.error(`Error in upsert apply: ${error.message}`, error.stack);
@@ -305,6 +344,69 @@ export class AppliesService {
       this.logger.log(
         `Successfully updated apply record with status: ${result.apply_status}`,
       );
+
+      // 상태 변경 알림 전송
+      // try {
+      //   let notificationType: string;
+      //   let notificationContent: string;
+
+      //   switch (apply_status) {
+      //     case "SUCCESS":
+      //       notificationType =
+      //         expectedAction === "INVITE"
+      //           ? "INVITE_ACCEPTED"
+      //           : "APPLY_ACCEPTED";
+      //       notificationContent =
+      //         expectedAction === "INVITE"
+      //           ? "초대가 수락되었습니다."
+      //           : "지원이 수락되었습니다.";
+      //       break;
+      //     case "REJECTED":
+      //       notificationType =
+      //         expectedAction === "INVITE"
+      //           ? "INVITE_REJECTED"
+      //           : "APPLY_REJECTED";
+      //       notificationContent =
+      //         expectedAction === "INVITE"
+      //           ? "초대가 거절되었습니다."
+      //           : "지원이 거절되었습니다.";
+      //       break;
+      //     case "CANCEL":
+      //       notificationType =
+      //         expectedAction === "INVITE"
+      //           ? "INVITE_CANCELED"
+      //           : "APPLY_CANCELED";
+      //       notificationContent =
+      //         expectedAction === "INVITE"
+      //           ? "초대가 취소되었습니다."
+      //           : "지원이 취소되었습니다.";
+      //       break;
+      //     default:
+      //       return mapApplyToResponseDto(result);
+      //   }
+
+      //   // 팀 정보 조회
+      //   const teamPosition =
+      //     await this.postgresService.team_positions.findUnique({
+      //       where: { id: teamPositionId },
+      //       select: { team_id: true },
+      //     });
+
+      //   if (teamPosition) {
+      //     await this.notificationsService.createAndSendNotification({
+      //       userId: userId,
+      //       teamId: teamPosition.team_id,
+      //       teamPositionId: teamPositionId,
+      //       type: notificationType as any,
+      //       content: notificationContent,
+      //     });
+      //   }
+      // } catch (notificationError) {
+      //   this.logger.error(
+      //     `Failed to send status change notification: ${notificationError.message}`,
+      //   );
+      //   // 알림 실패는 전체 트랜잭션을 실패시키지 않음
+      // }
 
       return mapApplyToResponseDto(result);
     } catch (error) {

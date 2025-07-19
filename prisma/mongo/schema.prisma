@@ -7,6 +7,7 @@ generator client {
 datasource mongoClient {
   provider = "mongodb"
   url      = env("MONGODB_URI")
+  // directUrl = env("MONGODB_URI")
 }
 
 
@@ -29,4 +30,28 @@ model MessageRead {
 
   @@index([messageId])
   @@unique([messageId, userId])
+}
+
+model Notifications {
+  id        String   @id @default(auto()) @map("_id") @mongoClient.ObjectId
+  userId    String
+  teamId    String
+  teamPositionId String
+  type      String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isRead    Boolean  @default(false)
+}
+
+
+enum NotificationType {
+  APPLY_SUBMITTED
+  APPLY_ACCEPTED
+  APPLY_REJECTED
+  APPLY_CANCELED
+  INVITE_SENT
+  INVITE_ACCEPTED
+  INVITE_REJECTED
+  INVITE_CANCELED
 }

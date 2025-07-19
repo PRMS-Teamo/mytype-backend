@@ -101,4 +101,15 @@ export class TeamsController {
     );
     return res.status(200).send(deleteMember);
   }
+
+  @Post("members/:memberId/off-board/:teamId")
+  @UseGuards(JwtAuthGuard)
+  async offBoard(
+    @User() user: AuthenticatedUser,
+    @Param("memberId") memberId: string,
+    @Param("teamId") teamId: string,
+  ) {
+    const userId = user.id;
+    return this.teamsService.offBoard(userId, memberId, teamId);
+  }
 }

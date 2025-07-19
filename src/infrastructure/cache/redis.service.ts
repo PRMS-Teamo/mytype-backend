@@ -1,146 +1,98 @@
-import { Inject, Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import { Injectable, Inject, OnModuleInit } from "@nestjs/common";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { Cache } from "cache-manager";
 import Redis from "ioredis";
-import { IRedisService } from "./interfaces/redis.interface";
+import { Notifications } from "@mongo-client";
 
 @Injectable()
-export class RedisService implements IRedisService {
-  private readonly logger = new Logger(RedisService.name);
-  private readonly keyPrefix: string;
+export class RedisService implements OnModuleInit {
+  private redis: Redis;
 
-  constructor(
-    @Inject("REDIS_CLIENT") private readonly redis: Redis,
-    private readonly configService: ConfigService,
-  ) {
-    this.keyPrefix =
-      this.configService.get<string>("redis.keyPrefix") || "mytype:";
-  }
+  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
 
-  private getFullKey(key: string): string {
-    return `${this.keyPrefix}${key}`;
-  }
-
-  async set(key: string, value: any, ttlSeconds?: number): Promise<void> {
-    const fullKey = this.getFullKey(key);
-    const data = typeof value === "string" ? value : JSON.stringify(value);
-
+  onModuleInit() {
+    // 모듈 초기화 시 Redis 클라이언트 설정
     try {
-      if (ttlSeconds) {
-        await this.redis.set(fullKey, data, "EX", ttlSeconds);
+      // cache-manager-redis-store의 클라이언트에 접근
+      const store = (this.cacheManager as any).store;
+      if (store && store.client) {
+        this.redis = store.client;
       } else {
-        await this.redis.set(fullKey, data);
+        // 직접 Redis 클라이언트 생성
+        this.redis = new Redis({
+          host: process.env.REDIS_HOST || "localhost",
+          port: parseInt(process.env.REDIS_PORT || "6379", 10),
+          password: process.env.REDIS_PASSWORD,
+          db: parseInt(process.env.REDIS_DB || "0", 10),
+        });
       }
-      this.logger.debug(`Set key: ${fullKey}`);
+      console.log("Redis client initialized successfully");
     } catch (error) {
-      this.logger.error(`Failed to set key: ${fullKey}`, error);
+      console.error("Failed to initialize Redis client:", error);
       throw error;
     }
   }
 
-  async get<T = any>(key: string): Promise<T | null> {
-    const fullKey = this.getFullKey(key);
-
-    try {
-      const value = await this.redis.get(fullKey);
-      if (!value) return null;
-
-      try {
-        return JSON.parse(value) as T;
-      } catch {
-        return value as T;
-      }
-    } catch (error) {
-      this.logger.error(`Failed to get key: ${fullKey}`, error);
-      throw error;
-    }
+  // WebSocket 연결 관리
+  async setUserSocket(userId: string, socketId: string): Promise<void> {
+    const key = `user:socket:${userId}`;
+    await this.redis.set(key, socketId, "EX", 60 * 60 * 24); // 24시간 만료
   }
 
-  async del(key: string): Promise<void> {
-    const fullKey = this.getFullKey(key);
-
-    try {
-      await this.redis.del(fullKey);
-      this.logger.debug(`Deleted key: ${fullKey}`);
-    } catch (error) {
-      this.logger.error(`Failed to delete key: ${fullKey}`, error);
-      throw error;
-    }
+  async getUserSocket(userId: string): Promise<string | null> {
+    const key = `user:socket:${userId}`;
+    return await this.redis.get(key);
   }
 
-  async exists(key: string): Promise<boolean> {
-    const fullKey = this.getFullKey(key);
-
-    try {
-      const result = await this.redis.exists(fullKey);
-      return result === 1;
-    } catch (error) {
-      this.logger.error(`Failed to check existence of key: ${fullKey}`, error);
-      throw error;
-    }
+  async removeUserSocket(userId: string): Promise<void> {
+    const key = `user:socket:${userId}`;
+    await this.redis.del(key);
   }
 
-  async expire(key: string, seconds: number): Promise<boolean> {
-    const fullKey = this.getFullKey(key);
-
-    try {
-      const result = await this.redis.expire(fullKey, seconds);
-      return result === 1;
-    } catch (error) {
-      this.logger.error(`Failed to set expiry for key: ${fullKey}`, error);
-      throw error;
-    }
-  }
-
-  async ttl(key: string): Promise<number> {
-    const fullKey = this.getFullKey(key);
-
-    try {
-      return await this.redis.ttl(fullKey);
-    } catch (error) {
-      this.logger.error(`Failed to get TTL for key: ${fullKey}`, error);
-      throw error;
-    }
-  }
-
-  async publish(channel: string, message: string): Promise<number> {
-    try {
-      const result = await this.redis.publish(channel, message);
-      this.logger.debug(`Published message to channel: ${channel}`);
-      return result;
-    } catch (error) {
-      this.logger.error(`Failed to publish to channel: ${channel}`, error);
-      throw error;
-    }
-  }
-
-  async subscribe(
-    channel: string,
-    callback: (message: string) => void,
+  // 알림 캐싱
+  async cacheUserNotifications(
+    userId: string,
+    notifications: unknown[],
   ): Promise<void> {
-    try {
-      await this.redis.subscribe(channel);
-      this.redis.on("message", (receivedChannel, message) => {
-        if (receivedChannel === channel) {
-          callback(message);
-        }
-      });
-      this.logger.debug(`Subscribed to channel: ${channel}`);
-    } catch (error) {
-      this.logger.error(`Failed to subscribe to channel: ${channel}`, error);
-      throw error;
-    }
+    const key = `notifications:${userId}`;
+    await this.redis.setex(key, 60 * 30, JSON.stringify(notifications)); // 30분 캐시
   }
 
-  async unsubscribe(channel: string): Promise<void> {
-    try {
-      await this.redis.unsubscribe(channel);
-      this.logger.debug(`Unsubscribed from channel: ${channel}`);
-    } catch (error) {
-      this.logger.error(
-        `Failed to unsubscribe from channel: ${channel}`,
-        error,
-      );
-      throw error;
-    }
+  async getCachedNotifications(userId: string): Promise<unknown[] | null> {
+    const key = `notifications:${userId}`;
+    const cached = await this.redis.get(key);
+    return cached ? (JSON.parse(cached) as Notifications[]) : null;
+  }
+
+  async invalidateUserNotifications(userId: string): Promise<void> {
+    const key = `notifications:${userId}`;
+    await this.redis.del(key);
+  }
+
+  // 읽지 않은 알림 개수
+  async setUnreadCount(userId: string, count: number): Promise<void> {
+    const key = `unread:${userId}`;
+    await this.redis.setex(key, 60 * 60, count.toString()); // 1시간 캐시
+  }
+
+  async getUnreadCount(userId: string): Promise<number> {
+    const key = `unread:${userId}`;
+    const count = await this.redis.get(key);
+    return count ? parseInt(count) : 0;
+  }
+
+  async incrementUnreadCount(userId: string): Promise<number> {
+    const key = `unread:${userId}`;
+    return await this.redis.incr(key);
+  }
+
+  async decrementUnreadCount(userId: string): Promise<number> {
+    const key = `unread:${userId}`;
+    return await this.redis.decr(key);
+  }
+
+  // Redis 클라이언트 직접 접근
+  getRedisClient(): Redis {
+    return this.redis;
   }
 }

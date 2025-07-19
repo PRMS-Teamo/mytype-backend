@@ -265,6 +265,7 @@ enum auth_method {
 enum member_status {
   ON_BOARD
   OFF_BOARD
+  REQUESTED_OFF_BOARD
 }
 
 enum proceed_type {

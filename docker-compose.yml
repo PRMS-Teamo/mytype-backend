@@ -45,12 +45,10 @@ services:
   redis_teamo:
     image: redis:latest
     ports:
-      - 6389:6379
-    volumes:
-      - ./databases.init/redis/redis.conf:/usr/local/etc/redis/redis.conf
-    command: redis-server /usr/local/etc/redis/redis.conf
+      - 6379:6379
+    command: redis-server --requirepass ${DB_PASSWORD:-teamo}
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${DB_PASSWORD:-teamo}", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5

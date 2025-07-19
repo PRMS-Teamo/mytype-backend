@@ -5,7 +5,6 @@ import { APP_GUARD } from "@nestjs/core";
 import { UsersModule } from "@/apis/users/users.module";
 import { AuthModule } from "@/apis/auth/auth.module";
 import { AdminModule } from "@/apis/admin/admin.module";
-import { ChatsModule } from "@/presentation/websockets/chats/chats.module";
 import { TeamsModule } from "@/apis/teams/teams.module";
 import { AppliesModule } from "@/apis/applies/applies.module";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
@@ -19,7 +18,7 @@ import { BumpsModule } from "@/apis/bumps/bumps.module";
 import { SchedulerModule } from "@/infrastructure/scheduler/scheduler.module";
 import { FilesModule } from "@/infrastructure/storage/files/files.module";
 import { ImagesModule } from "@/apis/images/images.module";
-import { NotificationsModule } from "@/presentation/websockets/notifications/notifications.module";
+import { WebsocketModule } from "./presentation/websocket.module";
 
 @Module({
   imports: [
@@ -43,7 +42,6 @@ import { NotificationsModule } from "@/presentation/websockets/notifications/not
     TeamsModule,
     AppliesModule,
     AdminModule,
-    ChatsModule,
     AnalysisModule,
     InfrastructureModule,
     HealthModule,
@@ -53,7 +51,7 @@ import { NotificationsModule } from "@/presentation/websockets/notifications/not
     SchedulerModule,
     FilesModule,
     ImagesModule,
-    NotificationsModule,
+    WebsocketModule,
   ],
   controllers: [AppController],
   providers: [

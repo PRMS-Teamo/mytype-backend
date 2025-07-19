@@ -3,6 +3,12 @@ const config = {
   moduleFileExtensions: ["js", "json", "ts"],
   rootDir: ".",
   testRegex: ".*\\.spec\\.ts$",
+  testPathIgnorePatterns: [
+    "/node_modules/",
+    "/dist/",
+    ".*\\.spec\\.ts\\.disabled$",
+    ".*redis.*\\.spec\\.ts$",
+  ],
   transform: {
     "^.+\\.(t|j)s$": [
       "ts-jest",

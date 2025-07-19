@@ -374,7 +374,11 @@ export class TeamsService {
         const team = await this.getTeamByUserId(userId, tx);
 
         if (!team) {
-          throw new NotFoundException({ NOTFOUND_TEAM });
+          throw new NotFoundException({
+            message: NOTFOUND_TEAM,
+            error: "TEAM_NOT_FOUND",
+            statusCode: 404,
+          });
         }
 
         const teamId = team.teamId;
@@ -498,7 +502,7 @@ export class TeamsService {
             proceed_type: proceedType ?? "ONLINE",
             img: imgId ?? undefined,
             end_date: endDate
-              ? endDate
+              ? new Date(endDate)
               : new Date(new Date().setHours(23, 59, 59, 999)),
             start_date: startDate ? new Date(startDate) : undefined,
             start_time: startTime ? new Date(startTime) : undefined,
@@ -520,6 +524,7 @@ export class TeamsService {
       },
       select: {
         team_position_id: true,
+        member_status: true,
         team_positions: {
           select: {
             team_id: true,
@@ -531,7 +536,11 @@ export class TeamsService {
     const teamId = findTeamId?.team_positions.team_id;
 
     if (!teamId) {
-      throw new NotFoundException({ NOTFOUND_TEAM });
+      throw new NotFoundException({
+        message: NOTFOUND_TEAM,
+        error: "TEAM_NOT_FOUND",
+        statusCode: 404,
+      });
     }
     const team = await this.postgresService.teams.findUnique({
       where: { id: teamId },
@@ -569,7 +578,11 @@ export class TeamsService {
     });
 
     if (!team) {
-      throw new NotFoundException({ NOTFOUND_TEAM });
+      throw new NotFoundException({
+        message: NOTFOUND_TEAM,
+        error: "TEAM_NOT_FOUND",
+        statusCode: 404,
+      });
     }
 
     // 원하는 형태로 가공
@@ -597,7 +610,11 @@ export class TeamsService {
     return await this.postgresService.$transaction(
       async (tx: PostgresService) => {
         if (!userId) {
-          throw new NotFoundException({ NOTFOUND_TEAM });
+          throw new NotFoundException({
+            message: NOTFOUND_TEAM,
+            error: "TEAM_NOT_FOUND",
+            statusCode: 404,
+          });
         }
         const team = await tx.teams.findFirst({
           where: {
@@ -608,7 +625,11 @@ export class TeamsService {
           },
         });
         if (!team?.id) {
-          throw new NotFoundException({ NOTFOUND_TEAM });
+          throw new NotFoundException({
+            message: NOTFOUND_TEAM,
+            error: "TEAM_NOT_FOUND",
+            statusCode: 404,
+          });
         }
         const teamId = team.id;
         const teamPositions = await tx.team_positions.findMany({
@@ -678,6 +699,50 @@ export class TeamsService {
     );
   }
 
+  async offBoard(userId: string, memberId: string, teamId: string) {
+    if (userId === memberId) {
+      return await this.postgresService.$transaction(
+        async (tx: PostgresService) => {
+          await tx.team_users.update({
+            where: {
+              user_id_team_position_id: {
+                user_id: memberId,
+                team_position_id: teamId,
+              },
+            },
+            data: {
+              member_status: "REQUESTED_OFF_BOARD",
+            },
+          });
+          return { message: "팀 탈퇴 요청이 완료되었습니다." };
+        },
+      );
+    } else if (userId !== memberId) {
+      return await this.postgresService.$transaction(
+        async (tx: PostgresService) => {
+          await tx.team_users.update({
+            where: {
+              user_id_team_position_id: {
+                user_id: memberId,
+                team_position_id: teamId,
+              },
+            },
+            data: {
+              member_status: "OFF_BOARD",
+            },
+          });
+          return { message: "팀 멤버가 팀에서 제외되었습니다." };
+        },
+      );
+    } else {
+      throw new NotFoundException({
+        message: NOTFOUND_TEAM,
+        error: "TEAM_NOT_FOUND",
+        statusCode: 404,
+      });
+    }
+  }
+
   async deleteTeamMember(userId: string, memberId: string) {
     const deleteMemberTransaction = await this.postgresService.$transaction(
       async (tx: PostgresService) => {
@@ -696,7 +761,11 @@ export class TeamsService {
         });
 
         if (!deletingMember) {
-          throw new NotFoundException({ NOTFOUND_TEAM });
+          throw new NotFoundException({
+            message: NOTFOUND_TEAM,
+            error: "TEAM_NOT_FOUND",
+            statusCode: 404,
+          });
         }
 
         const deletedResult = await tx.team_users.delete({
