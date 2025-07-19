@@ -418,10 +418,6 @@ async function main() {
         content_type: "png",
       },
       {
-        url: "images/profileImages/mith",
-        content_type: "png",
-      },
-      {
         url: "images/profileImages/music.png",
         content_type: "png",
       },

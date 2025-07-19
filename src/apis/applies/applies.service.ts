@@ -1,11 +1,12 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { UpsertApplyRequestDto } from "./dto/upsert-apply.request.dto";
 import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
-import { UpsertApplyResponseDto } from "./dto/upsert-apply.response.dto";
-import { plainToInstance } from "class-transformer";
 import { action, apply_status } from "@postgres-client";
 import { TeamsService } from "@/apis/teams/teams.service";
-import { mapApplyToResponseDto } from "./util/apply-mapper";
+import {
+  mapApplyToResponse,
+  mapAppliesToResponse,
+} from "./utils/apply-mapper.util";
 // import { NotificationsService } from "@/presentation/websockets/notifications/notifications.service";
 
 @Injectable()
@@ -168,14 +169,18 @@ export class AppliesService {
       //   // 알림 실패는 전체 트랜잭션을 실패시키지 않음
       // }
 
-      return mapApplyToResponseDto(result);
+      return mapApplyToResponse(result);
     } catch (error) {
       this.logger.error(`Error in upsert apply: ${error.message}`, error.stack);
       throw error;
     }
   }
 
-  async findByUserAndTeamHistoryByTeamId(teamId: string) {
+  async findByUserAndTeamHistoryByTeamId(
+    teamId: string,
+    skip?: number,
+    take?: number,
+  ) {
     try {
       this.logger.log(`Finding apply record for team ${teamId}`);
 
@@ -199,7 +204,6 @@ export class AppliesService {
         },
         select: {
           user_id: true,
-          team_position_id: true,
           message: true,
           apply_status: true,
           action: true,
@@ -207,15 +211,37 @@ export class AppliesService {
           updated_at: true,
           reply: true,
           is_read: true,
+          team_positions: {
+            select: {
+              id: true,
+              teams: {
+                select: {
+                  id: true,
+                  title: true,
+                  recruit_status: true,
+                },
+              },
+              positions: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
-        orderBy: [{ action: "asc" }, { created_at: "desc" }],
+        orderBy: { updated_at: "desc" },
+        ...(skip !== undefined && take !== undefined && { skip, take }),
       });
 
       if (!result || result.length === 0) {
         return [];
       }
 
-      return plainToInstance(UpsertApplyResponseDto, result.reverse());
+      this.logger.log(
+        `Found ${result.length} apply records for team ${teamId}`,
+      );
+      return mapAppliesToResponse(result as any);
     } catch (error) {
       this.logger.error(`Error in find apply: ${error.message}`, error.stack);
       throw error;
@@ -230,16 +256,43 @@ export class AppliesService {
         where: {
           user_id: userId,
         },
-        orderBy: {
-          created_at: "desc",
+        select: {
+          user_id: true,
+          team_position_id: true,
+          apply_status: true,
+          action: true,
+          message: true,
+          created_at: true,
+          updated_at: true,
+          reply: true,
+          is_read: true,
+          team_positions: {
+            select: {
+              id: true,
+              teams: {
+                select: {
+                  id: true,
+                  title: true,
+                  recruit_status: true,
+                },
+              },
+              positions: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
+        orderBy: { updated_at: "desc" },
       });
 
       if (!result) {
         throw new Error("Apply record not found");
       }
 
-      return plainToInstance(UpsertApplyResponseDto, result.reverse());
+      return mapAppliesToResponse(result as any);
     } catch (error) {
       this.logger.error(`Error in find apply: ${error.message}`, error.stack);
       throw error;
@@ -408,7 +461,7 @@ export class AppliesService {
       //   // 알림 실패는 전체 트랜잭션을 실패시키지 않음
       // }
 
-      return mapApplyToResponseDto(result);
+      return mapApplyToResponse(result);
     } catch (error) {
       this.logger.error(`Error in update apply: ${error.message}`, error.stack);
       throw error;

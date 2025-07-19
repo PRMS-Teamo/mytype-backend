@@ -7,7 +7,6 @@ import {
   Patch,
   Get,
   Delete,
-  Query,
   Res,
 } from "@nestjs/common";
 import { TeamsService } from "./teams.service";
@@ -17,6 +16,10 @@ import { User } from "@/apis/auth/decorators/user.decorator";
 import { UnifiedTeamDto } from "./dto/unified-team.dto";
 import { ApiOkResponse } from "@nestjs/swagger";
 import { Response } from "express";
+import {
+  Pagination,
+  PaginationMeta,
+} from "../shared/decorator/pagination.decorator";
 
 @Controller("teams")
 export class TeamsController {
@@ -33,15 +36,12 @@ export class TeamsController {
   }
 
   @Get()
-  async getTeams(
-    @Query("page") page: string = "1",
-    @Query("limit") limit: string = "20",
-  ) {
-    const pageNum = parseInt(page, 10);
-    const limitNum = parseInt(limit, 10);
-    const start = (pageNum - 1) * limitNum;
-    const end = start + limitNum;
-    return this.teamsService.getTeams(start, end);
+  async getTeams(@Pagination({ optional: true }) pagination: PaginationMeta) {
+    if (pagination.enabled) {
+      return this.teamsService.getTeams(pagination.skip, pagination.take);
+    } else {
+      return this.teamsService.getTeams(); // 페이지네이션 없이 모든 데이터
+    }
   }
 
   @Get("me")
@@ -78,6 +78,7 @@ export class TeamsController {
     const userId = user.id;
     return this.teamsService.finishTeam(userId);
   }
+
   @Get("me/members")
   @UseGuards(JwtAuthGuard)
   async getMembers(@User() user: AuthenticatedUser) {

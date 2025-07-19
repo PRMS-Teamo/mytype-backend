@@ -16,13 +16,14 @@ import {
 } from "@nestjs/swagger";
 import { AppliesService } from "./applies.service";
 import { UpsertApplyRequestDto } from "./dto/upsert-apply.request.dto";
-import { UpsertApplyResponseDto } from "./dto/upsert-apply.response.dto";
 import { JwtAuthGuard } from "@/apis/auth/guard/jwt-auth.guard";
 import { UpdateStatusDto } from "./dto/update-status.dto";
 import { AuthenticatedUser } from "@/apis/auth/types/authenticated-user.interface";
 import { UsersService } from "@/apis/users/users.service";
 import { USER_INFO_NULL, USER_JOINED } from "@/constants/errorMessage";
 import { User } from "../auth/decorators/user.decorator";
+import { Pagination } from "../shared/decorator/pagination.decorator";
+import { PaginationMeta } from "../shared/decorator/pagination.decorator";
 
 @ApiTags("지원/초대 관리")
 @Controller("applies")
@@ -37,7 +38,43 @@ export class AppliesController {
   @ApiResponse({
     status: 201,
     description: "지원 성공",
-    type: UpsertApplyResponseDto,
+    schema: {
+      type: "object",
+      properties: {
+        userId: { type: "string" },
+        teamPositionId: { type: "string" },
+        message: { type: "string" },
+        applyStatus: {
+          type: "string",
+          enum: ["SUBMITTED", "SUCCESS", "REJECTED", "CANCEL"],
+        },
+        action: { type: "string", enum: ["APPLY", "INVITE"] },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" },
+        reply: { type: "string" },
+        isRead: { type: "boolean" },
+        teamPosition: {
+          type: "object",
+          properties: {
+            team: {
+              type: "object",
+              properties: {
+                teamId: { type: "string" },
+                title: { type: "string" },
+                recruitStatus: { type: "string" },
+              },
+            },
+            position: {
+              type: "object",
+              properties: {
+                positionId: { type: "string" },
+                positionName: { type: "string" },
+              },
+            },
+          },
+        },
+      },
+    },
   })
   @ApiResponse({ status: 400, description: "잘못된 요청" })
   @ApiResponse({ status: 401, description: "인증 실패" })
@@ -72,7 +109,43 @@ export class AppliesController {
   @ApiResponse({
     status: 201,
     description: "초대 성공",
-    type: UpsertApplyResponseDto,
+    schema: {
+      type: "object",
+      properties: {
+        userId: { type: "string" },
+        teamPositionId: { type: "string" },
+        message: { type: "string" },
+        applyStatus: {
+          type: "string",
+          enum: ["SUBMITTED", "SUCCESS", "REJECTED", "CANCEL"],
+        },
+        action: { type: "string", enum: ["APPLY", "INVITE"] },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" },
+        reply: { type: "string" },
+        isRead: { type: "boolean" },
+        teamPosition: {
+          type: "object",
+          properties: {
+            team: {
+              type: "object",
+              properties: {
+                teamId: { type: "string" },
+                title: { type: "string" },
+                recruitStatus: { type: "string" },
+              },
+            },
+            position: {
+              type: "object",
+              properties: {
+                positionId: { type: "string" },
+                positionName: { type: "string" },
+              },
+            },
+          },
+        },
+      },
+    },
   })
   @ApiResponse({ status: 400, description: "잘못된 요청" })
   @ApiResponse({ status: 401, description: "인증 실패" })
@@ -99,12 +172,62 @@ export class AppliesController {
   @ApiResponse({
     status: 200,
     description: "조회 성공",
-    type: UpsertApplyResponseDto,
+    schema: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          userId: { type: "string" },
+          teamPositionId: { type: "string" },
+          message: { type: "string" },
+          applyStatus: {
+            type: "string",
+            enum: ["SUBMITTED", "SUCCESS", "REJECTED", "CANCEL"],
+          },
+          action: { type: "string", enum: ["APPLY", "INVITE"] },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
+          reply: { type: "string" },
+          isRead: { type: "boolean" },
+          teamPosition: {
+            type: "object",
+            properties: {
+              team: {
+                type: "object",
+                properties: {
+                  teamId: { type: "string" },
+                  title: { type: "string" },
+                  recruitStatus: { type: "string" },
+                },
+              },
+              position: {
+                type: "object",
+                properties: {
+                  positionId: { type: "string" },
+                  positionName: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   })
   @UseGuards(JwtAuthGuard)
   @Get("teams/:teamId/history")
-  getApplyStatus(@Param("teamId") teamId: string) {
-    return this.appliesService.findByUserAndTeamHistoryByTeamId(teamId);
+  getApplyStatus(
+    @Param("teamId") teamId: string,
+    @Pagination({ optional: true }) pagination: PaginationMeta,
+  ) {
+    if (pagination.enabled) {
+      return this.appliesService.findByUserAndTeamHistoryByTeamId(
+        teamId,
+        pagination.skip,
+        pagination.take,
+      );
+    } else {
+      return this.appliesService.findByUserAndTeamHistoryByTeamId(teamId);
+    }
   }
 
   @ApiBearerAuth()
@@ -112,7 +235,46 @@ export class AppliesController {
   @ApiResponse({
     status: 200,
     description: "조회 성공",
-    type: UpsertApplyResponseDto,
+    schema: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          userId: { type: "string" },
+          teamPositionId: { type: "string" },
+          message: { type: "string" },
+          applyStatus: {
+            type: "string",
+            enum: ["SUBMITTED", "SUCCESS", "REJECTED", "CANCEL"],
+          },
+          action: { type: "string", enum: ["APPLY", "INVITE"] },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
+          reply: { type: "string" },
+          isRead: { type: "boolean" },
+          teamPosition: {
+            type: "object",
+            properties: {
+              team: {
+                type: "object",
+                properties: {
+                  teamId: { type: "string" },
+                  title: { type: "string" },
+                  recruitStatus: { type: "string" },
+                },
+              },
+              position: {
+                type: "object",
+                properties: {
+                  positionId: { type: "string" },
+                  positionName: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   })
   @UseGuards(JwtAuthGuard)
   @Get("history")
@@ -125,7 +287,43 @@ export class AppliesController {
   @ApiResponse({
     status: 200,
     description: "업데이트 성공",
-    type: UpsertApplyResponseDto,
+    schema: {
+      type: "object",
+      properties: {
+        userId: { type: "string" },
+        teamPositionId: { type: "string" },
+        message: { type: "string" },
+        applyStatus: {
+          type: "string",
+          enum: ["SUBMITTED", "SUCCESS", "REJECTED", "CANCEL"],
+        },
+        action: { type: "string", enum: ["APPLY", "INVITE"] },
+        createdAt: { type: "string", format: "date-time" },
+        updatedAt: { type: "string", format: "date-time" },
+        reply: { type: "string" },
+        isRead: { type: "boolean" },
+        teamPosition: {
+          type: "object",
+          properties: {
+            team: {
+              type: "object",
+              properties: {
+                teamId: { type: "string" },
+                title: { type: "string" },
+                recruitStatus: { type: "string" },
+              },
+            },
+            position: {
+              type: "object",
+              properties: {
+                positionId: { type: "string" },
+                positionName: { type: "string" },
+              },
+            },
+          },
+        },
+      },
+    },
   })
   @UseGuards(JwtAuthGuard)
   @Patch(":teamPositionId/:userId")

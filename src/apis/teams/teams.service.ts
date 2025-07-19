@@ -20,8 +20,7 @@ export class TeamsService {
   ): tx is PostgresService {
     return typeof (tx as PostgresService).$transaction === "function";
   }
-  async getTeams(start: number, end: number) {
-    const pageSize = end - start;
+  async getTeams(skip?: number, take?: number) {
     const teams = await this.postgresService.teams.findMany({
       where: { is_public: true, recruit_status: "OPEN" },
       select: {
@@ -64,8 +63,7 @@ export class TeamsService {
           },
         },
       },
-      skip: start,
-      take: pageSize,
+      ...(skip !== undefined && take !== undefined && { skip, take }),
       orderBy: [{ bumped_at: "desc" }],
     });
 
@@ -585,7 +583,6 @@ export class TeamsService {
       });
     }
 
-    // 원하는 형태로 가공
     const result = {
       [team.id]: team.team_positions.map((pos) => ({
         positionId: pos.positions.id,
