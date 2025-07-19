@@ -31,7 +31,7 @@ export function teamMapper(team: any): UnifiedTeamDto {
       positionId: tp.positions.id,
       positionName: tp.positions.name,
       count: tp.count,
-      currentCount: tp.team_users.length,
+      currentCount: tp.team_users?.length ?? 0,
     })),
   };
 }
