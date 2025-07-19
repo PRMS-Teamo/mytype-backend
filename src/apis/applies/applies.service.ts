@@ -63,7 +63,7 @@ export class AppliesService {
           },
           update: {
             message: upsertApplyDto.message,
-            apply_status: upsertApplyDto.applyStatus,
+            apply_status: upsertApplyDto.applyStatus || "SUBMITTED",
             action: action,
             updated_at: new Date(),
           },
@@ -71,7 +71,7 @@ export class AppliesService {
             user_id: userId,
             team_position_id: teamPositionId,
             message: upsertApplyDto.message,
-            apply_status: upsertApplyDto.applyStatus,
+            apply_status: upsertApplyDto.applyStatus || "SUBMITTED",
             action: action,
           },
         });
@@ -107,7 +107,7 @@ export class AppliesService {
           },
           update: {
             message: upsertApplyDto.message,
-            apply_status: upsertApplyDto.applyStatus,
+            apply_status: upsertApplyDto.applyStatus || "SUBMITTED",
             action: action,
             updated_at: new Date(),
           },
