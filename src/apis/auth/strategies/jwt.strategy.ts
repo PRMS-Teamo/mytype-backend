@@ -43,7 +43,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
         user.userStacks?.map((stack) => ({
           stack_id: stack.stackId || undefined,
           stack_name: stack.stackName || undefined,
-          stack_img: stack.stackImg || undefined,
+          img_url: stack.imgUrl || undefined,
         })) || [],
       is_public: user.isPublic || false,
       position_id: user.positionId || undefined,

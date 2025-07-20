@@ -37,7 +37,7 @@ export interface AuthenticatedUser {
     | Array<{
         stack_id: string;
         stack_name: string | null;
-        stack_img: string | null;
+        img_url: string | null;
       }>
     | [];
   /** 역할 */

@@ -58,14 +58,18 @@ export function mapCreateDtoToDbFormat(dto: CreateUserReqDto) {
  * UpdateUserReqDto -> 데이터베이스 형식 변환
  */
 export function mapUpdateDtoToDbFormat(dto: UpdateUserReqDto) {
+  console.log("🔍 mapUpdateDtoToDbFormat 입력:", dto);
+
   const mapped: Record<string, any> = {};
 
   if (dto.nickname !== undefined) {
     mapped.nickname = dto.nickname;
   }
-  if (dto.github !== undefined) {
-    mapped.github_id = dto.github; // github -> github_id
-  }
+
+  // github는 필수 필드이므로 항상 포함
+  mapped.github_id = dto.github;
+  console.log("🔍 github_id 매핑:", dto.github);
+
   if (dto.imgId !== undefined) {
     mapped.img_id = dto.imgId && dto.imgId.trim() !== "" ? dto.imgId : null; // imgId -> img_id
   }
@@ -82,9 +86,11 @@ export function mapUpdateDtoToDbFormat(dto: UpdateUserReqDto) {
     mapped.position_id =
       dto.positionId && dto.positionId.trim() !== "" ? dto.positionId : null;
   }
-  if (dto.description !== undefined) {
-    mapped.description = dto.description; // description -> description
-  }
+
+  // description은 필수 필드이므로 항상 포함
+  mapped.description = dto.description;
+  console.log("🔍 description 매핑:", dto.description);
+
   if (dto.proceedType !== undefined) {
     mapped.proceed_type = dto.proceedType; // proceedType -> proceed_type
   }
@@ -95,19 +101,22 @@ export function mapUpdateDtoToDbFormat(dto: UpdateUserReqDto) {
   // 항상 업데이트 시간 갱신
   mapped.updated_at = new Date().toISOString();
 
-  // userStacks는 별도 처리를 위해 반환 객체에 포함
+  // userStacks는 필수 필드이므로 항상 처리
   const result = { ...mapped };
-  if (dto.userStacks && dto.userStacks.length > 0) {
-    if (typeof dto.userStacks[0] === "string") {
-      result.user_stacks = dto.userStacks as string[];
-    } else {
-      result.user_stacks = dto.userStacks.map(
-        (stack: { stackId: string; stackName: string; stackImg: string }) =>
-          stack.stackId,
-      );
-    }
+  console.log("🔍 userStacks 원본:", dto.userStacks);
+
+  if (typeof dto.userStacks[0] === "string") {
+    result.user_stacks = dto.userStacks as string[];
+  } else {
+    result.user_stacks = dto.userStacks.map((stack) => {
+      if (typeof stack === "string") {
+        return stack;
+      }
+      return stack.stackId;
+    });
   }
 
+  console.log("🔍 최종 매핑 결과:", result);
   return result;
 }
 

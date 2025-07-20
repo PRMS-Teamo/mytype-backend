@@ -27,7 +27,12 @@ export class User {
     this.beginner = user.beginner ?? false; // beginner -> beginner
 
     // user_stacks는 AuthenticatedUser에서 제공
-    this.userStacks = user.user_stacks;
+    this.userStacks =
+      user.user_stacks?.map((stack) => ({
+        stack_id: stack.stack_id,
+        stack_name: stack.stack_name,
+        img_url: stack.stack_img,
+      })) || [];
 
     // 시간 정보 (있으면 사용, 없으면 현재 시간)
     this.createdAt = user.create_at ?? new Date().toISOString();
@@ -141,7 +146,7 @@ export class User {
     | Array<{
         stack_id: string;
         stack_name: string | null;
-        stack_img: string | null;
+        img_url: string | null;
       }>
     | [];
 

@@ -126,7 +126,7 @@ export class UsersService {
         user.user_stacks?.map((stack) => ({
           stackId: stack.stacks.id,
           stackName: stack.stacks.name ?? "",
-          stackImg: stack.stacks.img_url ?? "",
+          imgUrl: stack.stacks.img_url ?? "",
         })) ?? [],
       createdAt: user.create_at?.toISOString(),
       updatedAt: user.updated_at?.toISOString(),
@@ -280,91 +280,79 @@ export class UsersService {
   ): Promise<GetUserResDto> {
     const { user_stacks, ...mappedData } = mapUpdateDtoToDbFormat(userInfo);
     console.log("🔍 user_stacks:", user_stacks);
+    console.log("🔍 mappedData:", mappedData);
+
     await this.postgresService.$transaction(async (tx) => {
       console.log("로직 진입!!!!!!!!!!!!!!");
-      if (user_stacks && user_stacks.length > 0) {
-        console.log("🔍 user_stacks:", user_stacks);
-        console.log("====================userInfo:", userInfo);
-        const newStackIds: string[] = user_stacks as string[];
 
-        console.log("🔍 newStackIds:", newStackIds);
-        const searchedStackIds = await tx.user_stacks.findMany({
-          where: {
-            user_id: userId,
-          },
-          select: {
-            stack_id: true,
-          },
-        });
-        console.log("🔍 searchedStackIds:", searchedStackIds);
-        if (!searchedStackIds || searchedStackIds.length === 0) {
-          await tx.user_stacks.createMany({
-            data: mapStackIdsToUserStacks(newStackIds, userId),
-          });
-          return;
-        } else {
-          const prevStackIds = searchedStackIds.map((stack) => stack.stack_id);
+      // userStacks는 필수 필드이므로 항상 처리
+      const newStackIds: string[] = user_stacks as string[];
+      console.log("🔍 newStackIds:", newStackIds);
 
-          const stackIdsToDelete = prevStackIds.filter(
-            (id) => !newStackIds.includes(id),
-          );
-          if (stackIdsToDelete.length > 0) {
-            await tx.user_stacks.deleteMany({
-              where: {
-                user_id: userId,
-                stack_id: { in: stackIdsToDelete },
-              },
-            });
-          }
-
-          const stackIdsToAdd = newStackIds.filter(
-            (id) => !prevStackIds.includes(id),
-          );
-          console.log("🔍 stackIdsToAdd:", stackIdsToAdd);
-          if (stackIdsToAdd.length > 0) {
-            await tx.user_stacks.createMany({
-              data: mapStackIdsToUserStacks(stackIdsToAdd, userId),
-            });
-          }
-        }
-      } else {
-        console.log("🔍 user_stacks:", user_stacks);
-        console.log("🔍 mappedData:", mappedData);
-        console.log("====================userInfo:", userInfo);
-        await tx.user_stacks.deleteMany({
-          where: {
-            user_id: userId,
-          },
-        });
-      }
-      const userStacks = await tx.user_stacks.findMany({
+      // 기존 스택 정보 조회
+      const searchedStackIds = await tx.user_stacks.findMany({
         where: {
           user_id: userId,
         },
         select: {
-          stacks: {
-            select: {
-              id: true,
-              name: true,
-              img_url: true,
-            },
-          },
+          stack_id: true,
         },
       });
-      console.log("🔍 userStacks:", userStacks);
-      console.log("🔍 mappedData:", mappedData);
+      console.log("🔍 searchedStackIds:", searchedStackIds);
+
+      if (!searchedStackIds || searchedStackIds.length === 0) {
+        // 기존 스택이 없으면 새로 생성
+        if (newStackIds.length > 0) {
+          await tx.user_stacks.createMany({
+            data: mapStackIdsToUserStacks(newStackIds, userId),
+          });
+        }
+      } else {
+        // 기존 스택이 있으면 차이점만 업데이트
+        const prevStackIds = searchedStackIds.map((stack) => stack.stack_id);
+
+        // 삭제할 스택들
+        const stackIdsToDelete = prevStackIds.filter(
+          (id) => !newStackIds.includes(id),
+        );
+        if (stackIdsToDelete.length > 0) {
+          await tx.user_stacks.deleteMany({
+            where: {
+              user_id: userId,
+              stack_id: { in: stackIdsToDelete },
+            },
+          });
+        }
+
+        // 추가할 스택들
+        const stackIdsToAdd = newStackIds.filter(
+          (id) => !prevStackIds.includes(id),
+        );
+        console.log("🔍 stackIdsToAdd:", stackIdsToAdd);
+        if (stackIdsToAdd.length > 0) {
+          await tx.user_stacks.createMany({
+            data: mapStackIdsToUserStacks(stackIdsToAdd, userId),
+          });
+        }
+      }
+
       // 사용자 정보 업데이트 (스택 제외)
       if (Object.keys(mappedData).length > 0) {
-        await tx.users.update({
+        console.log("🔍 업데이트할 데이터:", mappedData);
+        const updatedUser = await tx.users.update({
           where: {
             id: userId,
           },
           data: mappedData,
         });
+        console.log("🔍 업데이트된 사용자:", updatedUser);
       }
     });
 
-    return this.findUserByUserId(userId);
+    // 트랜잭션 완료 후 최신 데이터 조회
+    const result = await this.findUserByUserId(userId);
+    console.log("🔍 최종 결과:", JSON.stringify(result, null, 2));
+    return result;
   }
 
   /**

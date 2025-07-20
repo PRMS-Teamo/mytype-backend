@@ -43,7 +43,7 @@ export class BumpResetJob {
       const resetResult = await this.postgresService.user_bumps.updateMany({
         where: {
           user_id: {
-            in: expiredBumps.map((bump) => bump.user_id as string),
+            in: expiredBumps.map((bump) => bump.user_id),
           },
         },
         data: {
@@ -100,7 +100,7 @@ export class BumpResetJob {
       const resetResult = await this.postgresService.user_bumps.updateMany({
         where: {
           user_id: {
-            in: expiredBumps.map((bump) => bump.user_id as string),
+            in: expiredBumps.map((bump) => bump.user_id),
           },
         },
         data: {

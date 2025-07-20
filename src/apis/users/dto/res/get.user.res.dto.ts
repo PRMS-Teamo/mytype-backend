@@ -118,20 +118,15 @@ export class GetUserResDto {
       {
         stackId: "stack1-uuid",
         stackName: "React",
-        stackImg: "https://example.com/react.png",
+        imgUrl: "https://example.com/react.png",
       },
       {
         stackId: "stack2-uuid",
         stackName: "Node.js",
-        stackImg: "https://example.com/nodejs.png",
+        imgUrl: "https://example.com/nodejs.png",
       },
     ],
     description: "사용자 스택 정보 배열 (상세 정보 포함)",
-    required: false,
-  })
-  @ApiProperty({
-    example: "38bf2516-7ee3-40f4-b390-7075e55baf8e",
-    description: "포지션 ID",
     required: false,
   })
   positionName?: string;
@@ -161,7 +156,7 @@ export class GetUserResDto {
     | Array<{
         stackId: string;
         stackName: string | null;
-        stackImg: string | null;
+        imgUrl: string | null;
       }>
     | [];
 
@@ -191,7 +186,7 @@ export class GetUserResDto {
     this.userStacks = user.userStacks as Array<{
       stackId: string;
       stackName: string | null;
-      stackImg: string | null;
+      imgUrl: string | null;
     }>;
   }
 }

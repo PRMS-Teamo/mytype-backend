@@ -7,12 +7,14 @@ import {
   IsEmail,
   IsEnum,
   ValidateNested,
+  IsNotEmpty,
 } from "class-validator";
 import { User } from "../../entities/user.entity";
 
 /**
  * 사용자 수정 요청 DTO - User 엔티티를 기반으로 생성
- * 수정 불가능한 필드들은 제외하고 모든 필드를 선택적으로 만듦
+ * github, description, userStacks는 필수 필드로 설정
+ * 나머지 필드들은 선택적으로 수정 가능
  */
 export class UpdateUserReqDto extends PartialType(
   OmitType(User, [
@@ -44,12 +46,11 @@ export class UpdateUserReqDto extends PartialType(
 
   @ApiProperty({
     example: "new_github_username",
-    description: "GitHub 사용자명",
-    required: false,
+    description: "GitHub 사용자명 (필수)",
   })
-  @IsOptional()
   @IsString()
-  github?: string;
+  @IsNotEmpty()
+  github: string;
 
   @ApiProperty({
     example: "new_img_id",
@@ -98,12 +99,11 @@ export class UpdateUserReqDto extends PartialType(
 
   @ApiProperty({
     example: "새로운 자기소개입니다.",
-    description: "사용자 자기소개",
-    required: false,
+    description: "사용자 자기소개 (필수)",
   })
-  @IsOptional()
   @IsString()
-  description?: string;
+  @IsNotEmpty()
+  description: string;
 
   @ApiProperty({
     example: "OFFLINE",
@@ -126,20 +126,22 @@ export class UpdateUserReqDto extends PartialType(
 
   @ApiProperty({
     example: [
-      { stackId: "newstack1-uuid", stackName: "React", stackImg: "react.png" },
+      {
+        stackId: "newstack1-uuid",
+        stackName: "React",
+        imgUrl: "https://example.com/react.png",
+      },
       "newstack2-uuid",
     ],
-    description: "사용자 스택 정보 (객체 배열 또는 ID 문자열 배열)",
-    required: false,
+    description: "사용자 스택 정보 (필수) - 객체 배열 또는 ID 문자열 배열",
   })
-  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  userStacks?: (
+  userStacks: (
     | {
         stackId: string;
         stackName: string;
-        stackImg: string;
+        imgUrl: string;
       }
     | string
   )[];
