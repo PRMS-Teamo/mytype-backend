@@ -229,6 +229,9 @@ export class TeamsService {
     userId: string,
     team: UnifiedTeamDto,
   ): Promise<UnifiedTeamDto> {
+    console.log("===================createTeam 시작===================");
+    console.log("userId:", userId);
+    console.log("team.positions:", JSON.stringify(team.positions, null, 2));
     const teamCheck = await this.postgresService.teams.findFirst({
       where: {
         user_id: userId,
@@ -282,12 +285,26 @@ export class TeamsService {
             where: { name: "팀 생성자" },
           });
           console.log("teamCreatorPosition", teamCreatorPosition);
+          console.log("teamCreatorPosition.id:", teamCreatorPosition?.id);
+          console.log(
+            "teamCreatorPosition.id length:",
+            teamCreatorPosition?.id?.length,
+          );
+          console.log(
+            "teamCreatorPosition.id type:",
+            typeof teamCreatorPosition?.id,
+          );
           if (!teamCreatorPosition) {
             throw new Error("팀 생성자 포지션을 찾을 수 없습니다.");
           }
 
+          // positionId 유효성 검사 및 필터링 (UUID가 아닐 수도 있으므로 기본 검사만)
+          const validPositions = positions.filter(
+            (pos) => pos.positionId && pos.positionId.trim() !== "",
+          );
+
           const allTeamPositions = [
-            ...positions,
+            ...validPositions,
             {
               positionId: teamCreatorPosition.id,
               positionName: teamCreatorPosition.name,
@@ -297,7 +314,21 @@ export class TeamsService {
             },
           ];
           console.log("allTeamPositions", allTeamPositions);
+
           for (const position of allTeamPositions) {
+            // positionId 유효성 재검사 (UUID가 아닐 수도 있으므로 기본 검사만)
+            if (!position.positionId || position.positionId.trim() === "") {
+              console.error(
+                `Invalid positionId: "${position.positionId}" for position: ${position.positionName}`,
+              );
+              throw new Error(
+                `Invalid position ID for position: ${position.positionName}`,
+              );
+            }
+
+            console.log(
+              `Processing position: ${position.positionName}, ID: ${position.positionId}, Length: ${position.positionId.length}`,
+            );
             const createdTeamPosition = await tx.team_positions.create({
               data: {
                 team_id: createdTeam.id,
