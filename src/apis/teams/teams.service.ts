@@ -171,7 +171,7 @@ export class TeamsService {
     tx?: PostgresService | TxClient,
   ): Promise<UnifiedTeamDto> {
     const team = await (tx || this.postgresService).teams.findFirst({
-      where: { user_id: userId },
+      where: { user_id: userId, recruit_status: "OPEN" },
       select: {
         id: true,
         title: true,
@@ -729,7 +729,7 @@ export class TeamsService {
             id: teamId,
           },
           data: {
-            recruit_status: "CLOSE",
+            recruit_status: "CLOSE" as recruit_status,
             is_public: false,
           },
         });
