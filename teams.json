@@ -1,0 +1,491 @@
+[
+  {
+    "title": "Teamo 에서 활동할 능력자들을 구해요!!",
+    "content": "팀 프로젝트 중 프론트엔드, 백엔드 개발자를 구합니다.",
+    "proceedType": "BOTH",
+    "imgUrl": "이미지",
+    "isPublic": true,
+    "recruitStatus": "OPEN",
+    "endDate": "2025-07-21",
+    "positions": [
+      {
+        "positionId": "8da5b1af-baf5-42b3-8353-c82c9a3e9342",
+        "positionName": "프론트엔드",
+        "count": 2,
+        "users": [],
+        "positionStacks": [
+          {
+            "stackId": "1627e3d4-3ac9-4496-a763-137a9ce33430",
+            "stackName": "React",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/react/react-original-wordmark.svg"
+          },
+          {
+            "stackId": "c2ddb8c4-741e-48d8-b9ef-d26e2ff2c77c",
+            "stackName": "Redux",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/redux/redux-original.svg"
+          },
+          {
+            "stackId": "3db0381e-b94f-4f0b-b06a-4a4411ff7c75",
+            "stackName": "axios",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/axios/axios-plain.svg"
+          },
+          {
+            "stackId": "f5afe23b-5723-4833-9767-fc4b310ab390",
+            "stackName": "Next.js",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nextjs/nextjs-original-wordmark.svg"
+          }
+        ]
+      },
+      {
+        "positionId": "86a90028-b879-403b-a0e2-39b8c6aba25f",
+        "positionName": "백엔드",
+        "count": 3,
+        "users": [],
+        "positionStacks": [
+          {
+            "stackId": "e0aa6c93-567a-4479-8ba8-b094969e138b",
+            "stackName": "Spring",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/spring/spring-original.svg"
+          },
+          {
+            "stackId": "1170eafa-be47-4340-b402-0346e5893283",
+            "stackName": "JavaScript",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/javascript/javascript-original.svg"
+          },
+          {
+            "stackId": "7479c8b7-9170-4018-a7d8-e71833c7d628",
+            "stackName": "Python",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg"
+          },
+          {
+            "stackId": "c2baadc4-0449-4be7-88ba-c5e3bb497927",
+            "stackName": "Java",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/java/java-original.svg"
+          },
+          {
+            "stackId": "3bba2f0d-9081-4c8d-9b46-21b0c73d3185",
+            "stackName": "C++",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/cplusplus/cplusplus-original.svg"
+          },
+          {
+            "stackId": "ace45378-a960-4c26-be8e-6cce33b01489",
+            "stackName": "C#",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/csharp/csharp-original.svg"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "요식앱 외주 프로젝트",
+    "content": "요식앱 외주 프로젝트 중 프론트엔드, 백엔드 개발자를 구합니다.",
+    "proceedType": "BOTH",
+    "imgUrl": "이미지",
+    "isPublic": true,
+    "recruitStatus": "OPEN",
+    "endDate": "2025-09-21",
+    "positions": [
+      {
+        "positionId": "8da5b1af-baf5-42b3-8353-c82c9a3e9342",
+        "positionName": "프론트엔드",
+        "count": 5,
+        "users": [],
+        "positionStacks": [
+          {
+            "stackId": "1627e3d4-3ac9-4496-a763-137a9ce33430",
+            "stackName": "React",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/react/react-original-wordmark.svg"
+          },
+          {
+            "stackId": "c2ddb8c4-741e-48d8-b9ef-d26e2ff2c77c",
+            "stackName": "Redux",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/redux/redux-original.svg"
+          },
+          {
+            "stackId": "3db0381e-b94f-4f0b-b06a-4a4411ff7c75",
+            "stackName": "axios",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/axios/axios-plain.svg"
+          },
+          {
+            "stackId": "f5afe23b-5723-4833-9767-fc4b310ab390",
+            "stackName": "Next.js",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nextjs/nextjs-original-wordmark.svg"
+          }
+        ]
+      },
+      {
+        "positionId": "86a90028-b879-403b-a0e2-39b8c6aba25f",
+        "positionName": "백엔드",
+        "count": 6,
+        "users": [],
+        "positionStacks": [
+          {
+            "stackId": "3bba2f0d-9081-4c8d-9b46-21b0c73d3185",
+            "stackName": "C++",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/cplusplus/cplusplus-original.svg"
+          },
+          {
+            "stackId": "ace45378-a960-4c26-be8e-6cce33b01489",
+            "stackName": "C#",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/csharp/csharp-original.svg"
+          },
+          {
+            "stackId": "934fcc87-232b-4335-af2a-df5c9bbb6eea",
+            "stackName": "C",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/c/c-original.svg"
+          },
+          {
+            "stackId": "7a14df53-561d-494c-a9e5-1765424bf19b",
+            "stackName": "PostgreSQL",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/postgresql/postgresql-original.svg"
+          },
+          {
+            "stackId": "0a5cadee-232f-4347-b6fc-801dd6cad5e4",
+            "stackName": "MySQL",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/mysql/mysql-original.svg"
+          },
+          {
+            "stackId": "64a403b3-8968-45a2-87a9-71d110715a36",
+            "stackName": "MongoDB",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/mongodb/mongodb-original.svg"
+          },
+          {
+            "stackId": "4835fce3-e481-4f57-9c32-ae9a114bfc9a",
+            "stackName": "Redis",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/redis/redis-original.svg"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "치킨 프랜차이즈 앱 개발",
+    "content": "치킨 프랜차이즈 앱 개발 중 기획자, 프론트엔드, 백엔드 개발자를 구합니다.",
+    "proceedType": "BOTH",
+    "imgUrl": "이미지",
+    "isPublic": true,
+    "recruitStatus": "OPEN",
+    "endDate": "2025-08-21",
+    "positions": [
+      {
+        "positionId": "8da5b1af-baf5-42b3-8353-c82c9a3e9342",
+        "positionName": "프론트엔드",
+        "count": 4,
+        "users": [],
+        "positionStacks": [
+          {
+            "stackId": "1627e3d4-3ac9-4496-a763-137a9ce33430",
+            "stackName": "React",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/react/react-original-wordmark.svg"
+          },
+          {
+            "stackId": "c2ddb8c4-741e-48d8-b9ef-d26e2ff2c77c",
+            "stackName": "Redux",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/redux/redux-original.svg"
+          },
+          {
+            "stackId": "3db0381e-b94f-4f0b-b06a-4a4411ff7c75",
+            "stackName": "axios",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/axios/axios-plain.svg"
+          },
+          {
+            "stackId": "f5afe23b-5723-4833-9767-fc4b310ab390",
+            "stackName": "Next.js",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nextjs/nextjs-original-wordmark.svg"
+          },
+          {
+            "stackId": "a4775f80-2c43-4281-bd9c-1703f23af6bb",
+            "stackName": "Git",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/git/git-original.svg"
+          },
+          {
+            "stackId": "30935729-c5c7-447f-803f-1de63205e343",
+            "stackName": "Jira",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/jira/jira-original-wordmark.svg"
+          },
+          {
+            "stackId": "3b1ffd65-448f-47ca-aad4-2ae1e44199db",
+            "stackName": "Slack",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/slack/slack-original.svg"
+          }
+        ]
+      },
+      {
+        "positionId": "46158ef0-a3cb-432f-9652-58292a73ada1",
+        "positionName": "디자이너",
+        "count": 2,
+        "users": [],
+        "positionStacks": [
+          {
+            "stackId": "30935729-c5c7-447f-803f-1de63205e343",
+            "stackName": "Jira",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/jira/jira-original-wordmark.svg"
+          },
+          {
+            "stackId": "3b1ffd65-448f-47ca-aad4-2ae1e44199db",
+            "stackName": "Slack",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/slack/slack-original.svg"
+          },
+          {
+            "stackId": "0c2aca99-39d9-420f-ace8-bc04b71a5ac0",
+            "stackName": "Figma",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/figma/figma-original.svg"
+          },
+          {
+            "stackId": "47997d55-6548-4fe7-b21d-cfdbf77e2fa2",
+            "stackName": "Notion",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/notion/notion-original.svg"
+          }
+        ]
+      },
+      {
+        "positionId": "86a90028-b879-403b-a0e2-39b8c6aba25f",
+        "positionName": "백엔드",
+        "count": 4,
+        "users": [],
+        "positionStacks": [
+          {
+            "stackId": "e0aa6c93-567a-4479-8ba8-b094969e138b",
+            "stackName": "Spring",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/spring/spring-original.svg"
+          },
+          {
+            "stackId": "57079140-5263-4afe-85b8-4d28ba84d36b",
+            "stackName": "Nest.js",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nestjs/nestjs-original-wordmark.svg"
+          },
+          {
+            "stackId": "16ed079f-ef17-43c7-b2d2-c4cd302e45d9",
+            "stackName": "Tailwind CSS",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/tailwindcss/tailwindcss-plain-wordmark.svg"
+          },
+          {
+            "stackId": "1170eafa-be47-4340-b402-0346e5893283",
+            "stackName": "JavaScript",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/javascript/javascript-original.svg"
+          },
+          {
+            "stackId": "7479c8b7-9170-4018-a7d8-e71833c7d628",
+            "stackName": "Python",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg"
+          },
+          {
+            "stackId": "c2baadc4-0449-4be7-88ba-c5e3bb497927",
+            "stackName": "Java",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/java/java-original.svg"
+          },
+          {
+            "stackId": "3bba2f0d-9081-4c8d-9b46-21b0c73d3185",
+            "stackName": "C++",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/cplusplus/cplusplus-original.svg"
+          },
+          {
+            "stackId": "ace45378-a960-4c26-be8e-6cce33b01489",
+            "stackName": "C#",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/csharp/csharp-original.svg"
+          },
+          {
+            "stackId": "934fcc87-232b-4335-af2a-df5c9bbb6eea",
+            "stackName": "C",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/c/c-original.svg"
+          },
+          {
+            "stackId": "7a14df53-561d-494c-a9e5-1765424bf19b",
+            "stackName": "PostgreSQL",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/postgresql/postgresql-original.svg"
+          },
+          {
+            "stackId": "0a5cadee-232f-4347-b6fc-801dd6cad5e4",
+            "stackName": "MySQL",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/mysql/mysql-original.svg"
+          },
+          {
+            "stackId": "64a403b3-8968-45a2-87a9-71d110715a36",
+            "stackName": "MongoDB",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/mongodb/mongodb-original.svg"
+          },
+          {
+            "stackId": "4835fce3-e481-4f57-9c32-ae9a114bfc9a",
+            "stackName": "Redis",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/redis/redis-original.svg"
+          },
+          {
+            "stackId": "4165afec-991f-4a89-b2d5-38e40b0da71f",
+            "stackName": "Elasticsearch",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/elasticsearch/elasticsearch-original.svg"
+          },
+          {
+            "stackId": "25db7ed4-3f13-430d-aa02-6b85260b0c14",
+            "stackName": "Docker",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/docker/docker-original.svg"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "공장 자동화 시스템 외주",
+    "content": "공장 자동화 시스템 외주 중 풀스텍, AI 엔지니어, 프론트엔드, 백엔드 개발자를 구합니다.",
+    "proceedType": "BOTH",
+    "imgUrl": "이미지",
+    "isPublic": true,
+    "recruitStatus": "OPEN",
+    "endDate": "2025-09-21",
+    "positions": [
+      {
+        "positionId": "8da5b1af-baf5-42b3-8353-c82c9a3e9342",
+        "positionName": "프론트엔드",
+        "count": 4,
+        "users": [],
+        "positionStacks": [
+          {
+            "stackId": "1627e3d4-3ac9-4496-a763-137a9ce33430",
+            "stackName": "React",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/react/react-original-wordmark.svg"
+          },
+          {
+            "stackId": "c2ddb8c4-741e-48d8-b9ef-d26e2ff2c77c",
+            "stackName": "Redux",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/redux/redux-original.svg"
+          },
+          {
+            "stackId": "3db0381e-b94f-4f0b-b06a-4a4411ff7c75",
+            "stackName": "axios",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/axios/axios-plain.svg"
+          },
+          {
+            "stackId": "f5afe23b-5723-4833-9767-fc4b310ab390",
+            "stackName": "Next.js",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nextjs/nextjs-original-wordmark.svg"
+          }
+        ]
+      },
+      {
+        "positionId": "86a90028-b879-403b-a0e2-39b8c6aba25f",
+        "positionName": "백엔드",
+        "count": 6,
+        "users": [],
+        "positionStacks": [
+          {
+            "stackId": "4165afec-991f-4a89-b2d5-38e40b0da71f",
+            "stackName": "Elasticsearch",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/elasticsearch/elasticsearch-original.svg"
+          },
+          {
+            "stackId": "25db7ed4-3f13-430d-aa02-6b85260b0c14",
+            "stackName": "Docker",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/docker/docker-original.svg"
+          },
+          {
+            "stackId": "220d024a-339a-4b6a-af5a-84683e7d1493",
+            "stackName": "Kubernetes",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/kubernetes/kubernetes-plain.svg"
+          },
+          {
+            "stackId": "72c233f2-5e02-4174-9467-0af637eb7fda",
+            "stackName": "AWS",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/amazonwebservices/amazonwebservices-original-wordmark.svg"
+          },
+          {
+            "stackId": "56ff9328-c920-4617-b916-25898b7d9f1f",
+            "stackName": "Prisma",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/prisma/prisma-original.svg"
+          },
+          {
+            "stackId": "a4775f80-2c43-4281-bd9c-1703f23af6bb",
+            "stackName": "Git",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/git/git-original.svg"
+          },
+          {
+            "stackId": "dd58fe31-1ce3-4bc9-8a88-30ce18275b48",
+            "stackName": "GitHub",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/github/github-original.svg"
+          },
+          {
+            "stackId": "30935729-c5c7-447f-803f-1de63205e343",
+            "stackName": "Jira",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/jira/jira-original-wordmark.svg"
+          },
+          {
+            "stackId": "3b1ffd65-448f-47ca-aad4-2ae1e44199db",
+            "stackName": "Slack",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/slack/slack-original.svg"
+          },
+          {
+            "stackId": "0c2aca99-39d9-420f-ace8-bc04b71a5ac0",
+            "stackName": "Figma",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/figma/figma-original.svg"
+          },
+          {
+            "stackId": "47997d55-6548-4fe7-b21d-cfdbf77e2fa2",
+            "stackName": "Notion",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/notion/notion-original.svg"
+          },
+          {
+            "stackId": "5efe7a54-f7d1-4592-95b4-ceb5c433cc00",
+            "stackName": "Node.js",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nodejs/nodejs-original.svg"
+          },
+          {
+            "stackId": "b4bd9241-0141-4b08-95a3-42731b7a4c78",
+            "stackName": "Express",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/express/express-original.svg"
+          },
+          {
+            "stackId": "09d1d45f-3f20-4c9a-994d-3f631cbe40de",
+            "stackName": "Flask",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/flask/flask-original.svg"
+          },
+          {
+            "stackId": "bfffd5c7-efc8-4381-9ec5-cb02960ab3b5",
+            "stackName": "Django",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/django/django-plain-wordmark.svg"
+          }
+        ]
+      },
+      {
+        "positionId": "fce7a03f-d79c-4342-abee-7fd450b32bd7",
+        "positionName": "AI 엔지니어",
+        "count": 4,
+        "users": [],
+        "positionStacks": [
+          {
+            "stackId": "62526939-e574-4461-b595-479a6a8ea7a4",
+            "stackName": "Kotlin",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/kotlin/kotlin-original.svg"
+          },
+          {
+            "stackId": "1b307822-18df-45e6-858a-6fafcd28ad07",
+            "stackName": "Swift",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/swift/swift-original.svg"
+          },
+          {
+            "stackId": "f8bf4670-3851-4972-8744-eef15b01e2d4",
+            "stackName": "Go",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/go/go-original.svg"
+          },
+          {
+            "stackId": "07aa4559-793b-4afd-99b6-5fb04789157d",
+            "stackName": "Ruby",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/ruby/ruby-original.svg"
+          },
+          {
+            "stackId": "6bc54b7e-c3ea-499a-a6da-763d00e5dd2b",
+            "stackName": "PHP",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/php/php-original.svg"
+          },
+          {
+            "stackId": "df9b7f1f-3fff-4303-8695-cf14459cc071",
+            "stackName": "Rust",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/rust/rust-original.svg"
+          },
+          {
+            "stackId": "c10aca5b-7161-41fd-890b-61717bc60d3e",
+            "stackName": "Scala",
+            "imgUrl": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/scala/scala-original.svg"
+          }
+        ]
+      }
+    ]
+  }
+]

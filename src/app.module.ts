@@ -1,7 +1,8 @@
 import { Module } from "@nestjs/common";
 import { AppController } from "@/app.controller";
 import { AppService } from "@/app.service";
-import { APP_GUARD } from "@nestjs/core";
+import { APP_GUARD, APP_FILTER } from "@nestjs/core";
+import { AllExceptionsFilter } from "./all-exceptions.filter";
 import { UsersModule } from "@/apis/users/users.module";
 import { AuthModule } from "@/apis/auth/auth.module";
 import { AdminModule } from "@/apis/admin/admin.module";
@@ -28,12 +29,12 @@ import { WebsocketModule } from "./presentation/websocket.module";
     ThrottlerModule.forRoot([
       {
         name: "short",
-        ttl: 1000,
+        ttl: 10000,
         limit: 3,
       },
       {
         name: "long",
-        ttl: 60000,
+        ttl: 600000,
         limit: 100,
       },
     ]),
@@ -58,6 +59,10 @@ import { WebsocketModule } from "./presentation/websocket.module";
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionsFilter,
     },
   ],
 })
