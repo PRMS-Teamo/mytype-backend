@@ -56,7 +56,12 @@ export class TeamsController {
   @UseGuards(JwtAuthGuard)
   @ApiOkResponse({ type: UnifiedTeamDto })
   async getTeam(@Param("teamId") teamId: string): Promise<UnifiedTeamDto> {
-    return this.teamsService.getTeam(teamId);
+    try {
+      return this.teamsService.getTeam(teamId);
+    } catch (error) {
+      console.error(`Error getting team with ID: ${teamId}`, error);
+      throw error;
+    }
   }
 
   @Patch("me")

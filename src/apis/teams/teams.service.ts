@@ -106,6 +106,19 @@ export class TeamsService {
     teamId: string,
     tx?: PostgresService | TxClient,
   ): Promise<UnifiedTeamDto> {
+    // UUID 유효성 검사
+    if (!teamId || teamId.trim() === "") {
+      throw new Error("Team ID is required");
+    }
+
+    // UUID 형식 검사 (32자리 hex 문자열)
+    const uuidRegex = /^[0-9a-f]{32}$/i;
+    if (!uuidRegex.test(teamId)) {
+      throw new Error(
+        `Invalid Team ID format: ${teamId}. Expected 32-character hex string.`,
+      );
+    }
+
     const team = await (tx || this.postgresService).teams.findUnique({
       where: { id: teamId },
       select: {
@@ -616,9 +629,13 @@ export class TeamsService {
         const team = await tx.teams.findFirst({
           where: {
             user_id: userId,
+            recruit_status: "OPEN" as recruit_status,
+            is_public: true,
           },
           select: {
             id: true,
+            is_public: true,
+            recruit_status: true,
           },
         });
         if (!team?.id) {
@@ -628,6 +645,8 @@ export class TeamsService {
             statusCode: 404,
           });
         }
+        console.log("===================abcd===================");
+        console.log("team", JSON.stringify(team));
         const teamId = team.id;
         const teamPositions = await tx.team_positions.findMany({
           where: {
@@ -682,16 +701,21 @@ export class TeamsService {
             },
           });
         }
-        await tx.teams.update({
+        const completedTeam = await tx.teams.update({
           where: {
             id: teamId,
           },
           data: {
             recruit_status: "CLOSE",
+            is_public: false,
           },
         });
-
-        return { message: "팀 완료" };
+        console.log("===================completedTeam===================");
+        console.log("completedTeam", completedTeam);
+        return {
+          message: "팀 완료",
+          completedTeam: JSON.stringify(completedTeam),
+        };
       },
     );
   }

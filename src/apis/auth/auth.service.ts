@@ -248,7 +248,6 @@ export class AuthService {
       );
     }
 
-    // 사용자 인증 정보 생성 (카카오 토큰 포함)
     await this.postgresService.user_auths.create({
       data: {
         user_id: newUser.id,

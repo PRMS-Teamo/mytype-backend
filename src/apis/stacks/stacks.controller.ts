@@ -1,8 +1,12 @@
-import { Controller, Get, Param, Query, UseGuards } from "@nestjs/common";
+import { Controller, Get, Param, UseGuards } from "@nestjs/common";
 import { StacksService } from "./stacks.service";
 import { JwtAuthGuard } from "@/apis/auth/guard/jwt-auth.guard";
 import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { StacksResponse } from "./utils/stack-mapping.util";
+import {
+  Pagination,
+  PaginationMeta,
+} from "../shared/decorator/pagination.decorator";
 
 @ApiTags("stacks")
 @Controller("stacks")
@@ -33,14 +37,16 @@ export class StacksController {
     },
   })
   async findAll(
-    @Query("page") page: string = "1",
-    @Query("limit") limit: string = "20",
+    @Pagination({ optional: true }) pagination: PaginationMeta,
   ): Promise<StacksResponse> {
-    const pageNum = parseInt(page, 10);
-    const limitNum = parseInt(limit, 10);
-    const start = (pageNum - 1) * limitNum;
-    const end = start + limitNum;
-    return await this.stacksService.getAllStacksWithMapping(start, end);
+    if (pagination.enabled) {
+      return await this.stacksService.getAllStacksWithMapping(
+        pagination.skip,
+        pagination.take,
+      );
+    } else {
+      return await this.stacksService.getAllStacksWithMapping();
+    }
   }
 
   @Get(":name")

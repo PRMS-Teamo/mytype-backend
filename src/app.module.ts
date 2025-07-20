@@ -15,7 +15,7 @@ import { HealthModule } from "@/apis/health/health.module";
 import { StacksModule } from "@/apis/stacks/stacks.module";
 import { PositionsModule } from "@/apis/positions/positions.module";
 import { BumpsModule } from "@/apis/bumps/bumps.module";
-import { SchedulerModule } from "@/infrastructure/scheduler/scheduler.module";
+
 import { FilesModule } from "@/infrastructure/storage/files/files.module";
 import { ImagesModule } from "@/apis/images/images.module";
 import { WebsocketModule } from "./presentation/websocket.module";
@@ -48,7 +48,6 @@ import { WebsocketModule } from "./presentation/websocket.module";
     StacksModule,
     PositionsModule,
     BumpsModule,
-    SchedulerModule,
     FilesModule,
     ImagesModule,
     WebsocketModule,
