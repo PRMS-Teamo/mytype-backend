@@ -111,14 +111,6 @@ export class TeamsService {
       throw new Error("Team ID is required");
     }
 
-    // UUID 형식 검사 (32자리 hex 문자열)
-    const uuidRegex = /^[0-9a-f]{32}$/i;
-    if (!uuidRegex.test(teamId)) {
-      throw new Error(
-        `Invalid Team ID format: ${teamId}. Expected 32-character hex string.`,
-      );
-    }
-
     const team = await (tx || this.postgresService).teams.findUnique({
       where: { id: teamId },
       select: {
