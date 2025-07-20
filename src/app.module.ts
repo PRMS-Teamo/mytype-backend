@@ -34,7 +34,7 @@ import { WebsocketModule } from "./presentation/websocket.module";
       },
       {
         name: "long",
-        ttl: 60000,
+        ttl: 600000,
         limit: 100,
       },
     ]),
