@@ -22,7 +22,6 @@ export class AuthService {
     private readonly usersService: UsersService,
   ) {}
 
-  // 카카오 Access Token 유효성 검증
   async validateKakaoToken(accessToken: string): Promise<any> {
     try {
       const response = await axios.get(
@@ -44,7 +43,6 @@ export class AuthService {
     }
   }
 
-  // 카카오 토큰 갱신
   async refreshKakaoToken(
     refreshToken: string,
   ): Promise<{ accessToken: string; refreshToken?: string }> {
@@ -77,7 +75,6 @@ export class AuthService {
     }
   }
 
-  // 카카오 사용자 정보 조회 (토큰 자동 갱신 포함)
   async getKakaoUserInfo(
     accessToken: string,
     refreshToken?: string,
@@ -165,7 +162,6 @@ export class AuthService {
       user = userAuth.users;
       status = "EXISTING";
 
-      // 기존 사용자의 카카오 토큰 업데이트
       if (
         userProfile._rawData?.accessToken ||
         userProfile._rawData?.refreshToken
@@ -190,11 +186,9 @@ export class AuthService {
       status = "NEW";
     }
 
-    // 사용자 정보를 camelCase로 변환
     const transformedUser = await this.usersService.findUserByUserId(user.id);
     const camelCaseUser = mapDbFormatToGetDto(transformedUser);
 
-    // userId가 undefined인 경우 처리
     if (!camelCaseUser.id) {
       throw new BadRequestException("사용자 ID를 찾을 수 없습니다.");
     }
@@ -208,7 +202,7 @@ export class AuthService {
     return {
       tokens,
       status,
-      user: camelCaseUser, // 테스트 로그인과 동일한 user 객체 포함
+      user: camelCaseUser,
     };
   }
 
@@ -222,11 +216,10 @@ export class AuthService {
       refreshToken?: string;
     };
   }) {
-    // usersService.createUser를 사용하여 테스트 로그인과 동일한 방식으로 사용자 생성
     const newUser = await this.usersService.createUser({
       name: userProfile.name,
       nickname: userProfile.name,
-      isPublic: false, // 소셜 로그인 기본값
+      isPublic: false,
       proceedType: "ONLINE",
       userStacks: [],
       description: "",
@@ -237,7 +230,6 @@ export class AuthService {
       location: "",
     } as CreateUserReqDto);
 
-    // 인증 방법 조회
     const authMethod = await this.postgresService.auth_methods.findFirst({
       where: { provider: userProfile.provider || "kakao" },
     });
@@ -310,7 +302,6 @@ export class AuthService {
   }
 
   async createOrGetTestUser(userProfile: SocialUserProfile) {
-    // 기존 사용자 확인
     const existingUser = await this.postgresService.user_auths.findFirst({
       where: {
         external_id: userProfile.externalId,
@@ -331,7 +322,6 @@ export class AuthService {
       return mapDbFormatToGetDto(user);
     }
 
-    // 새 사용자 생성
     const testUser = await this.usersService.createUser({
       name: userProfile.name,
       nickname: userProfile.displayName || userProfile.name,
@@ -339,14 +329,13 @@ export class AuthService {
       proceedType: "ONLINE",
       userStacks: [],
       description: "",
-      positionId: undefined, // 빈 문자열 대신 undefined 사용
+      positionId: undefined,
       email: userProfile.email,
       github: "",
       profileImage: "",
       location: "",
     } as CreateUserReqDto);
 
-    // 인증 방법 조회
     const authMethod = await this.postgresService.auth_methods.findFirst({
       where: {
         provider: "kakao",
@@ -357,7 +346,6 @@ export class AuthService {
       throw new BadRequestException("카카오 인증 방법을 찾을 수 없습니다.");
     }
 
-    // 사용자 인증 정보 생성
     const userAuth = await this.postgresService.user_auths.create({
       data: {
         user_id: testUser.id,
@@ -372,12 +360,10 @@ export class AuthService {
       );
     }
 
-    // DB에서 생성된 사용자 정보를 다시 조회하여 camelCase로 변환
     const createdUser = await this.usersService.findUserByUserId(testUser.id);
     return mapDbFormatToGetDto(createdUser);
   }
 
-  // 카카오 로그아웃 (카카오 서버에서 토큰 무효화)
   async logoutFromKakao(accessToken: string): Promise<void> {
     try {
       await axios.post(
@@ -390,7 +376,6 @@ export class AuthService {
         },
       );
     } catch (error) {
-      // 로그아웃 실패해도 로컬에서는 토큰을 제거하도록 함
       console.error(
         "카카오 로그아웃 중 오류:",
         error.response?.data || error.message,
@@ -398,7 +383,6 @@ export class AuthService {
     }
   }
 
-  // 카카오 연결 끊기 (회원 탈퇴)
   async unlinkFromKakao(accessToken: string): Promise<void> {
     try {
       await axios.post(
@@ -417,7 +401,6 @@ export class AuthService {
     }
   }
 
-  // 카카오 동의 항목 확인
   async checkKakaoScopes(accessToken: string, scopes?: string[]): Promise<any> {
     try {
       const params = new URLSearchParams();
@@ -442,7 +425,6 @@ export class AuthService {
     }
   }
 
-  // DB에서 카카오 토큰 조회
   async getKakaoTokens(
     userId: string,
   ): Promise<{ accessToken?: string; refreshToken?: string } | null> {
@@ -462,13 +444,11 @@ export class AuthService {
     };
   }
 
-  // 전체 로그아웃 (로컬 + 카카오) - DB에서 토큰 조회
   async fullLogout(userId: string): Promise<void> {
     console.log("++++++++++++++++++++++++++++++fullLogout", userId);
     if (!userId) {
       throw new BadRequestException("사용자 ID가 없습니다.");
     }
-    // 1. DB에서 카카오 토큰 조회
     const kakaoTokens = await this.getKakaoTokens(userId);
     console.log("++++++++++++++++++++++++++++++kakaoTokens", kakaoTokens);
     console.log(
@@ -476,10 +456,8 @@ export class AuthService {
       kakaoTokens?.accessToken,
     );
     if (kakaoTokens?.accessToken) {
-      // 2. 카카오 서버에서 로그아웃
       await this.logoutFromKakao(kakaoTokens.accessToken);
 
-      // 3. DB에서 카카오 토큰 제거
       await this.postgresService.user_auths.updateMany({
         where: { user_id: userId },
         data: {
@@ -491,19 +469,15 @@ export class AuthService {
       throw new BadRequestException("카카오 토큰이 없습니다.");
     }
 
-    // 4. 로컬 refresh token 제거
     await this.removeRefreshToken(userId);
   }
 
-  // 기존 메서드 (클라이언트에서 토큰을 받는 방식) - 하위 호환성 유지
   async fullLogoutWithToken(
     accessToken: string,
     userId: string,
   ): Promise<void> {
-    // 1. 카카오 서버에서 로그아웃
     await this.logoutFromKakao(accessToken);
 
-    // 2. DB에서 카카오 토큰 제거
     await this.postgresService.user_auths.updateMany({
       where: { user_id: userId },
       data: {
@@ -512,7 +486,6 @@ export class AuthService {
       },
     });
 
-    // 3. 로컬 refresh token 제거
     await this.removeRefreshToken(userId);
   }
 }

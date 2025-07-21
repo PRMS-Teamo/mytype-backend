@@ -129,3 +129,9 @@ nest-cli.json
 .env
 ex.json
 teams.json
+
+# Jest
+test-results/
+
+# Jest E2E
+test/jest-e2e.json

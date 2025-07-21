@@ -8,7 +8,7 @@ import { Injectable } from "@nestjs/common";
 import { PostgresService } from "@/infrastructure/database/postgres/postgres.service";
 import { BasePostgresRepository } from "@/infrastructure/database/postgres/repositories/base.postgres.repository";
 
-// 타입 정의 (실제 사용시에는 별도 파일로 분리)
+// 타입 정의
 interface BaseQueryOptions {
   skip?: number;
   take?: number;

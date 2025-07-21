@@ -20,14 +20,14 @@ export function mapUserToDbFormat(user: Partial<User>) {
   return {
     nickname: user.nickname,
     email: user.email,
-    github_id: user.github, // github -> github_id
-    img_url: user.profileImage, // profileImage -> img_url
-    address: user.location, // location -> address
-    is_public: user.isPublic, // isPublic -> is_public
-    position_id: user.positionId, // positionId -> position_id
-    description: user.description, // description -> description
-    proceed_type: user.proceedType, // proceedType -> proceed_type
-    user_stacks: user.userStacks, // userStacks -> user_stacks
+    github_id: user.github,
+    img_url: user.profileImage,
+    address: user.location,
+    is_public: user.isPublic,
+    position_id: user.positionId,
+    description: user.description,
+    proceed_type: user.proceedType,
+    user_stacks: user.userStacks,
   };
 }
 
@@ -38,17 +38,17 @@ export function mapCreateDtoToDbFormat(dto: CreateUserReqDto) {
   return {
     nickname: dto.nickname,
     email: dto.email,
-    github_id: dto.github, // github -> github_id
-    img_url: dto.profileImage, // profileImage -> img_url
-    address: dto.location, // location -> address
-    is_public: dto.isPublic ?? false, // isPublic -> is_public
+    github_id: dto.github,
+    img_url: dto.profileImage,
+    address: dto.location,
+    is_public: dto.isPublic ?? false,
     position_id:
-      dto.positionId && dto.positionId.trim() !== "" ? dto.positionId : null, // positionId -> position_id (빈 문자열은 null로)
-    description: dto.description, // description -> description
-    proceed_type: dto.proceedType ?? "ONLINE", // proceedType -> proceed_type
+      dto.positionId && dto.positionId.trim() !== "" ? dto.positionId : null,
+    description: dto.description,
+    proceed_type: dto.proceedType ?? "ONLINE",
     name: dto.name,
-    role: "USER", // 기본 역할
-    join_status: false, // 새 사용자는 기본적으로 미가입 상태
+    role: "USER",
+    join_status: false,
     create_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
@@ -66,44 +66,37 @@ export function mapUpdateDtoToDbFormat(dto: UpdateUserReqDto) {
     mapped.nickname = dto.nickname;
   }
 
-  // github는 필수 필드이므로 항상 포함
   mapped.github_id = dto.github;
-  console.log("🔍 github_id 매핑:", dto.github);
 
   if (dto.imgId !== undefined) {
-    mapped.img_id = dto.imgId && dto.imgId.trim() !== "" ? dto.imgId : null; // imgId -> img_id
+    mapped.img_id = dto.imgId && dto.imgId.trim() !== "" ? dto.imgId : null;
   }
   if (dto.profileImage !== undefined) {
-    mapped.img_url = dto.profileImage; // profileImage -> img_url
+    mapped.img_url = dto.profileImage;
   }
   if (dto.location !== undefined) {
-    mapped.address = dto.location; // location -> address
+    mapped.address = dto.location;
   }
   if (dto.isPublic !== undefined) {
-    mapped.is_public = dto.isPublic; // isPublic -> is_public
+    mapped.is_public = dto.isPublic;
   }
   if (dto.positionId !== undefined) {
     mapped.position_id =
       dto.positionId && dto.positionId.trim() !== "" ? dto.positionId : null;
   }
 
-  // description은 필수 필드이므로 항상 포함
   mapped.description = dto.description;
-  console.log("🔍 description 매핑:", dto.description);
 
   if (dto.proceedType !== undefined) {
-    mapped.proceed_type = dto.proceedType; // proceedType -> proceed_type
+    mapped.proceed_type = dto.proceedType;
   }
   if (dto.name !== undefined) {
     mapped.name = dto.name;
   }
 
-  // 항상 업데이트 시간 갱신
   mapped.updated_at = new Date().toISOString();
 
-  // userStacks는 필수 필드이므로 항상 처리
   const result = { ...mapped };
-  console.log("🔍 userStacks 원본:", dto.userStacks);
 
   if (typeof dto.userStacks[0] === "string") {
     result.user_stacks = dto.userStacks as string[];
@@ -116,7 +109,6 @@ export function mapUpdateDtoToDbFormat(dto: UpdateUserReqDto) {
     });
   }
 
-  console.log("🔍 최종 매핑 결과:", result);
   return result;
 }
 
@@ -140,12 +132,11 @@ export function mapUserStacksToStackIds(
 }
 
 /**
- * 속성 이름 매핑 상수 - User 엔티티 기준
+ * 속성 이름 매핑 상수
  */
 export const USER_FIELD_MAPPING = {
-  // User 엔티티 -> DB 매핑
   toDb: {
-    github: "github_id", // github -> github_id
+    github: "github_id",
     profileImage: "img_url",
     location: "address",
     isPublic: "is_public",
@@ -153,9 +144,8 @@ export const USER_FIELD_MAPPING = {
     positionId: "position_id",
     userStacks: "user_stacks",
   },
-  // DB -> User 엔티티 매핑
   toEntity: {
-    github_id: "github", // github_id -> github
+    github_id: "github",
     img_url: "profileImage",
     address: "location",
     is_public: "isPublic",

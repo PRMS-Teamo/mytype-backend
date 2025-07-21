@@ -14,7 +14,7 @@ import { RedisService } from "./redis.service";
         port: configService.get("REDIS_PORT", 6379),
         password: configService.get("REDIS_PASSWORD"),
         db: configService.get("REDIS_DB", 0),
-        ttl: 60 * 60 * 24, // 24시간
+        ttl: 60 * 60 * 24,
       }),
       inject: [ConfigService],
     }),

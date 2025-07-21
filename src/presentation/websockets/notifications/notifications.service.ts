@@ -39,17 +39,14 @@ export class NotificationsService {
         },
       });
 
-      // Redis 캐시 무효화
       await this.redisService.invalidateUserNotifications(
         createNotificationDto.userId,
       );
 
-      // 읽지 않은 알림 개수 증가
       await this.redisService.incrementUnreadCount(
         createNotificationDto.userId,
       );
 
-      // WebSocket으로 실시간 알림 전송
       await this.notificationsGateway.notifyUser(createNotificationDto.userId, {
         id: notification.id,
         type: notification.type,

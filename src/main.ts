@@ -7,13 +7,10 @@ import { corsConfig } from "./infrastructure/config/cors.config";
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // CORS 설정 적용
   app.enableCors(corsConfig());
 
-  // 쿠키 파서 미들웨어 추가 (Express 내장 기능 사용)
   app.use(cookieParser());
 
-  // swagger
   const config = new DocumentBuilder()
     .setTitle("MyType API")
     .setDescription("MyType API 입니다.")

@@ -4,14 +4,15 @@ import { AuthenticatedUser } from "@/apis/auth/types/authenticated-user.interfac
 /**
  * User 엔티티 - AuthenticatedUser를 클라이언트 친화적 형태로 변환
  * 이 엔티티를 기준으로 모든 DTO들이 확장됩니다.
+ * -> 아니야 prisma mapper로 바꿀거임
  */
 export class User {
   constructor(user: AuthenticatedUser) {
-    // AuthenticatedUser -> User 매핑 (클라이언트 친화적 속성명으로 변환)
+    // AuthenticatedUser -> User 매핑
     this.id = user.id;
     this.nickname = user.nickname ?? undefined;
     this.email = user.email ?? undefined;
-    this.github = user.github_id ?? undefined; // github_id -> github (클라이언트 친화적)
+    this.github = user.github_id ?? undefined; // github_id -> github
     this.imgId = user.img_id ?? undefined; // img_id -> imgId
     this.profileImage = user.img_url ?? undefined; // img_url -> profileImage
     this.location = user.address ?? undefined; // address -> location

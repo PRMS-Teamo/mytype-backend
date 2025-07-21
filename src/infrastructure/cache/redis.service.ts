@@ -11,14 +11,11 @@ export class RedisService implements OnModuleInit {
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
 
   onModuleInit() {
-    // 모듈 초기화 시 Redis 클라이언트 설정
     try {
-      // cache-manager-redis-store의 클라이언트에 접근
       const store = (this.cacheManager as any).store;
       if (store && store.client) {
         this.redis = store.client;
       } else {
-        // 직접 Redis 클라이언트 생성
         this.redis = new Redis({
           host: process.env.REDIS_HOST || "localhost",
           port: parseInt(process.env.REDIS_PORT || "6379", 10),
@@ -33,10 +30,9 @@ export class RedisService implements OnModuleInit {
     }
   }
 
-  // WebSocket 연결 관리
   async setUserSocket(userId: string, socketId: string): Promise<void> {
     const key = `user:socket:${userId}`;
-    await this.redis.set(key, socketId, "EX", 60 * 60 * 24); // 24시간 만료
+    await this.redis.set(key, socketId, "EX", 60 * 60 * 24);
   }
 
   async getUserSocket(userId: string): Promise<string | null> {
@@ -49,13 +45,12 @@ export class RedisService implements OnModuleInit {
     await this.redis.del(key);
   }
 
-  // 알림 캐싱
   async cacheUserNotifications(
     userId: string,
     notifications: unknown[],
   ): Promise<void> {
     const key = `notifications:${userId}`;
-    await this.redis.setex(key, 60 * 30, JSON.stringify(notifications)); // 30분 캐시
+    await this.redis.setex(key, 60 * 30, JSON.stringify(notifications));
   }
 
   async getCachedNotifications(userId: string): Promise<unknown[] | null> {
@@ -72,7 +67,7 @@ export class RedisService implements OnModuleInit {
   // 읽지 않은 알림 개수
   async setUnreadCount(userId: string, count: number): Promise<void> {
     const key = `unread:${userId}`;
-    await this.redis.setex(key, 60 * 60, count.toString()); // 1시간 캐시
+    await this.redis.setex(key, 60 * 60, count.toString());
   }
 
   async getUnreadCount(userId: string): Promise<number> {
@@ -91,7 +86,6 @@ export class RedisService implements OnModuleInit {
     return await this.redis.decr(key);
   }
 
-  // Redis 클라이언트 직접 접근
   getRedisClient(): Redis {
     return this.redis;
   }

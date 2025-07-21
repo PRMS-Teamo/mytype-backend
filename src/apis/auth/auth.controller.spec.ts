@@ -14,10 +14,10 @@ describe("AuthController", () => {
       providers: [
         {
           provide: AuthService,
-          useClass: AuthService, // 진짜 AuthService 사용
+          useClass: AuthService,
         },
         {
-          provide: JwtService, // sign 한 값이 'mockToken' 이 되도록 임의 설정
+          provide: JwtService,
           useValue: {
             sign: jest.fn(() => "mockToken"),
             verify: jest.fn(),
